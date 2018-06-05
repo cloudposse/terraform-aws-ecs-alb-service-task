@@ -1,32 +1,30 @@
-# TODO: (input) Create ACM cert outside of this module
-
-# TODO: use `terraform-terraform-label` to generate all labels.
-
-# TODO: (output) security group IDs
-
-#module "container_definition" {
-#  source    = "git::https://github.com/cloudposse/terraform-aws-ecs-container-definition.git?ref=init"
-#  container_name      = "app"
-#  container_image    = "nginx"
-#}
+module "label" {
+  source     = "github.com/cloudposse/terraform-terraform-label.git?ref=master"
+  attributes = "${var.attributes}"
+  delimiter  = "${var.delimiter}"
+  name       = "${var.name}"
+  namespace  = "${var.namespace}"
+  stage      = "${var.stage}"
+  tags       = "${var.tags}"
+}
 
 # ECR repository
 resource "aws_ecr_repository" "app" {
-  name = "${var.app_name}"
+  name = "${module.label.id}"
 }
 
 # Cloudwatch Log Group
 resource "aws_cloudwatch_log_group" "app" {
-  name = "${var.app_name}"
+  name = "${module.label.id}"
 
   tags {
-    Stage = "${var.stage}"
-    Application = "${var.app_name}"
+    Stage       = "${module.label.stage}"
+    Application = "${module.label.name}"
   }
 }
 
 # ECS Task def
-data "template_file" "web_task" {
+data "template_file" "default_task" {
   template = "${file("task_definition.json")}"
 
   vars {
@@ -35,13 +33,13 @@ data "template_file" "web_task" {
   }
 }
 
-resource "aws_ecs_task_definition" "web" {
-  family                = "${var.stage}_web"
-  container_definitions = "${data.template_file.web_task.rendered}"
+resource "aws_ecs_task_definition" "default" {
+  family                = "${var.family}"
+  container_definitions = "${data.template_file.default_task.rendered}"
 
   #container_definitions = "${module.container_definition.container_definitions}"
-  requires_compatibilities = ["FARGATE"]
-  network_mode             = "awsvpc"
+  requires_compatibilities = ["${var.launch_type}"]
+  network_mode             = "${var.network_mode}"
   cpu                      = "${var.task_cpu}"
   memory                   = "${var.task_memory}"
   execution_role_arn       = "${aws_iam_role.ecs_execution_role.arn}"
@@ -56,7 +54,7 @@ resource "random_id" "target_group_suffix" {
 }
 
 resource "aws_alb_target_group" "alb_target_group" {
-  name        = "${var.stage}-alb-target-group-${random_id.target_group_suffix.hex}"
+  name        = "${module.label.stage}-alb-target-group-${random_id.target_group_suffix.hex}"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = "${var.vpc_id}"
@@ -115,6 +113,7 @@ data "aws_iam_policy_document" "ecs_service_policy" {
 
 resource "aws_iam_role_policy" "ecs_service_role_policy" {
   name = "ecs_service_role_policy"
+
   #policy = "${file("${path.module}/policies/ecs-service-role.json")}"
   policy = "${data.aws_iam_policy_document.ecs_service_policy.json}"
   role   = "${aws_iam_role.ecs_role.id}"
@@ -136,13 +135,13 @@ resource "aws_iam_role_policy" "ecs_execution_role_policy" {
 # FIXME: move this out to examples/ and just pass in the id?
 ##  ECS cluster
 resource "aws_ecs_cluster" "cluster" {
-  name = "${var.stage}-ecs-cluster"
+  name = "${module.label.stage}-ecs-cluster"
 }
 
 ## Security Groups
 resource "aws_security_group" "ecs_service" {
   vpc_id      = "${var.vpc_id}"
-  name        = "${var.stage}-ecs-service-sg"
+  name        = "${module.label.stage}-ecs-service"
   description = "Allow egress from container"
 
   egress {
@@ -160,19 +159,19 @@ resource "aws_security_group" "ecs_service" {
   }
 
   tags {
-    Name  = "${var.stage}-ecs-service-sg"
-    Stage = "${var.stage}"
+    Name  = "${module.label.stage}-ecs-service"
+    Stage = "${module.label.stage}"
   }
 }
 
-data "aws_ecs_task_definition" "web" {
-  depends_on      = ["aws_ecs_task_definition.web"]
-  task_definition = "${aws_ecs_task_definition.web.family}"
+data "aws_ecs_task_definition" "default" {
+  depends_on      = ["aws_ecs_task_definition.default"]
+  task_definition = "${aws_ecs_task_definition.default.family}"
 }
 
-resource "aws_ecs_service" "web" {
-  name            = "${var.stage}-web"
-  task_definition = "${aws_ecs_task_definition.web.family}:${max(aws_ecs_task_definition.web.revision, data.aws_ecs_task_definition.web.revision)}"
+resource "aws_ecs_service" "default" {
+  name            = "${module.label.id}"
+  task_definition = "${aws_ecs_task_definition.default.family}:${max(aws_ecs_task_definition.default.revision, data.aws_ecs_task_definition.default.revision)}"
   desired_count   = "${var.desired_count}"
   launch_type     = "FARGATE"
   cluster         = "${aws_ecs_cluster.cluster.id}"
@@ -185,7 +184,7 @@ resource "aws_ecs_service" "web" {
 
   load_balancer {
     target_group_arn = "${aws_alb_target_group.alb_target_group.arn}"
-    container_name   = "web"
+    container_name   = "default"
     container_port   = "80"
   }
 

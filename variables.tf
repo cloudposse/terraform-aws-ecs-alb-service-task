@@ -1,5 +1,31 @@
-variable "app_name" {
-  description = "The name of the app."
+variable "name" {
+  description = "The name of the app to be used in labels."
+  default     = "app"
+}
+
+variable "namespace" {
+  description = "The namespace to be used in labels."
+  default     = "global"
+}
+
+variable "delimiter" {
+  description = "The delimiter to be used in labels."
+  default     = "-"
+}
+
+variable "stage" {
+  description = "Stage to be used in labels."
+  default     = "default"
+}
+
+variable "attributes" {
+  type    = "list"
+  default = []
+}
+
+variable "tags" {
+  type    = "map"
+  default = {}
 }
 
 variable "vpc_id" {
@@ -8,10 +34,6 @@ variable "vpc_id" {
 
 variable "alb_arn" {
   description = "The ALB arn where listener and target group will be created."
-}
-
-variable "stage" {
-  description = "Stage of the resources."
 }
 
 variable "private_subnet_ids" {
@@ -33,8 +55,19 @@ variable "desired_count" {
   default     = 1
 }
 
+variable "family" {
+  description = "The name used for multiple versions of a task definition."
+  default     = "web"
+}
+
 variable "launch_type" {
   description = "The launch type on which to run your service. Valid values are EC2 and FARGATE."
+  default     = "FARGATE"
+}
+
+variable "network_mode" {
+  description = "The network mode to use for the task. This is required to be awsvpc for FARGATE launch_type."
+  default     = "awsvpc"
 }
 
 variable "task_cpu" {
