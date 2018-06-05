@@ -28,7 +28,7 @@ variable "public_subnet_ids" {
 
 variable "desired_count" {
   description = "The number of instances of the task definition to place and keep running."
-  default = 1
+  default     = 1
 }
 
 variable "service_name" {
@@ -41,10 +41,10 @@ variable "launch_type" {
 
 variable "task_cpu" {
   description = "The number of CPU units used by the task. If using Fargate launch type task_cpu must match supported memory values (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size)."
-  default = 256
+  default     = 256
 }
 
 variable "task_memory" {
   description = "The amount of memory (in MiB) used by the task. If using Fargate launch type task_memory must match supported cpu value (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size)."
-  default = 512
+  default     = 512
 }

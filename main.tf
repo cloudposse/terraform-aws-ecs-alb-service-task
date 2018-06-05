@@ -12,26 +12,26 @@
 #  container_image    = "nginx"
 #}
 
-
 # ECR repository
 resource "aws_ecr_repository" "app" {
   name = "${var.app_name}"
 }
-
 
 # ECS Task def
 data "template_file" "web_task" {
   template = "${file("task_definition.json")}"
 
   vars {
-    image           = "${aws_ecr_repository.app.repository_url}"
+    image = "${aws_ecr_repository.app.repository_url}"
+
     #log_group       = "${aws_cloudwatch_log_group.app.name}"
   }
 }
 
 resource "aws_ecs_task_definition" "web" {
-  family                   = "${var.stage}_web"
-  container_definitions    = "${data.template_file.web_task.rendered}"
+  family                = "${var.stage}_web"
+  container_definitions = "${data.template_file.web_task.rendered}"
+
   #container_definitions = "${module.container_definition.container_definitions}"
   requires_compatibilities = ["FARGATE"]
   network_mode             = "awsvpc"
@@ -49,10 +49,10 @@ resource "random_id" "target_group_sufix" {
 }
 
 resource "aws_alb_target_group" "alb_target_group" {
-  name     = "${var.stage}-alb-target-group-${random_id.target_group_sufix.hex}"
-  port     = 80
-  protocol = "HTTP"
-  vpc_id   = "${var.vpc_id}"
+  name        = "${var.stage}-alb-target-group-${random_id.target_group_sufix.hex}"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = "${var.vpc_id}"
   target_type = "ip"
 
   lifecycle {
@@ -76,10 +76,11 @@ resource "aws_alb_listener" "app" {
 # IAM
 data "aws_iam_policy_document" "ecs_service_role" {
   statement {
-    effect = "Allow"
+    effect  = "Allow"
     actions = ["sts:AssumeRole"]
+
     principals {
-      type = "Service"
+      type        = "Service"
       identifiers = ["ecs.amazonaws.com"]
     }
   }
@@ -92,20 +93,22 @@ resource "aws_iam_role" "ecs_role" {
 
 data "aws_iam_policy_document" "ecs_service_policy" {
   statement {
-    effect = "Allow"
+    effect    = "Allow"
     resources = ["*"]
+
     actions = [
       "elasticloadbalancing:Describe*",
       "elasticloadbalancing:DeregisterInstancesFromLoadBalancer",
       "elasticloadbalancing:RegisterInstancesWithLoadBalancer",
       "ec2:Describe*",
-      "ec2:AuthorizeSecurityGroupIngress"
+      "ec2:AuthorizeSecurityGroupIngress",
     ]
   }
 }
 
 resource "aws_iam_role_policy" "ecs_service_role_policy" {
-  name   = "ecs_service_role_policy"
+  name = "ecs_service_role_policy"
+
   #policy = "${file("${path.module}/policies/ecs-service-role.json")}"
   policy = "${data.aws_iam_policy_document.ecs_service_policy.json}"
   role   = "${aws_iam_role.ecs_role.id}"
@@ -116,12 +119,12 @@ resource "aws_iam_role" "ecs_execution_role" {
   name               = "ecs_task_execution_role"
   assume_role_policy = "${file("${path.module}/policies/ecs-task-execution-role.json")}"
 }
+
 resource "aws_iam_role_policy" "ecs_execution_role_policy" {
   name   = "ecs_execution_role_policy"
   policy = "${file("${path.module}/policies/ecs-execution-role-policy.json")}"
   role   = "${aws_iam_role.ecs_execution_role.id}"
 }
-
 
 # Service
 ##  ECS cluster
@@ -150,7 +153,7 @@ resource "aws_security_group" "ecs_service" {
   }
 
   tags {
-    Name        = "${var.stage}-ecs-service-sg"
+    Name  = "${var.stage}-ecs-service-sg"
     Stage = "${var.stage}"
   }
 }
@@ -164,7 +167,7 @@ resource "aws_ecs_service" "web" {
   task_definition = "${aws_ecs_task_definition.web.family}:${max("${aws_ecs_task_definition.web.revision}", "${data.aws_ecs_task_definition.web.revision}")}"
   desired_count   = "${var.desired_count}"
   launch_type     = "FARGATE"
-  cluster =       "${aws_ecs_cluster.cluster.id}"
+  cluster         = "${aws_ecs_cluster.cluster.id}"
   depends_on      = ["aws_iam_role_policy.ecs_service_role_policy"]
 
   network_configuration {
@@ -180,4 +183,3 @@ resource "aws_ecs_service" "web" {
 
   depends_on = ["aws_alb_target_group.alb_target_group"]
 }
-
