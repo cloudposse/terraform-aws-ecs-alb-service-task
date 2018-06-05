@@ -16,10 +16,12 @@ variable "stage" {
 
 variable "private_subnet_ids" {
   description = "Private subnet ids."
+  type        = "list"
 }
 
-variable "public_subnet_ids" {
-  description = "Private subnet ids."
+variable "security_group_ids" {
+  description = "Security group IDs to allow in Service network_configuration."
+  type        = "list"
 }
 
 #variable "acm_arn" {
@@ -29,10 +31,6 @@ variable "public_subnet_ids" {
 variable "desired_count" {
   description = "The number of instances of the task definition to place and keep running."
   default     = 1
-}
-
-variable "service_name" {
-  description = "The name of the service (up to 255 letters, numbers, hyphens and underscores)."
 }
 
 variable "launch_type" {

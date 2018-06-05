@@ -1,23 +1,26 @@
 [
   {
     "name": "web",
-    "image": "nginx",
+    "image": "nginx:latest",
+    "essential": true,
     "portMappings": [
       {
         "containerPort": 80,
-        "hostPort": 80
+        "protocol": "tcp"
       }
     ],
-    "memory": 300,
+    "memory": 256,
     "networkMode": "awsvpc",
     "logConfiguration": {
       "logDriver": "awslogs",
       "options": {
         "awslogs-group": "${log_group}",
-        "awslogs-region": "${region}",
+        "awslogs-region": "us-west-2",
         "awslogs-stream-prefix": "web"
       }
     },
-    "environment": []
+    "environment": [
+      {"name": "NGINX_PORT", "value": "80"}
+    ]
   }
 ]

@@ -1,5 +1,3 @@
-# TODO: (input) Create VPC outside of this module
-# TODO: (input) Create Subnets (Private / Public) outside of this module
 # TODO: (input) Create ACM cert outside of this module
 
 # TODO: use `terraform-terraform-label` to generate all labels.
@@ -17,14 +15,23 @@ resource "aws_ecr_repository" "app" {
   name = "${var.app_name}"
 }
 
+# Cloudwatch Log Group
+resource "aws_cloudwatch_log_group" "app" {
+  name = "${var.app_name}"
+
+  tags {
+    Stage = "${var.stage}"
+    Application = "${var.app_name}"
+  }
+}
+
 # ECS Task def
 data "template_file" "web_task" {
   template = "${file("task_definition.json")}"
 
   vars {
-    image = "${aws_ecr_repository.app.repository_url}"
-
-    #log_group       = "${aws_cloudwatch_log_group.app.name}"
+    image     = "${aws_ecr_repository.app.repository_url}"
+    log_group = "${aws_cloudwatch_log_group.app.name}"
   }
 }
 
@@ -44,12 +51,12 @@ resource "aws_ecs_task_definition" "web" {
 # ALB
 
 ## Target Group
-resource "random_id" "target_group_sufix" {
+resource "random_id" "target_group_suffix" {
   byte_length = 2
 }
 
 resource "aws_alb_target_group" "alb_target_group" {
-  name        = "${var.stage}-alb-target-group-${random_id.target_group_sufix.hex}"
+  name        = "${var.stage}-alb-target-group-${random_id.target_group_suffix.hex}"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = "${var.vpc_id}"
@@ -108,7 +115,6 @@ data "aws_iam_policy_document" "ecs_service_policy" {
 
 resource "aws_iam_role_policy" "ecs_service_role_policy" {
   name = "ecs_service_role_policy"
-
   #policy = "${file("${path.module}/policies/ecs-service-role.json")}"
   policy = "${data.aws_iam_policy_document.ecs_service_policy.json}"
   role   = "${aws_iam_role.ecs_role.id}"
@@ -127,6 +133,7 @@ resource "aws_iam_role_policy" "ecs_execution_role_policy" {
 }
 
 # Service
+# FIXME: move this out to examples/ and just pass in the id?
 ##  ECS cluster
 resource "aws_ecs_cluster" "cluster" {
   name = "${var.stage}-ecs-cluster"
@@ -159,19 +166,20 @@ resource "aws_security_group" "ecs_service" {
 }
 
 data "aws_ecs_task_definition" "web" {
+  depends_on      = ["aws_ecs_task_definition.web"]
   task_definition = "${aws_ecs_task_definition.web.family}"
 }
 
 resource "aws_ecs_service" "web" {
   name            = "${var.stage}-web"
-  task_definition = "${aws_ecs_task_definition.web.family}:${max("${aws_ecs_task_definition.web.revision}", "${data.aws_ecs_task_definition.web.revision}")}"
+  task_definition = "${aws_ecs_task_definition.web.family}:${max(aws_ecs_task_definition.web.revision, data.aws_ecs_task_definition.web.revision)}"
   desired_count   = "${var.desired_count}"
   launch_type     = "FARGATE"
   cluster         = "${aws_ecs_cluster.cluster.id}"
   depends_on      = ["aws_iam_role_policy.ecs_service_role_policy"]
 
   network_configuration {
-    security_groups = ["${aws_security_group.ecs_service.id}"]
+    security_groups = ["${var.security_group_ids}", "${aws_security_group.ecs_service.id}"]
     subnets         = ["${var.private_subnet_ids}"]
   }
 
