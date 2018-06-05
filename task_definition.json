@@ -1,0 +1,23 @@
+[
+  {
+    "name": "web",
+    "image": "nginx",
+    "portMappings": [
+      {
+        "containerPort": 80,
+        "hostPort": 80
+      }
+    ],
+    "memory": 300,
+    "networkMode": "awsvpc",
+    "logConfiguration": {
+      "logDriver": "awslogs",
+      "options": {
+        "awslogs-group": "${log_group}",
+        "awslogs-region": "${region}",
+        "awslogs-stream-prefix": "web"
+      }
+    },
+    "environment": []
+  }
+]
