@@ -46,10 +46,6 @@ variable "security_group_ids" {
   type        = "list"
 }
 
-#variable "acm_arn" {
-#  description = "The arn of the ACM certificate."
-#}
-
 variable "desired_count" {
   description = "The number of instances of the task definition to place and keep running."
   default     = 1
