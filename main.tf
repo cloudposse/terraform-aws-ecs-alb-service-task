@@ -117,7 +117,7 @@ resource "aws_iam_role_policy" "ecs_service_role_policy" {
   role   = "${aws_iam_role.ecs_role.id}"
 }
 
-/* role that the Amazon ECS container agent and the Docker daemon can assume */
+# IAM role that the Amazon ECS container agent and the Docker daemon can assume
 data "aws_iam_policy_document" "ecs_task_execution_role" {
   statement {
     actions = ["sts:AssumeRole"]
@@ -198,7 +198,7 @@ resource "aws_ecs_service" "default" {
   name            = "${module.label.id}"
   task_definition = "${aws_ecs_task_definition.default.family}:${max(aws_ecs_task_definition.default.revision, data.aws_ecs_task_definition.default.revision)}"
   desired_count   = "${var.desired_count}"
-  launch_type     = "FARGATE"
+  launch_type     = "${var.launch_type}"
   cluster         = "${aws_ecs_cluster.cluster.id}"
   depends_on      = ["aws_iam_role_policy.ecs_service_role_policy"]
 
