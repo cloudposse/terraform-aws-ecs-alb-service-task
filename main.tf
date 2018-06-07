@@ -8,21 +8,6 @@ module "label" {
   tags       = "${var.tags}"
 }
 
-# Cloudwatch Log Group
-resource "aws_cloudwatch_log_group" "app" {
-  name = "${module.label.id}"
-
-  tags {
-    Stage       = "${module.label.stage}"
-    Application = "${module.label.name}"
-  }
-}
-
-# ECR repository
-data "aws_ecr_repository" "app" {
-  name = "${var.ecr_repository_name}"
-}
-
 resource "aws_ecs_task_definition" "default" {
   family                   = "${var.family}"
   container_definitions    = "${var.container_definition_json}"
@@ -43,8 +28,8 @@ resource "random_id" "target_group_suffix" {
 
 resource "aws_alb_target_group" "alb_target_group" {
   name        = "${module.label.id}-${random_id.target_group_suffix.hex}"
-  port        = 80
-  protocol    = "HTTP"
+  port        = "80" #FIXME: variable?
+  protocol    = "HTTP" #FIXME: variable?
   vpc_id      = "${var.vpc_id}"
   target_type = "ip"
 
@@ -56,9 +41,8 @@ resource "aws_alb_target_group" "alb_target_group" {
 ## Listener
 resource "aws_alb_listener" "app" {
   load_balancer_arn = "${var.alb_arn}"
-  port              = "80"
-  protocol          = "HTTP"
-  depends_on        = ["aws_alb_target_group.alb_target_group"]
+  port              = "80" #FIXME: variable?
+  protocol          = "HTTP" #FIXME: variable?
 
   default_action {
     target_group_arn = "${aws_alb_target_group.alb_target_group.arn}"
@@ -145,11 +129,6 @@ resource "aws_iam_role_policy" "ecs_execution_role_policy" {
 }
 
 # Service
-##  ECS cluster
-data "aws_ecs_cluster" "cluster" {
-  cluster_name = "${var.ecs_cluster_name}"
-}
-
 ## Security Groups
 resource "aws_security_group" "ecs_service" {
   vpc_id      = "${var.vpc_id}"
@@ -177,7 +156,6 @@ resource "aws_security_group" "ecs_service" {
 }
 
 data "aws_ecs_task_definition" "default" {
-  depends_on      = ["aws_ecs_task_definition.default"]
   task_definition = "${aws_ecs_task_definition.default.family}"
 }
 
@@ -186,8 +164,7 @@ resource "aws_ecs_service" "default" {
   task_definition = "${aws_ecs_task_definition.default.family}:${max(aws_ecs_task_definition.default.revision, data.aws_ecs_task_definition.default.revision)}"
   desired_count   = "${var.desired_count}"
   launch_type     = "${var.launch_type}"
-  cluster         = "${data.aws_ecs_cluster.cluster.arn}"
-  depends_on      = ["aws_iam_role_policy.ecs_service_role_policy"]
+  cluster         = "${var.ecs_cluster_arn}"
 
   network_configuration {
     security_groups = ["${var.security_group_ids}", "${aws_security_group.ecs_service.id}"]
@@ -199,6 +176,4 @@ resource "aws_ecs_service" "default" {
     container_name   = "${var.name}"                                  #FIXME
     container_port   = 80                                             #FIXME
   }
-
-  depends_on = ["aws_alb_target_group.alb_target_group"]
 }

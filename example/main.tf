@@ -43,9 +43,9 @@ module "ecs-alb-service-task" {
   alb_arn                   = "${aws_lb.default.arn}"
   container_definition_json = "${module.container_definition.json}"
   ecr_repository_name       = "${module.ecr.repository_name}"
-  ecs_cluster_name          = "${aws_ecs_cluster.default.name}"
+  ecs_cluster_arn           = "${aws_ecs_cluster.default.arn}"
   launch_type               = "FARGATE"
   vpc_id                    = "${module.vpc.vpc_id}"
-  security_group_ids        = "${list(module.vpc.vpc_default_security_group_id)}"
+  security_group_ids        = ["${module.vpc.vpc_default_security_group_id}"]
   private_subnet_ids        = "${module.dynamic_subnets.private_subnet_ids}"
 }

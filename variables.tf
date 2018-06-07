@@ -36,8 +36,8 @@ variable "alb_arn" {
   description = "The ALB arn where listener and target group will be created."
 }
 
-variable "ecs_cluster_name" {
-  description = "The name of the ECS cluster where service will be provisioned."
+variable "ecs_cluster_arn" {
+  description = "The arn of the ECS cluster where service will be provisioned."
 }
 
 variable "ecr_repository_name" {
