@@ -32,7 +32,14 @@ module "container_definition" {
   container_image  = "nginx:latest"
   container_memory = 128
   container_port   = 80
-  log_options = { "awslogs-region" = "${var.region}", "awslogs-group" = "${aws_cloudwatch_log_group.app.name}", "awslogs-stream-prefix" = "${var.name}" }
+
+  log_options = {
+    "awslogs-region" = "${var.region}"
+
+    "awslogs-group" = "${aws_cloudwatch_log_group.app.name}"
+
+    "awslogs-stream-prefix" = "${var.name}"
+  }
 }
 
 module "ecs-alb-service-task" {
