@@ -23,26 +23,9 @@ data "aws_ecr_repository" "app" {
   name = "${var.ecr_repository_name}"
 }
 
-data "template_file" "default_task" {
-  template = "${file("task_definition.json")}"
-
-  vars {
-    image     = "${data.aws_ecr_repository.app.repository_url}"
-    log_group = "${aws_cloudwatch_log_group.app.name}"
-  }
-}
-
-module "container_definition" {
-  source           = "git::https://github.com/cloudposse/terraform-aws-ecs-container-definition.git?ref=master"
-  container_name   = "${module.label.name}"
-  container_image  = "nginx:latest"
-  container_memory = "${var.container_memory}"
-  container_port   = "${var.container_port}"
-}
-
 resource "aws_ecs_task_definition" "default" {
   family                   = "${var.family}"
-  container_definitions    = "${module.container_definition.json}"
+  container_definitions    = "${var.container_definition_json}"
   requires_compatibilities = ["${var.launch_type}"]
   network_mode             = "${var.network_mode}"
   cpu                      = "${var.task_cpu}"
@@ -213,8 +196,8 @@ resource "aws_ecs_service" "default" {
 
   load_balancer {
     target_group_arn = "${aws_alb_target_group.alb_target_group.arn}"
-    container_name   = "${var.container_name}"
-    container_port   = "${var.container_port}"
+    container_name   = "${var.name}" #FIXME
+    container_port   = 80 #FIXME
   }
 
   depends_on = ["aws_alb_target_group.alb_target_group"]

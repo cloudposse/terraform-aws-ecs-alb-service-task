@@ -36,6 +36,18 @@ variable "alb_arn" {
   description = "The ALB arn where listener and target group will be created."
 }
 
+variable "ecs_cluster_name" {
+  description = "The name of the ECS cluster where service will be provisioned."
+}
+
+variable "ecr_repository_name" {
+  description = "The name of the ECR repository to store images."
+}
+
+variable "container_definition_json" {
+  description = "The JSON of the task container definition."
+}
+
 variable "private_subnet_ids" {
   description = "Private subnet ids."
   type        = "list"
