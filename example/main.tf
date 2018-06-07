@@ -2,8 +2,6 @@ terraform {
   required_version = ">= 0.11.2"
 }
 
-provider "aws" {}
-
 variable "name" {
   type        = "string"
   description = "Name (unique identifier for app or service)"
@@ -24,6 +22,10 @@ variable "region" {
   description = "AWS region"
 }
 
+provider "aws" {
+  region = "${var.region}"
+}
+
 module "container_definition" {
   source           = "git::https://github.com/cloudposse/terraform-aws-ecs-container-definition.git?ref=master"
   container_name   = "${var.name}"
@@ -34,7 +36,7 @@ module "container_definition" {
 
 module "ecs-alb-service-task" {
   #source                    = "git::https://github.com/cloudposse/terraform-aws-ecs-alb-service-task.git?ref=master"
-  source = "../"
+  source                    = "../"
   name                      = "${var.name}"
   namespace                 = "${var.namespace}"
   stage                     = "${var.stage}"

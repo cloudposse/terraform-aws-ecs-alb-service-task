@@ -196,8 +196,8 @@ resource "aws_ecs_service" "default" {
 
   load_balancer {
     target_group_arn = "${aws_alb_target_group.alb_target_group.arn}"
-    container_name   = "${var.name}" #FIXME
-    container_port   = 80 #FIXME
+    container_name   = "${var.name}"                                  #FIXME
+    container_port   = 80                                             #FIXME
   }
 
   depends_on = ["aws_alb_target_group.alb_target_group"]
