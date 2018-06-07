@@ -9,7 +9,7 @@ module "label" {
 }
 
 resource "aws_ecs_task_definition" "default" {
-  family                   = "${var.family}"
+  family                   = "${module.label.id}"
   container_definitions    = "${var.container_definition_json}"
   requires_compatibilities = ["${var.launch_type}"]
   network_mode             = "${var.network_mode}"
@@ -53,7 +53,7 @@ data "aws_iam_policy_document" "ecs_service_policy" {
 }
 
 resource "aws_iam_role_policy" "ecs_service_role_policy" {
-  name   = "ecs_service_role_policy"
+  name   = "${module.label.id}"
   policy = "${data.aws_iam_policy_document.ecs_service_policy.json}"
   role   = "${aws_iam_role.ecs_role.id}"
 }
@@ -71,7 +71,7 @@ data "aws_iam_policy_document" "ecs_task_execution_role" {
 }
 
 resource "aws_iam_role" "ecs_execution_role" {
-  name               = "ecs_task_execution_role"
+  name               = "${module.label.id}"
   assume_role_policy = "${data.aws_iam_policy_document.ecs_task_execution_role.json}"
 }
 
@@ -101,7 +101,7 @@ resource "aws_iam_role_policy" "ecs_execution_role_policy" {
 ## Security Groups
 resource "aws_security_group" "ecs_service" {
   vpc_id      = "${var.vpc_id}"
-  name        = "${module.label.stage}-ecs-service"
+  name        = "${module.label.id}"
   description = "Allow egress from container"
 
   egress {
@@ -119,7 +119,7 @@ resource "aws_security_group" "ecs_service" {
   }
 
   tags {
-    Name  = "${module.label.stage}-ecs-service"
+    Name  = "${module.label.id}"
     Stage = "${module.label.stage}"
   }
 }
