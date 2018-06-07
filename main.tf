@@ -19,37 +19,6 @@ resource "aws_ecs_task_definition" "default" {
   task_role_arn            = "${aws_iam_role.ecs_execution_role.arn}"
 }
 
-# ALB
-
-## Target Group
-resource "random_id" "target_group_suffix" {
-  byte_length = 2
-}
-
-resource "aws_alb_target_group" "alb_target_group" {
-  name        = "${module.label.id}-${random_id.target_group_suffix.hex}"
-  port        = "80" #FIXME: variable?
-  protocol    = "HTTP" #FIXME: variable?
-  vpc_id      = "${var.vpc_id}"
-  target_type = "ip"
-
-  lifecycle {
-    create_before_destroy = true
-  }
-}
-
-## Listener
-resource "aws_alb_listener" "app" {
-  load_balancer_arn = "${var.alb_arn}"
-  port              = "80" #FIXME: variable?
-  protocol          = "HTTP" #FIXME: variable?
-
-  default_action {
-    target_group_arn = "${aws_alb_target_group.alb_target_group.arn}"
-    type             = "forward"
-  }
-}
-
 # IAM
 data "aws_iam_policy_document" "ecs_service_role" {
   statement {
@@ -172,7 +141,7 @@ resource "aws_ecs_service" "default" {
   }
 
   load_balancer {
-    target_group_arn = "${aws_alb_target_group.alb_target_group.arn}"
+    target_group_arn = "${var.alb_target_group_arn}"
     container_name   = "${var.name}"                                  #FIXME
     container_port   = 80                                             #FIXME
   }

@@ -32,8 +32,8 @@ variable "vpc_id" {
   description = "The VPC id where resources are created."
 }
 
-variable "alb_arn" {
-  description = "The ALB arn where listener and target group will be created."
+variable "alb_target_group_arn" {
+  description = "The ALB target group arn for the ECS service."
 }
 
 variable "ecs_cluster_arn" {

@@ -48,7 +48,7 @@ module "ecs-alb-service-task" {
   name                      = "${var.name}"
   namespace                 = "${var.namespace}"
   stage                     = "${var.stage}"
-  alb_arn                   = "${aws_lb.default.arn}"
+  alb_target_group_arn      = "${aws_lb_target_group.default.arn}"
   container_definition_json = "${module.container_definition.json}"
   ecr_repository_name       = "${module.ecr.repository_name}"
   ecs_cluster_arn           = "${aws_ecs_cluster.default.arn}"
