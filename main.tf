@@ -8,11 +8,6 @@ module "label" {
   tags       = "${var.tags}"
 }
 
-# ECR repository
-resource "aws_ecr_repository" "app" {
-  name = "${module.label.id}"
-}
-
 # Cloudwatch Log Group
 resource "aws_cloudwatch_log_group" "app" {
   name = "${module.label.id}"
@@ -23,21 +18,31 @@ resource "aws_cloudwatch_log_group" "app" {
   }
 }
 
-# ECS Task def
+# ECR repository
+data "aws_ecr_repository" "app" {
+  name = "${var.ecr_repository_name}"
+}
+
 data "template_file" "default_task" {
   template = "${file("task_definition.json")}"
 
   vars {
-    image     = "${aws_ecr_repository.app.repository_url}"
+    image     = "${data.aws_ecr_repository.app.repository_url}"
     log_group = "${aws_cloudwatch_log_group.app.name}"
   }
 }
 
-resource "aws_ecs_task_definition" "default" {
-  family                = "${var.family}"
-  container_definitions = "${data.template_file.default_task.rendered}"
+module "container_definition" {
+  source           = "git::https://github.com/cloudposse/terraform-aws-ecs-container-definition.git?ref=master"
+  container_name   = "${module.label.name}"
+  container_image  = "nginx:latest"
+  container_memory = "${var.container_memory}"
+  container_port   = "${var.container_port}"
+}
 
-  #container_definitions = "${module.container_definition.container_definitions}"
+resource "aws_ecs_task_definition" "default" {
+  family                   = "${var.family}"
+  container_definitions    = "${module.container_definition.json}"
   requires_compatibilities = ["${var.launch_type}"]
   network_mode             = "${var.network_mode}"
   cpu                      = "${var.task_cpu}"
@@ -54,7 +59,7 @@ resource "random_id" "target_group_suffix" {
 }
 
 resource "aws_alb_target_group" "alb_target_group" {
-  name        = "${module.label.stage}-alb-target-group-${random_id.target_group_suffix.hex}"
+  name        = "${module.label.id}-${random_id.target_group_suffix.hex}"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = "${var.vpc_id}"
@@ -112,7 +117,7 @@ data "aws_iam_policy_document" "ecs_service_policy" {
 }
 
 resource "aws_iam_role_policy" "ecs_service_role_policy" {
-  name = "ecs_service_role_policy"
+  name   = "ecs_service_role_policy"
   policy = "${data.aws_iam_policy_document.ecs_service_policy.json}"
   role   = "${aws_iam_role.ecs_role.id}"
 }
@@ -123,7 +128,7 @@ data "aws_iam_policy_document" "ecs_task_execution_role" {
     actions = ["sts:AssumeRole"]
 
     principals {
-      type = "Service"
+      type        = "Service"
       identifiers = ["ecs-tasks.amazonaws.com"]
     }
   }
@@ -136,7 +141,7 @@ resource "aws_iam_role" "ecs_execution_role" {
 
 data "aws_iam_policy_document" "ecs_execution_role" {
   statement {
-    effect = "Allow"
+    effect    = "Allow"
     resources = ["*"]
 
     actions = [
@@ -146,7 +151,7 @@ data "aws_iam_policy_document" "ecs_execution_role" {
       "ecr:BatchGetImage",
       "logs:CreateLogStream",
       "logs:PutLogEvents",
-    ],
+    ]
   }
 }
 
@@ -157,10 +162,9 @@ resource "aws_iam_role_policy" "ecs_execution_role_policy" {
 }
 
 # Service
-# FIXME: move this out to examples/ and just pass in the id?
 ##  ECS cluster
-resource "aws_ecs_cluster" "cluster" {
-  name = "${module.label.stage}-ecs-cluster"
+data "aws_ecs_cluster" "cluster" {
+  cluster_name = "${var.ecs_cluster_name}"
 }
 
 ## Security Groups
@@ -199,7 +203,7 @@ resource "aws_ecs_service" "default" {
   task_definition = "${aws_ecs_task_definition.default.family}:${max(aws_ecs_task_definition.default.revision, data.aws_ecs_task_definition.default.revision)}"
   desired_count   = "${var.desired_count}"
   launch_type     = "${var.launch_type}"
-  cluster         = "${aws_ecs_cluster.cluster.id}"
+  cluster         = "${data.aws_ecs_cluster.cluster.arn}"
   depends_on      = ["aws_iam_role_policy.ecs_service_role_policy"]
 
   network_configuration {
@@ -209,8 +213,8 @@ resource "aws_ecs_service" "default" {
 
   load_balancer {
     target_group_arn = "${aws_alb_target_group.alb_target_group.arn}"
-    container_name   = "default"
-    container_port   = "80"
+    container_name   = "${var.container_name}"
+    container_port   = "${var.container_port}"
   }
 
   depends_on = ["aws_alb_target_group.alb_target_group"]
