@@ -1,1 +1,4 @@
-namespace = test
+name = "appname"
+stage = "dev"
+namespace = "cp"
+region = "us-west-2"
