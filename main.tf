@@ -124,13 +124,15 @@ resource "aws_security_group" "ecs_service" {
   }
 }
 
-data "aws_ecs_task_definition" "default" {
-  task_definition = "${aws_ecs_task_definition.default.family}"
-}
+#data "aws_ecs_task_definition" "default" {
+#  task_definition = "${aws_ecs_task_definition.default.family}"
+#}
 
 resource "aws_ecs_service" "default" {
   name                               = "${module.label.id}"
-  task_definition                    = "${aws_ecs_task_definition.default.family}:${max(aws_ecs_task_definition.default.revision, data.aws_ecs_task_definition.default.revision)}"
+  #task_definition                    = "${aws_ecs_task_definition.default.family}:${max(aws_ecs_task_definition.default.revision, data.aws_ecs_task_definition.default.revision)}"
+  task_definition = "${aws_ecs_task_definition.default.family}:latest"
+  desired_count                      = "${var.desired_count}"
   desired_count                      = "${var.desired_count}"
   deployment_maximum_percent         = "${var.deployment_maximum_percent}"
   deployment_minimum_healthy_percent = "${var.deployment_minimum_healthy_percent}"
