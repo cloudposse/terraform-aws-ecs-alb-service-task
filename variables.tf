@@ -19,13 +19,15 @@ variable "stage" {
 }
 
 variable "attributes" {
-  type    = "list"
-  default = []
+  type        = "list"
+  description = "List of attributes to add to label."
+  default     = []
 }
 
 variable "tags" {
-  type    = "map"
-  default = {}
+  type        = "map"
+  description = "Map of Tag name/values."
+  default     = {}
 }
 
 variable "vpc_id" {

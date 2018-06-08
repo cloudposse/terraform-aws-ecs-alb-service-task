@@ -9,17 +9,14 @@ module "label" {
 }
 
 resource "aws_ecs_task_definition" "default" {
-  family                             = "${module.label.id}"
-  container_definitions              = "${var.container_definition_json}"
-  requires_compatibilities           = ["${var.launch_type}"]
-  network_mode                       = "${var.network_mode}"
-  cpu                                = "${var.task_cpu}"
-  memory                             = "${var.task_memory}"
-  execution_role_arn                 = "${aws_iam_role.ecs_execution_role.arn}"
-  task_role_arn                      = "${aws_iam_role.ecs_execution_role.arn}"
-  desired_count                      = "${var.desired_count}"
-  deployment_maximum_percent         = "${var.deployment_maximum_percent}"
-  deployment_minimum_healthy_percent = "${var.deployment_minimum_healthy_percent}"
+  family                   = "${module.label.id}"
+  container_definitions    = "${var.container_definition_json}"
+  requires_compatibilities = ["${var.launch_type}"]
+  network_mode             = "${var.network_mode}"
+  cpu                      = "${var.task_cpu}"
+  memory                   = "${var.task_memory}"
+  execution_role_arn       = "${aws_iam_role.ecs_execution_role.arn}"
+  task_role_arn            = "${aws_iam_role.ecs_execution_role.arn}"
 }
 
 # IAM
@@ -132,11 +129,13 @@ data "aws_ecs_task_definition" "default" {
 }
 
 resource "aws_ecs_service" "default" {
-  name            = "${module.label.id}"
-  task_definition = "${aws_ecs_task_definition.default.family}:${max(aws_ecs_task_definition.default.revision, data.aws_ecs_task_definition.default.revision)}"
-  desired_count   = "${var.desired_count}"
-  launch_type     = "${var.launch_type}"
-  cluster         = "${var.ecs_cluster_arn}"
+  name                               = "${module.label.id}"
+  task_definition                    = "${aws_ecs_task_definition.default.family}:${max(aws_ecs_task_definition.default.revision, data.aws_ecs_task_definition.default.revision)}"
+  desired_count                      = "${var.desired_count}"
+  deployment_maximum_percent         = "${var.deployment_maximum_percent}"
+  deployment_minimum_healthy_percent = "${var.deployment_minimum_healthy_percent}"
+  launch_type                        = "${var.launch_type}"
+  cluster                            = "${var.ecs_cluster_arn}"
 
   network_configuration {
     security_groups = ["${var.security_group_ids}", "${aws_security_group.ecs_service.id}"]

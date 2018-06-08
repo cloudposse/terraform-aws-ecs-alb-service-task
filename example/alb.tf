@@ -1,8 +1,18 @@
-resource "aws_security_group" "lb_sg" {
+module "lb_label" {
+  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.2"
+  attributes = ["lb"]
+  delimiter  = "${var.delimiter}"
+  name       = "${var.name}"
+  namespace  = "${var.namespace}"
+  stage      = "${var.stage}"
+  tags       = "${var.tags}"
+}
+
+resource "aws_security_group" "default" {
   description = "controls access to the ALB"
 
   vpc_id = "${module.vpc.vpc_id}"
-  name   = "tf-ecs-lbsg"
+  name   = "${module.lb_label.id}"
 
   ingress {
     protocol    = "tcp"
@@ -23,15 +33,15 @@ resource "aws_security_group" "lb_sg" {
 }
 
 resource "aws_lb" "default" {
-  name               = "${var.stage}-${var.name}"
+  name               = "${module.lb_label.id}"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = ["${module.vpc.vpc_default_security_group_id}", "${aws_security_group.lb_sg.id}"]
+  security_groups    = ["${module.vpc.vpc_default_security_group_id}", "${aws_security_group.default.id}"]
   subnets            = ["${module.dynamic_subnets.public_subnet_ids}"]
 }
 
 resource "aws_lb_target_group" "default" {
-  name        = "${var.stage}-${var.name}"
+  name        = "${module.lb_label.id}"
   port        = "80"
   protocol    = "HTTP"
   vpc_id      = "${module.vpc.vpc_id}"
