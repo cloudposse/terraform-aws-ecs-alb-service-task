@@ -147,6 +147,4 @@ resource "aws_ecs_service" "default" {
     container_name   = "${var.name}"                 #FIXME
     container_port   = 80                            #FIXME
   }
-
-  depends_on = ["aws_lb_target_group.default"]
 }
