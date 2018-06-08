@@ -58,11 +58,6 @@ variable "security_group_ids" {
   type        = "list"
 }
 
-variable "desired_count" {
-  description = "The number of instances of the task definition to place and keep running."
-  default     = 1
-}
-
 variable "family" {
   description = "The name used for multiple versions of a task definition."
   default     = "web"
@@ -86,4 +81,19 @@ variable "task_cpu" {
 variable "task_memory" {
   description = "The amount of memory (in MiB) used by the task. If using Fargate launch type task_memory must match supported cpu value (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size)."
   default     = 512
+}
+
+variable "desired_count" {
+  description = "The number of instances of the task definition to place and keep running."
+  default     = 1
+}
+
+variable "deployment_maximum_percent" {
+  description = "The upper limit of the number of tasks (as a percentage of desired_count) that can be running in a service during a deployment."
+  default     = 200
+}
+
+variable "deployment_minimum_healthy_percent" {
+  description = "The lower limit (as a percentage of desired_count) of the number of tasks that must remain running and healthy in a service during a deployment."
+  default     = 100
 }

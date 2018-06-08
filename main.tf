@@ -9,14 +9,17 @@ module "label" {
 }
 
 resource "aws_ecs_task_definition" "default" {
-  family                   = "${module.label.id}"
-  container_definitions    = "${var.container_definition_json}"
-  requires_compatibilities = ["${var.launch_type}"]
-  network_mode             = "${var.network_mode}"
-  cpu                      = "${var.task_cpu}"
-  memory                   = "${var.task_memory}"
-  execution_role_arn       = "${aws_iam_role.ecs_execution_role.arn}"
-  task_role_arn            = "${aws_iam_role.ecs_execution_role.arn}"
+  family                             = "${module.label.id}"
+  container_definitions              = "${var.container_definition_json}"
+  requires_compatibilities           = ["${var.launch_type}"]
+  network_mode                       = "${var.network_mode}"
+  cpu                                = "${var.task_cpu}"
+  memory                             = "${var.task_memory}"
+  execution_role_arn                 = "${aws_iam_role.ecs_execution_role.arn}"
+  task_role_arn                      = "${aws_iam_role.ecs_execution_role.arn}"
+  desired_count                      = "${var.desired_count}"
+  deployment_maximum_percent         = "${var.deployment_maximum_percent}"
+  deployment_minimum_healthy_percent = "${var.deployment_minimum_healthy_percent}"
 }
 
 # IAM
@@ -142,7 +145,7 @@ resource "aws_ecs_service" "default" {
 
   load_balancer {
     target_group_arn = "${var.alb_target_group_arn}"
-    container_name   = "${var.name}"                                  #FIXME
-    container_port   = 80                                             #FIXME
+    container_name   = "${var.name}"                 #FIXME
+    container_port   = 80                            #FIXME
   }
 }

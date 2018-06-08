@@ -2,5 +2,5 @@
 
 output "service_name" {
   description = "ECS Service name."
-  value = "${aws_ecs_service.default.name}"
+  value       = "${aws_ecs_service.default.name}"
 }
