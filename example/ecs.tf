@@ -4,6 +4,7 @@ module "ecr" {
   name      = "${var.name}"
   namespace = "${var.namespace}"
   stage     = "${var.stage}"
+  attributes = ["ecr"]
 }
 
 # ECS Cluster (needed even if using FARGATE launch type

@@ -22,12 +22,28 @@ variable "region" {
   description = "AWS region"
 }
 
+variable "github_oauth_token" {
+  description = "GitHub Oauth Token with permissions to access private repositories"
+}
+
+variable "repo_owner" {
+  description = "GitHub Organization or Username."
+}
+
+variable "repo_name" {
+  description = "GitHub repository name of the application to be built and deployed to ECS."
+}
+
+variable "branch" {
+  description = "Branch of the GitHub repository, e.g. master"
+}
+
 provider "aws" {
   region = "${var.region}"
 }
 
 module "container_definition" {
-  source           = "git::https://github.com/cloudposse/terraform-aws-ecs-container-definition.git?ref=master"
+  source           = "git::https://github.com/cloudposse/terraform-aws-ecs-container-definition.git?ref=0.1.3"
   container_name   = "${var.name}"
   container_image  = "nginx:latest"
   container_memory = 128
@@ -43,8 +59,7 @@ module "container_definition" {
 }
 
 module "ecs-alb-service-task" {
-  #source                    = "git::https://github.com/cloudposse/terraform-aws-ecs-alb-service-task.git?ref=master"
-  source                    = "../"
+  source                    = "git::https://github.com/cloudposse/terraform-aws-ecs-alb-service-task.git?ref=0.1.0"
   name                      = "${var.name}"
   namespace                 = "${var.namespace}"
   stage                     = "${var.stage}"
@@ -57,3 +72,19 @@ module "ecs-alb-service-task" {
   security_group_ids        = ["${module.vpc.vpc_default_security_group_id}"]
   private_subnet_ids        = "${module.dynamic_subnets.private_subnet_ids}"
 }
+
+
+module "ecs-codepipeline" {
+  source                    = "git::https://github.com/cloudposse/terraform-aws-ecs-codepipeline.git?ref=0.1.0"
+  name                      = "${var.name}"
+  namespace                 = "${var.namespace}"
+  stage                     = "${var.stage}"
+  github_oauth_token        = "${var.github_oauth_token}"
+  repo_owner                = "${var.repo_owner}"
+  repo_name                 = "${var.repo_name}"
+  branch                    = "${var.branch}"
+  service_name              = "${module.ecs-alb-service-task.service_name}"
+  ecs_cluster_name          = "${aws_ecs_cluster.default.name}"
+  privileged_mode           = "true"
+}
+

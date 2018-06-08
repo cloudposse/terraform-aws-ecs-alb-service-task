@@ -1,5 +1,5 @@
 module "label" {
-  source     = "github.com/cloudposse/terraform-terraform-label.git?ref=master"
+  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.2"
   attributes = "${var.attributes}"
   delimiter  = "${var.delimiter}"
   name       = "${var.name}"
