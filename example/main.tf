@@ -12,9 +12,26 @@ variable "namespace" {
   description = "Namespace (e.g. `cp` or `cloudposse`)"
 }
 
+variable "delimiter" {
+  description = "The delimiter to be used in labels."
+  default     = "-"
+}
+
 variable "stage" {
   type        = "string"
   description = "Stage (e.g. `prod`, `dev`, `staging`)"
+}
+
+variable "attributes" {
+  type        = "list"
+  description = "List of attributes to add to label."
+  default     = []
+}
+
+variable "tags" {
+  type        = "map"
+  description = "Map of Tag name/values."
+  default     = {}
 }
 
 variable "region" {
@@ -73,18 +90,16 @@ module "ecs-alb-service-task" {
   private_subnet_ids        = "${module.dynamic_subnets.private_subnet_ids}"
 }
 
-
 module "ecs-codepipeline" {
-  source                    = "git::https://github.com/cloudposse/terraform-aws-ecs-codepipeline.git?ref=0.1.0"
-  name                      = "${var.name}"
-  namespace                 = "${var.namespace}"
-  stage                     = "${var.stage}"
-  github_oauth_token        = "${var.github_oauth_token}"
-  repo_owner                = "${var.repo_owner}"
-  repo_name                 = "${var.repo_name}"
-  branch                    = "${var.branch}"
-  service_name              = "${module.ecs-alb-service-task.service_name}"
-  ecs_cluster_name          = "${aws_ecs_cluster.default.name}"
-  privileged_mode           = "true"
+  source             = "git::https://github.com/cloudposse/terraform-aws-ecs-codepipeline.git?ref=0.1.0"
+  name               = "${var.name}"
+  namespace          = "${var.namespace}"
+  stage              = "${var.stage}"
+  github_oauth_token = "${var.github_oauth_token}"
+  repo_owner         = "${var.repo_owner}"
+  repo_name          = "${var.repo_name}"
+  branch             = "${var.branch}"
+  service_name       = "${module.ecs-alb-service-task.service_name}"
+  ecs_cluster_name   = "${aws_ecs_cluster.default.name}"
+  privileged_mode    = "true"
 }
-
