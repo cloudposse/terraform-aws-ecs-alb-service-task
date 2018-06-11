@@ -59,7 +59,7 @@ See [LICENSE](LICENSE) for full details.
 
 ## About
 
-`terraform-aws-ecs-alb-service-task` is maintained and funded by [Cloud Posse, LLC][website].
+This project is maintained and funded by [Cloud Posse, LLC][website].
 
 ![Cloud Posse](https://cloudposse.com/logo-300x69.png)
 

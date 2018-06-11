@@ -67,15 +67,13 @@ module "container_definition" {
   container_port   = 80
 
   log_options = {
-    "awslogs-region" = "${var.region}"
-
-    "awslogs-group" = "${aws_cloudwatch_log_group.app.name}"
-
+    "awslogs-region"        = "${var.region}"
+    "awslogs-group"         = "${aws_cloudwatch_log_group.app.name}"
     "awslogs-stream-prefix" = "${var.name}"
   }
 }
 
-module "ecs-alb-service-task" {
+module "ecs_alb_service_task" {
   source                    = "git::https://github.com/cloudposse/terraform-aws-ecs-alb-service-task.git?ref=0.1.0"
   name                      = "${var.name}"
   namespace                 = "${var.namespace}"
@@ -90,7 +88,7 @@ module "ecs-alb-service-task" {
   private_subnet_ids        = "${module.dynamic_subnets.private_subnet_ids}"
 }
 
-module "ecs-codepipeline" {
+module "ecs_codepipeline" {
   source             = "git::https://github.com/cloudposse/terraform-aws-ecs-codepipeline.git?ref=0.1.0"
   name               = "${var.name}"
   namespace          = "${var.namespace}"
@@ -99,7 +97,7 @@ module "ecs-codepipeline" {
   repo_owner         = "${var.repo_owner}"
   repo_name          = "${var.repo_name}"
   branch             = "${var.branch}"
-  service_name       = "${module.ecs-alb-service-task.service_name}"
+  service_name       = "${module.ecs_alb_service_task.service_name}"
   ecs_cluster_name   = "${aws_ecs_cluster.default.name}"
   privileged_mode    = "true"
 }
