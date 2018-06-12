@@ -2,11 +2,10 @@
 
 # terraform-aws-ecs-alb-service-task [![Build Status](https://travis-ci.org/cloudposse/terraform-aws-ecs-alb-service-task.svg?branch=master)](https://travis-ci.org/cloudposse/terraform-aws-ecs-alb-service-task)
 
-A Terraform module to generate well-formed JSON documents (container definitions) that are passed to the `aws_ecs_task_definition` Terraform resource.
+A Terraform module to create an ECS Service for a web app (task), and an ALB target group to route requests into it.
 
 ## Usage
 
-This module is meant to be used as output only, meaning it will be used to create outputs which are consumed as a parameter by Terraform resources or other modules.
 
 ## Help
 

@@ -9,7 +9,7 @@ module "lb_label" {
 }
 
 resource "aws_security_group" "default" {
-  description = "controls access to the ALB"
+  description = "Controls access to the ALB"
 
   vpc_id = "${module.vpc.vpc_id}"
   name   = "${module.lb_label.id}"
@@ -26,9 +26,7 @@ resource "aws_security_group" "default" {
     to_port   = 0
     protocol  = "-1"
 
-    cidr_blocks = [
-      "0.0.0.0/0",
-    ]
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }
 

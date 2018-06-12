@@ -1,6 +1,5 @@
 variable "name" {
   description = "The name of the app to be used in labels."
-  default     = "app"
 }
 
 variable "namespace" {
@@ -15,7 +14,6 @@ variable "delimiter" {
 
 variable "stage" {
   description = "Stage to be used in labels."
-  default     = "default"
 }
 
 variable "attributes" {
@@ -31,15 +29,15 @@ variable "tags" {
 }
 
 variable "vpc_id" {
-  description = "The VPC id where resources are created."
+  description = "The VPC ID where resources are created."
 }
 
 variable "alb_target_group_arn" {
-  description = "The ALB target group arn for the ECS service."
+  description = "The ALB target group ARN for the ECS service."
 }
 
 variable "ecs_cluster_arn" {
-  description = "The arn of the ECS cluster where service will be provisioned."
+  description = "The ARN of the ECS cluster where service will be provisioned."
 }
 
 variable "ecr_repository_name" {
@@ -51,7 +49,7 @@ variable "container_definition_json" {
 }
 
 variable "private_subnet_ids" {
-  description = "Private subnet ids."
+  description = "Private subnet IDs."
   type        = "list"
 }
 

@@ -30,7 +30,7 @@ variable "attributes" {
 
 variable "tags" {
   type        = "map"
-  description = "Map of Tag name/values."
+  description = "Map of key-value pairs to use for tags."
   default     = {}
 }
 
