@@ -10,7 +10,7 @@ module "default_label" {
 
 module "execution_role_label" {
   source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.2"
-  attributes = ["execution", "role"]
+  attributes = ["${compact(concat(var.attributes, list("execution", "role")))}"]
   delimiter  = "${var.delimiter}"
   name       = "${var.name}"
   namespace  = "${var.namespace}"
