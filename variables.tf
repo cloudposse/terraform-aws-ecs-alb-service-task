@@ -4,7 +4,6 @@ variable "name" {
 
 variable "namespace" {
   description = "The namespace to be used in labels."
-  default     = "global"
 }
 
 variable "delimiter" {
@@ -24,7 +23,7 @@ variable "attributes" {
 
 variable "tags" {
   type        = "map"
-  description = "Map of Tag name/values."
+  description = "Map of key-value pairs to use for tags."
   default     = {}
 }
 
