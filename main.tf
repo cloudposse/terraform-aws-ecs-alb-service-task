@@ -112,26 +112,26 @@ resource "aws_iam_role_policy" "ecs_execution_role_policy" {
 resource "aws_security_group" "ecs_service" {
   vpc_id      = "${var.vpc_id}"
   name        = "${module.default_label.id}"
-  description = "Allow egress from container"
+  description = "Allow ALL egress from ECS service."
+  tags        = "${module.default_label.tags}"
+}
 
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
+resource "aws_security_group_rule" "allow_all_egress" {
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = "${aws_security_group.ecs_service.id}"
+}
 
-  ingress {
-    from_port   = 8
-    to_port     = 0
-    protocol    = "icmp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  tags {
-    Name  = "${module.default_label.id}"
-    Stage = "${module.default_label.stage}"
-  }
+resource "aws_security_group_rule" "allow_icmp_ingress" {
+  type              = "ingress"
+  from_port         = 8
+  to_port           = 0
+  protocol          = "icmp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = "${aws_security_group.ecs_service.id}"
 }
 
 resource "aws_ecs_service" "default" {
