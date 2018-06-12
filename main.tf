@@ -1,4 +1,4 @@
-module "label" {
+module "default_label" {
   source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.2"
   attributes = "${var.attributes}"
   delimiter  = "${var.delimiter}"
@@ -8,8 +8,18 @@ module "label" {
   tags       = "${var.tags}"
 }
 
+module "execution_role_label" {
+  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.2"
+  attributes = ["execution", "role"]
+  delimiter  = "${var.delimiter}"
+  name       = "${var.name}"
+  namespace  = "${var.namespace}"
+  stage      = "${var.stage}"
+  tags       = "${var.tags}"
+}
+
 resource "aws_ecs_task_definition" "default" {
-  family                   = "${module.label.id}"
+  family                   = "${module.default_label.id}"
   container_definitions    = "${var.container_definition_json}"
   requires_compatibilities = ["${var.launch_type}"]
   network_mode             = "${var.network_mode}"
@@ -33,7 +43,7 @@ data "aws_iam_policy_document" "ecs_service_role" {
 }
 
 resource "aws_iam_role" "ecs_role" {
-  name               = "ecs_role"
+  name               = "${module.default_label.id}"
   assume_role_policy = "${data.aws_iam_policy_document.ecs_service_role.json}"
 }
 
@@ -53,7 +63,7 @@ data "aws_iam_policy_document" "ecs_service_policy" {
 }
 
 resource "aws_iam_role_policy" "ecs_service_role_policy" {
-  name   = "${module.label.id}"
+  name   = "${module.default_label.id}"
   policy = "${data.aws_iam_policy_document.ecs_service_policy.json}"
   role   = "${aws_iam_role.ecs_role.id}"
 }
@@ -71,7 +81,7 @@ data "aws_iam_policy_document" "ecs_task_execution_role" {
 }
 
 resource "aws_iam_role" "ecs_execution_role" {
-  name               = "${module.label.id}"
+  name               = "${module.execution_role_label.id}"
   assume_role_policy = "${data.aws_iam_policy_document.ecs_task_execution_role.json}"
 }
 
@@ -92,7 +102,7 @@ data "aws_iam_policy_document" "ecs_execution_role" {
 }
 
 resource "aws_iam_role_policy" "ecs_execution_role_policy" {
-  name   = "ecs_execution_role_policy"
+  name   = "${module.execution_role_label.id}"
   policy = "${data.aws_iam_policy_document.ecs_execution_role.json}"
   role   = "${aws_iam_role.ecs_execution_role.id}"
 }
@@ -101,7 +111,7 @@ resource "aws_iam_role_policy" "ecs_execution_role_policy" {
 ## Security Groups
 resource "aws_security_group" "ecs_service" {
   vpc_id      = "${var.vpc_id}"
-  name        = "${module.label.id}"
+  name        = "${module.default_label.id}"
   description = "Allow egress from container"
 
   egress {
@@ -119,13 +129,13 @@ resource "aws_security_group" "ecs_service" {
   }
 
   tags {
-    Name  = "${module.label.id}"
-    Stage = "${module.label.stage}"
+    Name  = "${module.default_label.id}"
+    Stage = "${module.default_label.stage}"
   }
 }
 
 resource "aws_ecs_service" "default" {
-  name                               = "${module.label.id}"
+  name                               = "${module.default_label.id}"
   task_definition                    = "${aws_ecs_task_definition.default.family}:${aws_ecs_task_definition.default.revision}"
   desired_count                      = "${var.desired_count}"
   desired_count                      = "${var.desired_count}"
