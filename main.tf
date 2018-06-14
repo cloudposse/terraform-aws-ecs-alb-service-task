@@ -25,7 +25,7 @@ resource "aws_ecs_task_definition" "default" {
   network_mode             = "${var.network_mode}"
   cpu                      = "${var.task_cpu}"
   memory                   = "${var.task_memory}"
-  exec_role_arn            = "${aws_iam_role.ecs_exec_role.arn}"
+  execution_role_arn       = "${aws_iam_role.ecs_exec_role.arn}"
   task_role_arn            = "${aws_iam_role.ecs_exec_role.arn}"
 }
 
@@ -150,7 +150,7 @@ resource "aws_ecs_service" "default" {
 
   load_balancer {
     target_group_arn = "${var.alb_target_group_arn}"
-    container_name   = "${module.default_label.id}"
+    container_name   = "${var.container_name}"
     container_port   = "${var.container_port}"
   }
 }

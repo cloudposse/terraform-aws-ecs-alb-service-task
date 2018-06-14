@@ -1,7 +1,3 @@
-terraform {
-  required_version = ">= 0.11.2"
-}
-
 variable "name" {
   type        = "string"
   description = "Name (unique identifier for app or service)"
@@ -53,8 +49,4 @@ variable "repo_name" {
 
 variable "branch" {
   description = "Branch of the GitHub repository, e.g. master"
-}
-
-provider "aws" {
-  region = "${var.region}"
 }

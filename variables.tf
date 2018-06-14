@@ -47,6 +47,10 @@ variable "container_definition_json" {
   description = "The JSON of the task container definition."
 }
 
+variable "container_name" {
+  description = "The name of the container in task definition to associate with the load balancer."
+}
+
 variable "container_port" {
   description = "The port on the container to associate with the load balancer."
   default     = 80

@@ -6,28 +6,34 @@ provider "aws" {
   region = "${var.region}"
 }
 
+module "example_label" {
+  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.2"
+  attributes = "${var.attributes}"
+  delimiter  = "${var.delimiter}"
+  name       = "${var.name}"
+  namespace  = "${var.namespace}"
+  stage      = "${var.stage}"
+  tags       = "${var.tags}"
+}
+
 # ECR Repository
 module "ecr" {
   source     = "git::https://github.com/cloudposse/terraform-aws-ecr.git?ref=master"
   name       = "${var.name}"
   namespace  = "${var.namespace}"
   stage      = "${var.stage}"
-  attributes = ["ecr"]
+  attributes = "${compact(concat(var.attributes, list("ecr")))}"
 }
 
 # ECS Cluster (needed even if using FARGATE launch type
 resource "aws_ecs_cluster" "default" {
-  name = "${var.name}"
+  name = "${module.example_label.id}"
 }
 
 # Cloudwatch Log Group
 resource "aws_cloudwatch_log_group" "app" {
-  name = "${var.name}-${var.stage}"
-
-  tags {
-    Stage       = "${var.stage}"
-    Application = "${var.name}"
-  }
+  name = "${module.example_label.id}"
+  tags = "${module.example_label.tags}"
 }
 
 module "alb" {
@@ -35,9 +41,12 @@ module "alb" {
   name               = "${var.name}"
   namespace          = "${var.namespace}"
   stage              = "${var.stage}"
+  attributes         = "${compact(concat(var.attributes, list("alb")))}"
   vpc_id             = "${module.vpc.vpc_id}"
+  ip_address_type    = "ipv4"
   subnet_ids         = ["${module.dynamic_subnets.public_subnet_ids}"]
   security_group_ids = ["${module.vpc.vpc_default_security_group_id}"]
+  access_logs_region = "us-west-2"
 }
 
 module "alb_ingress" {
@@ -45,13 +54,14 @@ module "alb_ingress" {
   name          = "${var.name}"
   namespace     = "${var.namespace}"
   stage         = "${var.stage}"
+  attributes    = "${compact(concat(var.attributes, list("alb", "ingress")))}"
   vpc_id        = "${module.vpc.vpc_id}"
   listener_arns = "${module.alb.listener_arns}"
 }
 
 module "container_definition" {
   source           = "git::https://github.com/cloudposse/terraform-aws-ecs-container-definition.git?ref=0.1.3"
-  container_name   = "${var.name}"
+  container_name   = "${module.example_label.id}"
   container_image  = "nginx:latest"
   container_memory = 128
   container_port   = 80
@@ -70,6 +80,7 @@ module "ecs_alb_service_task" {
   stage                     = "${var.stage}"
   alb_target_group_arn      = "${module.alb_ingress.target_group_arn}"
   container_definition_json = "${module.container_definition.json}"
+  container_name            = "${module.example_label.id}"
   ecr_repository_name       = "${module.ecr.repository_name}"
   ecs_cluster_arn           = "${aws_ecs_cluster.default.arn}"
   launch_type               = "FARGATE"
