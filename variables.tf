@@ -47,6 +47,11 @@ variable "container_definition_json" {
   description = "The JSON of the task container definition."
 }
 
+variable "container_port" {
+  description = "The port on the container to associate with the load balancer."
+  default     = 80
+}
+
 variable "private_subnet_ids" {
   description = "Private subnet IDs."
   type        = "list"
