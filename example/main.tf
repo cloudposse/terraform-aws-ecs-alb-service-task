@@ -7,7 +7,7 @@ provider "aws" {
 }
 
 module "example_label" {
-  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.2"
+  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.3"
   attributes = "${var.attributes}"
   delimiter  = "${var.delimiter}"
   name       = "${var.name}"
@@ -18,7 +18,7 @@ module "example_label" {
 
 # ECR Repository
 module "ecr" {
-  source     = "git::https://github.com/cloudposse/terraform-aws-ecr.git?ref=master"
+  source     = "git::https://github.com/cloudposse/terraform-aws-ecr.git?ref=tags/0.2.5"
   name       = "${var.name}"
   namespace  = "${var.namespace}"
   stage      = "${var.stage}"
@@ -37,7 +37,7 @@ resource "aws_cloudwatch_log_group" "app" {
 }
 
 module "alb" {
-  source             = "git::https://github.com/cloudposse/terraform-aws-alb.git?ref=init"
+  source             = "git::https://github.com/cloudposse/terraform-aws-alb.git?ref=tags/0.2.0"
   name               = "${var.name}"
   namespace          = "${var.namespace}"
   stage              = "${var.stage}"
@@ -50,7 +50,7 @@ module "alb" {
 }
 
 module "alb_ingress" {
-  source        = "git::https://github.com/cloudposse/terraform-aws-alb-ingress.git?ref=init"
+  source        = "git::https://github.com/cloudposse/terraform-aws-alb-ingress.git?ref=tags/0.2.0"
   name          = "${var.name}"
   namespace     = "${var.namespace}"
   stage         = "${var.stage}"
@@ -60,7 +60,7 @@ module "alb_ingress" {
 }
 
 module "container_definition" {
-  source           = "git::https://github.com/cloudposse/terraform-aws-ecs-container-definition.git?ref=0.1.3"
+  source           = "git::https://github.com/cloudposse/terraform-aws-ecs-container-definition.git?ref=tags/0.1.3"
   container_name   = "${module.example_label.id}"
   container_image  = "nginx:latest"
   container_memory = 128
@@ -74,7 +74,7 @@ module "container_definition" {
 }
 
 module "ecs_alb_service_task" {
-  source                    = "git::https://github.com/cloudposse/terraform-aws-ecs-alb-service-task.git?ref=0.1.0"
+  source                    = "git::https://github.com/cloudposse/terraform-aws-ecs-alb-service-task.git?ref=tags/0.1.0"
   name                      = "${var.name}"
   namespace                 = "${var.namespace}"
   stage                     = "${var.stage}"
@@ -90,7 +90,7 @@ module "ecs_alb_service_task" {
 }
 
 module "ecs_codepipeline" {
-  source             = "git::https://github.com/cloudposse/terraform-aws-ecs-codepipeline.git?ref=0.1.0"
+  source             = "git::https://github.com/cloudposse/terraform-aws-ecs-codepipeline.git?ref=tags/0.1.0"
   name               = "${var.name}"
   namespace          = "${var.namespace}"
   stage              = "${var.stage}"
