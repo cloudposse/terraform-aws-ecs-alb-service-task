@@ -1,0 +1,98 @@
+---
+#
+# This is the canonical configuration for the `README.md`
+# Run `make readme` to rebuild the `README.md`
+#
+
+# Name of this project
+name: terraform-aws-ecs-alb-service-task
+
+# Logo for this project
+#logo: docs/logo.png
+
+# License of this project
+license: "APACHE2"
+
+# Canonical GitHub repo
+github_repo: cloudposse/terraform-aws-ecs-alb-service-task
+
+# Badges to display
+badges:
+  - name: "Build Status"
+    image: "https://travis-ci.org/cloudposse/terraform-aws-ecs-alb-service-task.svg?branch=master"
+    url: "https://travis-ci.org/cloudposse/terraform-aws-ecs-alb-service-task"
+  - name: "Latest Release"
+    image: "https://img.shields.io/github/release/cloudposse/terraform-aws-ecs-alb-service-task.svg"
+    url: "https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/releases"
+  - name: "Slack Community"
+    image: "https://slack.cloudposse.com/badge.svg"
+    url: "https://slack.cloudposse.com"
+
+related:
+    - name: "terraform-aws-alb"
+      description: "Terraform module to provision a standard ALB for HTTP/HTTP traffic"
+      url: "https://github.com/cloudposse/terraform-aws-alb"
+    - name: "terraform-aws-alb-ingress"
+      description: "Terraform module to provision an HTTP style ingress rule based on hostname and path for an ALB"
+      url: "https://github.com/cloudposse/terraform-aws-alb-ingress"
+    - name: "terraform-aws-codebuild"
+      description: "Terraform Module to easily leverage AWS CodeBuild for Continuous Integration"
+      url: "https://github.com/cloudposse/terraform-aws-codebuild"
+    - name: "terraform-aws-ecr"
+      description: "Terraform Module to manage Docker Container Registries on AWS ECR"
+      url: "https://github.com/cloudposse/terraform-aws-ecr"
+    - name: "terraform-aws-ecs-web-app"
+      description: "Terraform module that implements a web app on ECS and supporting AWS resources"
+      url: "https://github.com/cloudposse/terraform-aws-ecs-web-app"
+    - name: "terraform-aws-ecs-codepipeline"
+      description: "Terraform Module for CI/CD with AWS Code Pipeline and Code Build for ECS"
+      url: "https://github.com/cloudposse/terraform-aws-ecs-codepipeline"
+    - name: "terraform-aws-ecs-cloudwatch-sns-alarms"
+      description: "Terraform module to create CloudWatch Alarms on ECS Service level metrics"
+      url: "https://github.com/cloudposse/terraform-aws-ecs-cloudwatch-sns-alarms"
+    - name: "terraform-aws-ecs-container-definition"
+      description: "Terraform module to generate well-formed JSON documents that are passed to the aws_ecs_task_definition Terraform resource"
+      url: "https://github.com/cloudposse/terraform-aws-ecs-container-definition"
+    - name: "terraform-aws-lb-s3-bucket"
+      description: "Terraform module to provision an S3 bucket with built in IAM policy to allow AWS Load Balancers to ship access logs."
+      url: "https://github.com/cloudposse/terraform-aws-lb-s3-bucket"
+
+# Short description of this project
+description: |-
+  Terraform module to create an ECS Service for a web app (task), and an ALB target group to route requests.
+
+# How to use this project
+usage: |-
+  ```hcl
+  module "ecs_alb_service_task" {
+    source                    = "git::https://github.com/cloudposse/terraform-aws-ecs-alb-service-task.git?ref=tags/0.2.0"
+    name                      = "app"
+    namespace                 = "eg"
+    stage                     = "staging"
+    alb_target_group_arn      = "xxxxxxx"
+    container_definition_json = "${module.container_definition.json}"
+    container_name            = "${module.default_label.id}"
+    ecr_repository_name       = "${module.ecr.repository_name}"
+    ecs_cluster_arn           = "xxxxxxx"
+    launch_type               = "FARGATE"
+    vpc_id                    = "xxxxxxx"
+    security_group_ids        = ["xxxxx", "yyyyy"]
+    private_subnet_ids        = ["xxxxx", "yyyyy", "zzzzz"]
+  }
+  ```
+
+# Other files to include in this README from the project folder
+include:
+  - "docs/targets.md"
+  - "docs/terraform.md"
+
+# Contributors to this project
+contributors:
+  - name: "Erik Osterman"
+    github: "osterman"
+  - name: "Igor Rodionov"
+    github: "goruha"
+  - name: "Andriy Knysh"
+    github: "aknysh"
+  - name: "Sarkis Varozian"
+    github: "sarkis"
