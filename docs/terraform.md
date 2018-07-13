@@ -31,5 +31,7 @@
 
 | Name | Description |
 |------|-------------|
-| service_name | ECS Service name. |
+| service_name | ECS Service name |
+| service_role_arn | ECS Service role ARN |
+| task_role_arn | ECS Task role ARN |
 

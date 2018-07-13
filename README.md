@@ -19,6 +19,10 @@ It's 100% Open Source and licensed under the [APACHE2](LICENSE).
 
 
 
+
+
+
+
 ## Usage
 
 ```hcl
@@ -85,7 +89,9 @@ Available targets:
 
 | Name | Description |
 |------|-------------|
-| service_name | ECS Service name. |
+| service_name | ECS Service name |
+| service_role_arn | ECS Service role ARN |
+| task_role_arn | ECS Task role ARN |
 
 
 
@@ -182,6 +188,13 @@ See [LICENSE](LICENSE) for full details.
     KIND, either express or implied.  See the License for the
     specific language governing permissions and limitations
     under the License.
+
+
+
+
+
+
+
 
 
 ## Trademarks
