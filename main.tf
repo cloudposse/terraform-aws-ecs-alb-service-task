@@ -47,6 +47,7 @@ resource "aws_ecs_task_definition" "default" {
   memory                   = "${var.task_memory}"
   execution_role_arn       = "${aws_iam_role.ecs_exec.arn}"
   task_role_arn            = "${aws_iam_role.ecs_task.arn}"
+  healthcheck              = "${var.healthcheck}"
 }
 
 # IAM
