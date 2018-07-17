@@ -19,6 +19,10 @@ It's 100% Open Source and licensed under the [APACHE2](LICENSE).
 
 
 
+
+
+
+
 ## Usage
 
 ```hcl
@@ -69,6 +73,7 @@ Available targets:
 | ecr_repository_name | The name of the ECR repository to store images. | string | - | yes |
 | ecs_cluster_arn | The ARN of the ECS cluster where service will be provisioned. | string | - | yes |
 | family | The name used for multiple versions of a task definition. | string | `web` | no |
+| healthcheck | A map containing command (string), interval (duration in seconds), retries (1-10, number of times to retry before marking container unhealthy, and startPeriod (0-300, optional grace period to wait, in seconds, before failed healthchecks count toward retries) | map | `<map>` | no |
 | launch_type | The launch type on which to run your service. Valid values are EC2 and FARGATE. | string | `FARGATE` | no |
 | name | The name of the app to be used in labels. | string | - | yes |
 | namespace | The namespace to be used in labels. | string | - | yes |
@@ -85,7 +90,9 @@ Available targets:
 
 | Name | Description |
 |------|-------------|
-| service_name | ECS Service name. |
+| service_name | ECS Service name |
+| service_role_arn | ECS Service role ARN |
+| task_role_arn | ECS Task role ARN |
 
 
 
@@ -182,6 +189,13 @@ See [LICENSE](LICENSE) for full details.
     KIND, either express or implied.  See the License for the
     specific language governing permissions and limitations
     under the License.
+
+
+
+
+
+
+
 
 
 ## Trademarks

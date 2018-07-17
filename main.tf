@@ -1,5 +1,5 @@
 module "default_label" {
-  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.2"
+  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.3"
   attributes = "${var.attributes}"
   delimiter  = "${var.delimiter}"
   name       = "${var.name}"
@@ -8,9 +8,29 @@ module "default_label" {
   tags       = "${var.tags}"
 }
 
+module "task_role_label" {
+  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.3"
+  attributes = ["${compact(concat(var.attributes, list("task")))}"]
+  delimiter  = "${var.delimiter}"
+  name       = "${var.name}"
+  namespace  = "${var.namespace}"
+  stage      = "${var.stage}"
+  tags       = "${var.tags}"
+}
+
+module "service_role_label" {
+  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.3"
+  attributes = ["${compact(concat(var.attributes, list("service")))}"]
+  delimiter  = "${var.delimiter}"
+  name       = "${var.name}"
+  namespace  = "${var.namespace}"
+  stage      = "${var.stage}"
+  tags       = "${var.tags}"
+}
+
 module "exec_role_label" {
-  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.2"
-  attributes = ["${compact(concat(var.attributes, list("exec", "role")))}"]
+  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.3"
+  attributes = ["${compact(concat(var.attributes, list("exec")))}"]
   delimiter  = "${var.delimiter}"
   name       = "${var.name}"
   namespace  = "${var.namespace}"
@@ -25,12 +45,30 @@ resource "aws_ecs_task_definition" "default" {
   network_mode             = "${var.network_mode}"
   cpu                      = "${var.task_cpu}"
   memory                   = "${var.task_memory}"
-  execution_role_arn       = "${aws_iam_role.ecs_exec_role.arn}"
-  task_role_arn            = "${aws_iam_role.ecs_exec_role.arn}"
+  execution_role_arn       = "${aws_iam_role.ecs_exec.arn}"
+  task_role_arn            = "${aws_iam_role.ecs_task.arn}"
+  healthcheck              = "${var.healthcheck}"
 }
 
 # IAM
-data "aws_iam_policy_document" "ecs_service_role" {
+data "aws_iam_policy_document" "ecs_task" {
+  statement {
+    effect  = "Allow"
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["ecs-tasks.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "ecs_task" {
+  name               = "${module.task_role_label.id}"
+  assume_role_policy = "${data.aws_iam_policy_document.ecs_task.json}"
+}
+
+data "aws_iam_policy_document" "ecs_service" {
   statement {
     effect  = "Allow"
     actions = ["sts:AssumeRole"]
@@ -42,9 +80,9 @@ data "aws_iam_policy_document" "ecs_service_role" {
   }
 }
 
-resource "aws_iam_role" "ecs_role" {
+resource "aws_iam_role" "ecs_service" {
   name               = "${module.default_label.id}"
-  assume_role_policy = "${data.aws_iam_policy_document.ecs_service_role.json}"
+  assume_role_policy = "${data.aws_iam_policy_document.ecs_service.json}"
 }
 
 data "aws_iam_policy_document" "ecs_service_policy" {
@@ -62,14 +100,14 @@ data "aws_iam_policy_document" "ecs_service_policy" {
   }
 }
 
-resource "aws_iam_role_policy" "ecs_service_role_policy" {
+resource "aws_iam_role_policy" "ecs_service" {
   name   = "${module.default_label.id}"
   policy = "${data.aws_iam_policy_document.ecs_service_policy.json}"
-  role   = "${aws_iam_role.ecs_role.id}"
+  role   = "${aws_iam_role.ecs_service.id}"
 }
 
 # IAM role that the Amazon ECS container agent and the Docker daemon can assume
-data "aws_iam_policy_document" "ecs_task_exec_role" {
+data "aws_iam_policy_document" "ecs_task_exec" {
   statement {
     actions = ["sts:AssumeRole"]
 
@@ -80,12 +118,12 @@ data "aws_iam_policy_document" "ecs_task_exec_role" {
   }
 }
 
-resource "aws_iam_role" "ecs_exec_role" {
+resource "aws_iam_role" "ecs_exec" {
   name               = "${module.exec_role_label.id}"
-  assume_role_policy = "${data.aws_iam_policy_document.ecs_task_exec_role.json}"
+  assume_role_policy = "${data.aws_iam_policy_document.ecs_task_exec.json}"
 }
 
-data "aws_iam_policy_document" "ecs_exec_role" {
+data "aws_iam_policy_document" "ecs_exec" {
   statement {
     effect    = "Allow"
     resources = ["*"]
@@ -101,10 +139,10 @@ data "aws_iam_policy_document" "ecs_exec_role" {
   }
 }
 
-resource "aws_iam_role_policy" "ecs_exec_role_policy" {
+resource "aws_iam_role_policy" "ecs_exec" {
   name   = "${module.exec_role_label.id}"
-  policy = "${data.aws_iam_policy_document.ecs_exec_role.json}"
-  role   = "${aws_iam_role.ecs_exec_role.id}"
+  policy = "${data.aws_iam_policy_document.ecs_exec.json}"
+  role   = "${aws_iam_role.ecs_exec.id}"
 }
 
 # Service

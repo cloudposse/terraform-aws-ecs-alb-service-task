@@ -105,3 +105,9 @@ variable "deployment_minimum_healthy_percent" {
   description = "The lower limit (as a percentage of desired_count) of the number of tasks that must remain running and healthy in a service during a deployment."
   default     = 100
 }
+
+variable "healthcheck" {
+  type        = "map"
+  description = "A map containing command (string), interval (duration in seconds), retries (1-10, number of times to retry before marking container unhealthy, and startPeriod (0-300, optional grace period to wait, in seconds, before failed healthchecks count toward retries)"
+  default     = {}
+}
