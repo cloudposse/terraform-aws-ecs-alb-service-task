@@ -8,7 +8,7 @@ module "default_label" {
   tags       = "${var.tags}"
 }
 
-module "task_role_label" {
+module "task_label" {
   source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.3"
   attributes = ["${compact(concat(var.attributes, list("task")))}"]
   delimiter  = "${var.delimiter}"
@@ -18,7 +18,7 @@ module "task_role_label" {
   tags       = "${var.tags}"
 }
 
-module "service_role_label" {
+module "service_label" {
   source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.3"
   attributes = ["${compact(concat(var.attributes, list("service")))}"]
   delimiter  = "${var.delimiter}"
@@ -28,7 +28,7 @@ module "service_role_label" {
   tags       = "${var.tags}"
 }
 
-module "exec_role_label" {
+module "exec_label" {
   source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.3"
   attributes = ["${compact(concat(var.attributes, list("exec")))}"]
   delimiter  = "${var.delimiter}"
@@ -47,7 +47,6 @@ resource "aws_ecs_task_definition" "default" {
   memory                   = "${var.task_memory}"
   execution_role_arn       = "${aws_iam_role.ecs_exec.arn}"
   task_role_arn            = "${aws_iam_role.ecs_task.arn}"
-  healthcheck              = "${var.healthcheck}"
 }
 
 # IAM
@@ -64,7 +63,7 @@ data "aws_iam_policy_document" "ecs_task" {
 }
 
 resource "aws_iam_role" "ecs_task" {
-  name               = "${module.task_role_label.id}"
+  name               = "${module.task_label.id}"
   assume_role_policy = "${data.aws_iam_policy_document.ecs_task.json}"
 }
 
@@ -81,7 +80,7 @@ data "aws_iam_policy_document" "ecs_service" {
 }
 
 resource "aws_iam_role" "ecs_service" {
-  name               = "${module.default_label.id}"
+  name               = "${module.service_label.id}"
   assume_role_policy = "${data.aws_iam_policy_document.ecs_service.json}"
 }
 
@@ -101,7 +100,7 @@ data "aws_iam_policy_document" "ecs_service_policy" {
 }
 
 resource "aws_iam_role_policy" "ecs_service" {
-  name   = "${module.default_label.id}"
+  name   = "${module.service_label.id}"
   policy = "${data.aws_iam_policy_document.ecs_service_policy.json}"
   role   = "${aws_iam_role.ecs_service.id}"
 }
@@ -119,7 +118,7 @@ data "aws_iam_policy_document" "ecs_task_exec" {
 }
 
 resource "aws_iam_role" "ecs_exec" {
-  name               = "${module.exec_role_label.id}"
+  name               = "${module.exec_label.id}"
   assume_role_policy = "${data.aws_iam_policy_document.ecs_task_exec.json}"
 }
 
@@ -140,7 +139,7 @@ data "aws_iam_policy_document" "ecs_exec" {
 }
 
 resource "aws_iam_role_policy" "ecs_exec" {
-  name   = "${module.exec_role_label.id}"
+  name   = "${module.exec_label.id}"
   policy = "${data.aws_iam_policy_document.ecs_exec.json}"
   role   = "${aws_iam_role.ecs_exec.id}"
 }
