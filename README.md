@@ -53,8 +53,9 @@ module "ecs_alb_service_task" {
 ```
 Available targets:
 
-  help                                This help screen
+  help                                Help screen
   help/all                            Display help for all targets
+  help/short                          This help short screen
 
 ```
 
@@ -90,6 +91,7 @@ Available targets:
 
 | Name | Description |
 |------|-------------|
+| ecs_sg_id | Security Group id of ECS task |
 | service_name | ECS Service name |
 | service_role_arn | ECS Service role ARN |
 | task_role_arn | ECS Task role ARN |
