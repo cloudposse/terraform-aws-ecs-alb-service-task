@@ -91,9 +91,9 @@ Available targets:
 
 | Name | Description |
 |------|-------------|
-| ecs_sg_id | Security Group id of ECS task |
 | service_name | ECS Service name |
 | service_role_arn | ECS Service role ARN |
+| service_security_group_id | Security Group id of the ECS task |
 | task_role_arn | ECS Task role ARN |
 
 
