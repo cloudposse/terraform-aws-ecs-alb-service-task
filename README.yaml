@@ -128,7 +128,7 @@ usage: |-
   }
   ```
 
-  `container_image` in the `container_definition` module is the Docker image used to start a container.
+  The `container_image` in the `container_definition` module is the Docker image used to start a container.
 
   This string is passed directly to the Docker daemon. Images in the Docker Hub registry are available by default.
   Other repositories are specified with either `repository-url/image:tag` or `repository-url/image@digest`.
