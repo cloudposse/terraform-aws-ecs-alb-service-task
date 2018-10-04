@@ -41,7 +41,7 @@ module "label" {
 module "container_definition" {
   source          = "git::https://github.com/cloudposse/terraform-aws-ecs-container-definition.git?ref=master"
   container_name  = "app"
-  container_image = "cloudposse/geodesic"
+  container_image = "cloudposse/geodesic:latest"
 
   environment = [
     {
