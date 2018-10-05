@@ -14,6 +14,6 @@ output "task_role_arn" {
 }
 
 output "service_security_group_id" {
-  description = "Security Group id of the ECS task"
+  description = "Security Group ID of the ECS task"
   value       = "${aws_security_group.ecs_service.id}"
 }

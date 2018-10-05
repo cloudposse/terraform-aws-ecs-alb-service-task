@@ -1,5 +1,5 @@
 module "default_label" {
-  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.3"
+  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.6"
   attributes = "${var.attributes}"
   delimiter  = "${var.delimiter}"
   name       = "${var.name}"
@@ -9,7 +9,7 @@ module "default_label" {
 }
 
 module "task_label" {
-  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.3"
+  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.6"
   attributes = ["${compact(concat(var.attributes, list("task")))}"]
   delimiter  = "${var.delimiter}"
   name       = "${var.name}"
@@ -19,7 +19,7 @@ module "task_label" {
 }
 
 module "service_label" {
-  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.3"
+  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.6"
   attributes = ["${compact(concat(var.attributes, list("service")))}"]
   delimiter  = "${var.delimiter}"
   name       = "${var.name}"
@@ -29,7 +29,7 @@ module "service_label" {
 }
 
 module "exec_label" {
-  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.3"
+  source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.1.6"
   attributes = ["${compact(concat(var.attributes, list("exec")))}"]
   delimiter  = "${var.delimiter}"
   name       = "${var.name}"
