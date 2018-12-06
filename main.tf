@@ -47,6 +47,7 @@ resource "aws_ecs_task_definition" "default" {
   memory                   = "${var.task_memory}"
   execution_role_arn       = "${aws_iam_role.ecs_exec.arn}"
   task_role_arn            = "${aws_iam_role.ecs_task.arn}"
+  tags                     = "${module.default_label.tags}"
 }
 
 # IAM
@@ -65,6 +66,7 @@ data "aws_iam_policy_document" "ecs_task" {
 resource "aws_iam_role" "ecs_task" {
   name               = "${module.task_label.id}"
   assume_role_policy = "${data.aws_iam_policy_document.ecs_task.json}"
+  tags               = "${module.task_label.tags}"
 }
 
 data "aws_iam_policy_document" "ecs_service" {
@@ -82,6 +84,7 @@ data "aws_iam_policy_document" "ecs_service" {
 resource "aws_iam_role" "ecs_service" {
   name               = "${module.service_label.id}"
   assume_role_policy = "${data.aws_iam_policy_document.ecs_service.json}"
+  tags               = "${module.service_label.tags}"
 }
 
 data "aws_iam_policy_document" "ecs_service_policy" {
@@ -120,6 +123,7 @@ data "aws_iam_policy_document" "ecs_task_exec" {
 resource "aws_iam_role" "ecs_exec" {
   name               = "${module.exec_label.id}"
   assume_role_policy = "${data.aws_iam_policy_document.ecs_task_exec.json}"
+  tags               = "${module.exec_label.tags}"
 }
 
 data "aws_iam_policy_document" "ecs_exec" {
@@ -179,6 +183,7 @@ resource "aws_ecs_service" "default" {
   deployment_minimum_healthy_percent = "${var.deployment_minimum_healthy_percent}"
   launch_type                        = "${var.launch_type}"
   cluster                            = "${var.ecs_cluster_arn}"
+  tags                               = "${module.default_label.tags}"
 
   network_configuration {
     security_groups = ["${var.security_group_ids}", "${aws_security_group.ecs_service.id}"]
