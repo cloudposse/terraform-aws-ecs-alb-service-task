@@ -1,4 +1,3 @@
-
 ## Inputs
 
 | Name | Description | Type | Default | Required |
@@ -33,4 +32,5 @@
 | service_role_arn | ECS Service role ARN |
 | service_security_group_id | Security Group ID of the ECS task |
 | task_role_arn | ECS Task role ARN |
+| task_role_name | ECS Task role name |
 

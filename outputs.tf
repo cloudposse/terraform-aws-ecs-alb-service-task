@@ -8,6 +8,11 @@ output "service_role_arn" {
   value       = "${aws_iam_role.ecs_service.arn}"
 }
 
+output "task_role_name" {
+  description = "ECS Task role name"
+  value       = "${aws_iam_role.ecs_task.name}"
+}
+
 output "task_role_arn" {
   description = "ECS Task role ARN"
   value       = "${aws_iam_role.ecs_task.arn}"
