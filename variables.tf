@@ -115,7 +115,7 @@ variable "health_check_grace_period_seconds" {
 }
 
 variable "volumes" {
-  type = "list"
+  type        = "list"
   description = "Task volume definitions as list of maps"
   default     = []
 }
