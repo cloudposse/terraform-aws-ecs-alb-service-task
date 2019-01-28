@@ -48,6 +48,7 @@ resource "aws_ecs_task_definition" "default" {
   execution_role_arn       = "${aws_iam_role.ecs_exec.arn}"
   task_role_arn            = "${aws_iam_role.ecs_task.arn}"
   tags                     = "${module.default_label.tags}"
+  volume                   = "${var.volumes}"
 }
 
 # IAM
