@@ -33,6 +33,8 @@
 | service_name | ECS Service name |
 | service_role_arn | ECS Service role ARN |
 | service_security_group_id | Security Group ID of the ECS task |
+| task_definition_family | ECS task definition family |
+| task_definition_revision | ECS task definition revision |
 | task_role_arn | ECS Task role ARN |
 | task_role_name | ECS Task role name |
 
