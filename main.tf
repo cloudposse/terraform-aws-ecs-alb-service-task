@@ -153,9 +153,9 @@ resource "aws_iam_role_policy" "ecs_exec" {
 ## Security Groups
 resource "aws_security_group" "ecs_service" {
   vpc_id      = "${var.vpc_id}"
-  name        = "${module.default_label.id}"
-  description = "Allow ALL egress from ECS service."
-  tags        = "${module.default_label.tags}"
+  name        = "${module.service_label.id}"
+  description = "Allow ALL egress from ECS service"
+  tags        = "${module.service_label.tags}"
 }
 
 resource "aws_security_group_rule" "allow_all_egress" {
