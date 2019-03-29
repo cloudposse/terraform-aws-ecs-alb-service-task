@@ -176,7 +176,8 @@ resource "aws_security_group_rule" "allow_icmp_ingress" {
   security_group_id = "${aws_security_group.ecs_service.id}"
 }
 
-resource "aws_ecs_service" "default" {
+resource "aws_ecs_service" "ignore_changes_task_definition" {
+  count                              = "${var.ignore_changes_task_definition == "true" ? 1: 0}"
   name                               = "${module.default_label.id}"
   task_definition                    = "${aws_ecs_task_definition.default.family}:${aws_ecs_task_definition.default.revision}"
   desired_count                      = "${var.desired_count}"
@@ -200,5 +201,29 @@ resource "aws_ecs_service" "default" {
 
   lifecycle {
     ignore_changes = ["task_definition"]
+  }
+}
+
+resource "aws_ecs_service" "default" {
+  count                              = "${var.ignore_changes_task_definition == "false" ? 1: 0}"
+  name                               = "${module.default_label.id}"
+  task_definition                    = "${aws_ecs_task_definition.default.family}:${aws_ecs_task_definition.default.revision}"
+  desired_count                      = "${var.desired_count}"
+  deployment_maximum_percent         = "${var.deployment_maximum_percent}"
+  deployment_minimum_healthy_percent = "${var.deployment_minimum_healthy_percent}"
+  health_check_grace_period_seconds  = "${var.health_check_grace_period_seconds}"
+  launch_type                        = "${var.launch_type}"
+  cluster                            = "${var.ecs_cluster_arn}"
+  tags                               = "${module.default_label.tags}"
+
+  network_configuration {
+    security_groups = ["${var.security_group_ids}", "${aws_security_group.ecs_service.id}"]
+    subnets         = ["${var.private_subnet_ids}"]
+  }
+
+  load_balancer {
+    target_group_arn = "${var.alb_target_group_arn}"
+    container_name   = "${var.container_name}"
+    container_port   = "${var.container_port}"
   }
 }

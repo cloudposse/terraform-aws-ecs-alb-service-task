@@ -1,6 +1,6 @@
 output "service_name" {
   description = "ECS Service name"
-  value       = "${aws_ecs_service.default.name}"
+  value       = "${element(coalescelist(aws_ecs_service.default.*.name, aws_ecs_service.ignore_changes_task_definition.*.name), 0)}"
 }
 
 output "service_role_arn" {
