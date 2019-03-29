@@ -67,24 +67,24 @@ variable "private_subnet_ids" {
 }
 
 variable "security_group_ids" {
-  description = "Security group IDs to allow in Service network_configuration"
+  description = "Security group IDs to allow in Service `network_configuration`"
   type        = "list"
 }
 
 variable "launch_type" {
   type        = "string"
-  description = "The launch type on which to run your service. Valid values are EC2 and FARGATE"
+  description = "The launch type on which to run your service. Valid values are `EC2` and `FARGATE`"
   default     = "FARGATE"
 }
 
 variable "network_mode" {
   type        = "string"
-  description = "The network mode to use for the task. This is required to be awsvpc for FARGATE `launch_type`"
+  description = "The network mode to use for the task. This is required to be awsvpc for `FARGATE` `launch_type`"
   default     = "awsvpc"
 }
 
 variable "task_cpu" {
-  description = "The number of CPU units used by the task. If using Fargate launch type `task_cpu` must match supported memory values (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size)"
+  description = "The number of CPU units used by the task. If using `FARGATE` launch type `task_cpu` must match supported memory values (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size)"
   default     = 256
 }
 
@@ -110,7 +110,7 @@ variable "deployment_minimum_healthy_percent" {
 
 variable "health_check_grace_period_seconds" {
   type        = "string"
-  description = "Seconds to ignore failing load balancer health checks on newly instantiated tasks to prevent premature shutdown, up to 7200. Only valid for services configured to use load balancers."
+  description = "Seconds to ignore failing load balancer health checks on newly instantiated tasks to prevent premature shutdown, up to 7200. Only valid for services configured to use load balancers"
   default     = 0
 }
 
@@ -118,4 +118,10 @@ variable "volumes" {
   type        = "list"
   description = "Task volume definitions as list of maps"
   default     = []
+}
+
+variable "ignore_changes_task_definition" {
+  type        = "string"
+  description = "Whether to ignore changes in container definition and task definition in the ECS service"
+  default     = "true"
 }
