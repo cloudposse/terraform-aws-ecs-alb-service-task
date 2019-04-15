@@ -3,6 +3,7 @@
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
 | alb_target_group_arn | The ALB target group ARN for the ECS service | string | - | yes |
+| assign_public_ip | Assign a public IP address to the ENI (Fargate launch type only). Valid values are true or false. Default false. | string | `false` | no |
 | attributes | Additional attributes (e.g. `1`) | list | `<list>` | no |
 | container_definition_json | The JSON of the task container definition | string | - | yes |
 | container_name | The name of the container in task definition to associate with the load balancer | string | - | yes |
@@ -18,9 +19,9 @@
 | name | Solution name, e.g. 'app' or 'cluster' | string | - | yes |
 | namespace | Namespace, which could be your organization name, e.g. 'eg' or 'cp' | string | - | yes |
 | network_mode | The network mode to use for the task. This is required to be awsvpc for `FARGATE` `launch_type` | string | `awsvpc` | no |
-| private_subnet_ids | Private subnet IDs | list | - | yes |
 | security_group_ids | Security group IDs to allow in Service `network_configuration` | list | - | yes |
 | stage | Stage, e.g. 'prod', 'staging', 'dev', or 'test' | string | - | yes |
+| subnet_ids | Subnet IDs | list | - | yes |
 | tags | Additional tags (e.g. `map('BusinessUnit`,`XYZ`) | map | `<map>` | no |
 | task_cpu | The number of CPU units used by the task. If using `FARGATE` launch type `task_cpu` must match supported memory values (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | string | `256` | no |
 | task_memory | The amount of memory (in MiB) used by the task. If using Fargate launch type `task_memory` must match supported cpu value (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | string | `512` | no |
