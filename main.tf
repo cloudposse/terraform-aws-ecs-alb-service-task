@@ -189,8 +189,9 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   tags                               = "${module.default_label.tags}"
 
   network_configuration {
-    security_groups = ["${var.security_group_ids}", "${aws_security_group.ecs_service.id}"]
-    subnets         = ["${var.private_subnet_ids}"]
+    security_groups  = ["${var.security_group_ids}", "${aws_security_group.ecs_service.id}"]
+    subnets          = ["${var.subnet_ids}"]
+    assign_public_ip = "${var.assign_public_ip}"
   }
 
   load_balancer {
@@ -217,8 +218,9 @@ resource "aws_ecs_service" "default" {
   tags                               = "${module.default_label.tags}"
 
   network_configuration {
-    security_groups = ["${var.security_group_ids}", "${aws_security_group.ecs_service.id}"]
-    subnets         = ["${var.private_subnet_ids}"]
+    security_groups  = ["${var.security_group_ids}", "${aws_security_group.ecs_service.id}"]
+    subnets          = ["${var.subnet_ids}"]
+    assign_public_ip = "${var.assign_public_ip}"
   }
 
   load_balancer {

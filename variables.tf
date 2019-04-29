@@ -61,8 +61,8 @@ variable "container_port" {
   default     = 80
 }
 
-variable "private_subnet_ids" {
-  description = "Private subnet IDs"
+variable "subnet_ids" {
+  description = "Subnet IDs"
   type        = "list"
 }
 
@@ -124,4 +124,10 @@ variable "ignore_changes_task_definition" {
   type        = "string"
   description = "Whether to ignore changes in container definition and task definition in the ECS service"
   default     = "true"
+}
+
+variable "assign_public_ip" {
+  type        = "string"
+  default     = "false"
+  description = "Assign a public IP address to the ENI (Fargate launch type only). Valid values are true or false. Default false."
 }
