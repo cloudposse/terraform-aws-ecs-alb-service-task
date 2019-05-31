@@ -38,5 +38,6 @@
 | task_definition_family | ECS task definition family |
 | task_definition_revision | ECS task definition revision |
 | task_role_arn | ECS Task role ARN |
+| task_role_id | ECS Task role id |
 | task_role_name | ECS Task role name |
 
