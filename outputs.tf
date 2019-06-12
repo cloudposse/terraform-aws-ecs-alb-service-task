@@ -1,11 +1,11 @@
 output "ecs_exec_role_policy_id" {
   description = "The role policy ID, in the form of role_name:role_policy_name."
-  value = "${aws_iam_role_policy.ecs_exec.id}"
+  value       = "${aws_iam_role_policy.ecs_exec.id}"
 }
 
 output "ecs_exec_role_policy_name" {
   description = "The name of the policy."
-  value = "${aws_iam_role_policy.ecs_exec.name}"
+  value       = "${aws_iam_role_policy.ecs_exec.name}"
 }
 
 output "service_name" {
