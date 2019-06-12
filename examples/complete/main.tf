@@ -55,5 +55,5 @@ module "alb_service_task" {
   launch_type               = "FARGATE"
   vpc_id                    = "xxxxxxx"
   security_group_ids        = ["xxxxx", "yyyyy"]
-  private_subnet_ids        = ["xxxxx", "yyyyy", "zzzzz"]
+  subnet_ids                = ["xxxxx", "yyyyy", "zzzzz"]
 }
