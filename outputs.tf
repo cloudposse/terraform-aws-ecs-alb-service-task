@@ -1,10 +1,10 @@
 output "ecs_exec_role_policy_id" {
-  description = "The role policy ID, in the form of role_name:role_policy_name."
+  description = "The ECS service role policy ID, in the form of role_name:role_policy_name"
   value       = "${aws_iam_role_policy.ecs_exec.id}"
 }
 
 output "ecs_exec_role_policy_name" {
-  description = "The name of the policy."
+  description = "ECS service role name"
   value       = "${aws_iam_role_policy.ecs_exec.name}"
 }
 
@@ -19,12 +19,12 @@ output "service_role_arn" {
 }
 
 output "task_exec_role_name" {
-  description = "ECS Task exec role name"
+  description = "ECS Task role name"
   value       = "${aws_iam_role.ecs_exec.name}"
 }
 
 output "task_exec_role_arn" {
-  description = "ECS Task exec role arn"
+  description = "ECS Task exec role ARN"
   value       = "${aws_iam_role.ecs_exec.arn}"
 }
 
