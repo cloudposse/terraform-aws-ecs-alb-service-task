@@ -9,6 +9,7 @@
 | container_name | The name of the container in task definition to associate with the load balancer | string | - | yes |
 | container_port | The port on the container to associate with the load balancer | string | `80` | no |
 | delimiter | Delimiter to be used between `name`, `namespace`, `stage`, etc. | string | `-` | no |
+| deployment_controller_type | Type of deployment controller. Valid values: `CODE_DEPLOY`, `ECS`. | string | `ECS` | no |
 | deployment_maximum_percent | The upper limit of the number of tasks (as a percentage of `desired_count`) that can be running in a service during a deployment | string | `200` | no |
 | deployment_minimum_healthy_percent | The lower limit (as a percentage of `desired_count`) of the number of tasks that must remain running and healthy in a service during a deployment | string | `100` | no |
 | desired_count | The number of instances of the task definition to place and keep running | string | `1` | no |
@@ -32,15 +33,15 @@
 
 | Name | Description |
 |------|-------------|
-| ecs_exec_role_policy_id | The role policy ID, in the form of role_name:role_policy_name. |
-| ecs_exec_role_policy_name | The name of the policy. |
+| ecs_exec_role_policy_id | The ECS service role policy ID, in the form of role_name:role_policy_name |
+| ecs_exec_role_policy_name | ECS service role name |
 | service_name | ECS Service name |
 | service_role_arn | ECS Service role ARN |
 | service_security_group_id | Security Group ID of the ECS task |
 | task_definition_family | ECS task definition family |
 | task_definition_revision | ECS task definition revision |
-| task_exec_role_arn | ECS Task exec role arn |
-| task_exec_role_name | ECS Task exec role name |
+| task_exec_role_arn | ECS Task exec role ARN |
+| task_exec_role_name | ECS Task role name |
 | task_role_arn | ECS Task role ARN |
 | task_role_name | ECS Task role name |
 
