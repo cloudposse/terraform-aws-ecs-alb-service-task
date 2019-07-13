@@ -98,6 +98,11 @@ variable "desired_count" {
   default     = 1
 }
 
+variable "deployment_controller_type" {
+  description = "Type of deployment controller. Valid values: `CODE_DEPLOY`, `ECS`."
+  default     = "ECS"
+}
+
 variable "deployment_maximum_percent" {
   description = "The upper limit of the number of tasks (as a percentage of `desired_count`) that can be running in a service during a deployment"
   default     = 200
