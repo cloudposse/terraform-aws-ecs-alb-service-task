@@ -188,6 +188,10 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   cluster                            = "${var.ecs_cluster_arn}"
   tags                               = "${module.default_label.tags}"
 
+  deployment_controller {
+    type = "${var.deployment_controller_type}"
+  }
+
   network_configuration {
     security_groups  = ["${var.security_group_ids}", "${aws_security_group.ecs_service.id}"]
     subnets          = ["${var.subnet_ids}"]
