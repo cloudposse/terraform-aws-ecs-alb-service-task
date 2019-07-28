@@ -177,7 +177,7 @@ resource "aws_security_group_rule" "allow_icmp_ingress" {
 }
 
 resource "aws_ecs_service" "ignore_changes_task_definition" {
-  count                              = "${var.ignore_changes_task_definition == "true" ? 1: 0}"
+  count                              = "${var.ignore_changes_task_definition == "true" && var.network_mode != "awsvpc"? 1: 0}"
   name                               = "${module.default_label.id}"
   task_definition                    = "${aws_ecs_task_definition.default.family}:${aws_ecs_task_definition.default.revision}"
   desired_count                      = "${var.desired_count}"
@@ -210,7 +210,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
 }
 
 resource "aws_ecs_service" "default" {
-  count                              = "${var.ignore_changes_task_definition == "false" ? 1: 0}"
+  count                              = "${var.ignore_changes_task_definition == "false" && var.network_mode != "awsvpc"? 1: 0}"
   name                               = "${module.default_label.id}"
   task_definition                    = "${aws_ecs_task_definition.default.family}:${aws_ecs_task_definition.default.revision}"
   desired_count                      = "${var.desired_count}"
@@ -231,6 +231,55 @@ resource "aws_ecs_service" "default" {
     assign_public_ip = "${var.assign_public_ip}"
   }
 
+  load_balancer {
+    target_group_arn = "${var.alb_target_group_arn}"
+    container_name   = "${var.container_name}"
+    container_port   = "${var.container_port}"
+  }
+}
+resource "aws_ecs_service" "ignore_changes_task_definition_awsvpc" {
+  count                              = "${var.ignore_changes_task_definition == "true" && var.network_mode == "awsvpc"? 1: 0}"
+  name                               = "${module.default_label.id}"
+  task_definition                    = "${aws_ecs_task_definition.default.family}:${aws_ecs_task_definition.default.revision}"
+  desired_count                      = "${var.desired_count}"
+  deployment_maximum_percent         = "${var.deployment_maximum_percent}"
+  deployment_minimum_healthy_percent = "${var.deployment_minimum_healthy_percent}"
+  health_check_grace_period_seconds  = "${var.health_check_grace_period_seconds}"
+  launch_type                        = "${var.launch_type}"
+  cluster                            = "${var.ecs_cluster_arn}"
+  tags                               = "${module.default_label.tags}"
+
+  deployment_controller {
+    type = "${var.deployment_controller_type}"
+  } 
+
+  load_balancer {
+    target_group_arn = "${var.alb_target_group_arn}"
+    container_name   = "${var.container_name}"
+    container_port   = "${var.container_port}"
+  }
+
+  lifecycle {
+    ignore_changes = ["task_definition"]
+  }
+}
+
+resource "aws_ecs_service" "default_awsvpc" {
+  count                              = "${var.ignore_changes_task_definition == "false" && var.network_mode == "awsvpc"? 1: 0}"
+  name                               = "${module.default_label.id}"
+  task_definition                    = "${aws_ecs_task_definition.default.family}:${aws_ecs_task_definition.default.revision}"
+  desired_count                      = "${var.desired_count}"
+  deployment_maximum_percent         = "${var.deployment_maximum_percent}"
+  deployment_minimum_healthy_percent = "${var.deployment_minimum_healthy_percent}"
+  health_check_grace_period_seconds  = "${var.health_check_grace_period_seconds}"
+  launch_type                        = "${var.launch_type}"
+  cluster                            = "${var.ecs_cluster_arn}"
+  tags                               = "${module.default_label.tags}"
+
+  deployment_controller {
+    type = "${var.deployment_controller_type}"
+  } 
+  
   load_balancer {
     target_group_arn = "${var.alb_target_group_arn}"
     container_name   = "${var.container_name}"
