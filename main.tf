@@ -237,6 +237,7 @@ resource "aws_ecs_service" "default" {
     container_port   = "${var.container_port}"
   }
 }
+ 
 resource "aws_ecs_service" "ignore_changes_task_definition_awsvpc" {
   count                              = "${var.ignore_changes_task_definition == "true" && var.network_mode == "awsvpc"? 1: 0}"
   name                               = "${module.default_label.id}"
