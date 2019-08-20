@@ -49,6 +49,7 @@ module "alb_service_task" {
   stage                     = "staging"
   name                      = "app"
   alb_target_group_arn      = "xxxxxxx"
+  alb_security_group        = "xxxxxxx"
   container_definition_json = "${module.container_definition.json}"
   container_name            = "${module.label.id}"
   ecs_cluster_arn           = "xxxxxxx"

@@ -41,6 +41,11 @@ variable "alb_target_group_arn" {
   description = "The ALB target group ARN for the ECS service"
 }
 
+variable "alb_security_group" {
+  type        = "string"
+  description = "Security group of the ALB"
+}
+
 variable "ecs_cluster_arn" {
   type        = "string"
   description = "The ARN of the ECS cluster where service will be provisioned"

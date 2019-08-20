@@ -2,6 +2,7 @@
 
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
+| alb_security_group | Security group of the ALB | string | - | yes |
 | alb_target_group_arn | The ALB target group ARN for the ECS service | string | - | yes |
 | assign_public_ip | Assign a public IP address to the ENI (Fargate launch type only). Valid values are true or false. Default false. | string | `false` | no |
 | attributes | Additional attributes (e.g. `1`) | list | `<list>` | no |
