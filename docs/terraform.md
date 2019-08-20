@@ -43,5 +43,6 @@
 | task_exec_role_arn | ECS Task exec role ARN |
 | task_exec_role_name | ECS Task role name |
 | task_role_arn | ECS Task role ARN |
+| task_role_id | ECS Task role id |
 | task_role_name | ECS Task role name |
 

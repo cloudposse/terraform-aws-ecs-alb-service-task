@@ -38,6 +38,11 @@ output "task_role_arn" {
   value       = "${aws_iam_role.ecs_task.arn}"
 }
 
+output "task_role_id" {
+  description = "ECS Task role id"
+  value       = "${aws_iam_role.ecs_task.unique_id}"
+}
+
 output "service_security_group_id" {
   description = "Security Group ID of the ECS task"
   value       = "${aws_security_group.ecs_service.id}"
