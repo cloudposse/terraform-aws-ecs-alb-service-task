@@ -176,6 +176,15 @@ resource "aws_security_group_rule" "allow_icmp_ingress" {
   security_group_id = "${aws_security_group.ecs_service.id}"
 }
 
+resource "aws_security_group_rule" "alb" {
+  type                     = "ingress"
+  from_port                = 0
+  to_port                  = "${var.container_port}"
+  protocol                 = "tcp"
+  source_security_group_id = "${var.alb_security_group}"
+  security_group_id        = "${aws_security_group.ecs_service.id}"
+}
+
 resource "aws_ecs_service" "ignore_changes_task_definition" {
   count                              = "${var.ignore_changes_task_definition == "true" ? 1: 0}"
   name                               = "${module.default_label.id}"
