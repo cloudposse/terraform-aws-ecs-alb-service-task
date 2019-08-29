@@ -141,3 +141,9 @@ variable "assign_public_ip" {
   default     = "false"
   description = "Assign a public IP address to the ENI (Fargate launch type only). Valid values are true or false. Default false."
 }
+
+variable "propagate_tags" {
+  type        = "string"
+  default     = ""
+  description = "Specifies whether to propagate the tags from the task definition or the service to the tasks. The valid values are SERVICE and TASK_DEFINITION."
+}

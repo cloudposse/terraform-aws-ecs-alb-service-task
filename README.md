@@ -170,6 +170,7 @@ Available targets:
 | name | Solution name, e.g. 'app' or 'cluster' | string | - | yes |
 | namespace | Namespace, which could be your organization name, e.g. 'eg' or 'cp' | string | - | yes |
 | network_mode | The network mode to use for the task. This is required to be awsvpc for `FARGATE` `launch_type` | string | `awsvpc` | no |
+| propagate_tags | Specifies whether to propagate the tags from the task definition or the service to the tasks. The valid values are SERVICE and TASK_DEFINITION. | string | `` | no |
 | security_group_ids | Security group IDs to allow in Service `network_configuration` | list | - | yes |
 | stage | Stage, e.g. 'prod', 'staging', 'dev', or 'test' | string | - | yes |
 | subnet_ids | Subnet IDs | list | - | yes |
@@ -343,13 +344,13 @@ Check out [our other projects][github], [follow us on twitter][twitter], [apply 
 |---|---|---|---|
 
   [osterman_homepage]: https://github.com/osterman
-  [osterman_avatar]: https://github.com/osterman.png?size=150
+  [osterman_avatar]: https://img.cloudposse.com/150x150/https://github.com/osterman.png
   [goruha_homepage]: https://github.com/goruha
-  [goruha_avatar]: https://github.com/goruha.png?size=150
+  [goruha_avatar]: https://img.cloudposse.com/150x150/https://github.com/goruha.png
   [aknysh_homepage]: https://github.com/aknysh
-  [aknysh_avatar]: https://github.com/aknysh.png?size=150
+  [aknysh_avatar]: https://img.cloudposse.com/150x150/https://github.com/aknysh.png
   [sarkis_homepage]: https://github.com/sarkis
-  [sarkis_avatar]: https://github.com/sarkis.png?size=150
+  [sarkis_avatar]: https://img.cloudposse.com/150x150/https://github.com/sarkis.png
 
 
 

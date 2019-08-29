@@ -21,6 +21,7 @@
 | name | Solution name, e.g. 'app' or 'cluster' | string | - | yes |
 | namespace | Namespace, which could be your organization name, e.g. 'eg' or 'cp' | string | - | yes |
 | network_mode | The network mode to use for the task. This is required to be awsvpc for `FARGATE` `launch_type` | string | `awsvpc` | no |
+| propagate_tags | Specifies whether to propagate the tags from the task definition or the service to the tasks. The valid values are SERVICE and TASK_DEFINITION. | string | `` | no |
 | security_group_ids | Security group IDs to allow in Service `network_configuration` | list | - | yes |
 | stage | Stage, e.g. 'prod', 'staging', 'dev', or 'test' | string | - | yes |
 | subnet_ids | Subnet IDs | list | - | yes |
