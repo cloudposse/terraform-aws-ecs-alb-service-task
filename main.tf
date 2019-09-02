@@ -10,7 +10,7 @@ module "default_label" {
 
 module "task_label" {
   source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.4.0"
-  attributes = [compact(concat(var.attributes, ["task"]))]
+  attributes = compact(concat(var.attributes, ["task"]))
   delimiter  = var.delimiter
   name       = var.name
   namespace  = var.namespace
@@ -20,7 +20,7 @@ module "task_label" {
 
 module "service_label" {
   source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.4.0"
-  attributes = [compact(concat(var.attributes, ["service"]))]
+  attributes = compact(concat(var.attributes, ["service"]))
   delimiter  = var.delimiter
   name       = var.name
   namespace  = var.namespace
@@ -30,7 +30,7 @@ module "service_label" {
 
 module "exec_label" {
   source     = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=0.4.0"
-  attributes = [compact(concat(var.attributes, ["exec"]))]
+  attributes = compact(concat(var.attributes, ["exec"]))
   delimiter  = var.delimiter
   name       = var.name
   namespace  = var.namespace
