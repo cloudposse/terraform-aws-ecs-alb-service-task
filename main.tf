@@ -253,7 +253,7 @@ resource "aws_ecs_service" "default" {
   }
 
   network_configuration {
-    security_groups  = [var.security_group_ids, aws_security_group.ecs_service.id]
+    security_groups  = compact(concat(var.security_group_ids, [aws_security_group.ecs_service.id]))
     subnets          = var.subnet_ids
     assign_public_ip = var.assign_public_ip
   }
