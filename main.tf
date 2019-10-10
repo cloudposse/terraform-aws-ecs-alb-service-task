@@ -194,6 +194,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   deployment_minimum_healthy_percent = "${var.deployment_minimum_healthy_percent}"
   health_check_grace_period_seconds  = "${var.health_check_grace_period_seconds}"
   launch_type                        = "${var.launch_type}"
+  load_balancer                      = "${var.ecs_load_balancers}"
   cluster                            = "${var.ecs_cluster_arn}"
   tags                               = "${module.default_label.tags}"
 
@@ -205,12 +206,6 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
     security_groups  = ["${var.security_group_ids}", "${aws_security_group.ecs_service.id}"]
     subnets          = ["${var.subnet_ids}"]
     assign_public_ip = "${var.assign_public_ip}"
-  }
-
-  load_balancer {
-    target_group_arn = "${var.alb_target_group_arn}"
-    container_name   = "${var.container_name}"
-    container_port   = "${var.container_port}"
   }
 
   lifecycle {
@@ -227,6 +222,7 @@ resource "aws_ecs_service" "default" {
   deployment_minimum_healthy_percent = "${var.deployment_minimum_healthy_percent}"
   health_check_grace_period_seconds  = "${var.health_check_grace_period_seconds}"
   launch_type                        = "${var.launch_type}"
+  load_balancer                      = "${var.ecs_load_balancers}"
   cluster                            = "${var.ecs_cluster_arn}"
   tags                               = "${module.default_label.tags}"
 
@@ -238,11 +234,5 @@ resource "aws_ecs_service" "default" {
     security_groups  = ["${var.security_group_ids}", "${aws_security_group.ecs_service.id}"]
     subnets          = ["${var.subnet_ids}"]
     assign_public_ip = "${var.assign_public_ip}"
-  }
-
-  load_balancer {
-    target_group_arn = "${var.alb_target_group_arn}"
-    container_name   = "${var.container_name}"
-    container_port   = "${var.container_port}"
   }
 }

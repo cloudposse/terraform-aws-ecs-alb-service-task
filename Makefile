@@ -7,3 +7,6 @@ export README_DEPS ?= docs/targets.md docs/terraform.md
 
 lint:
 	$(SELF) terraform/install terraform/get-modules terraform/get-plugins terraform/lint terraform/validate
+
+example:
+	@cd examples/complete && terraform init && terraform plan
