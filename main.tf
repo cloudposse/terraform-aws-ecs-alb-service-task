@@ -195,6 +195,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   health_check_grace_period_seconds  = "${var.health_check_grace_period_seconds}"
   launch_type                        = "${var.launch_type}"
   cluster                            = "${var.ecs_cluster_arn}"
+  propagate_tags                     = "${var.propagate_tags}"
   tags                               = "${module.default_label.tags}"
 
   deployment_controller {
@@ -228,6 +229,7 @@ resource "aws_ecs_service" "default" {
   health_check_grace_period_seconds  = "${var.health_check_grace_period_seconds}"
   launch_type                        = "${var.launch_type}"
   cluster                            = "${var.ecs_cluster_arn}"
+  propagate_tags                     = "${var.propagate_tags}"
   tags                               = "${module.default_label.tags}"
 
   deployment_controller {
