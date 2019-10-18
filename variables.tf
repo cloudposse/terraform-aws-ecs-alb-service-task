@@ -36,11 +36,6 @@ variable "vpc_id" {
   description = "The VPC ID where resources are created"
 }
 
-variable "alb_target_group_arn" {
-  type        = "string"
-  description = "The ALB target group ARN for the ECS service"
-}
-
 variable "alb_security_group" {
   type        = "string"
   description = "Security group of the ALB"
@@ -51,18 +46,19 @@ variable "ecs_cluster_arn" {
   description = "The ARN of the ECS cluster where service will be provisioned"
 }
 
+variable "ecs_load_balancers" {
+  default     = []
+  type        = "list"
+  description = "A list of load balancer config objects for the ECS service; see `load_balancer` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html"
+}
+
 variable "container_definition_json" {
   type        = "string"
   description = "The JSON of the task container definition"
 }
 
-variable "container_name" {
-  type        = "string"
-  description = "The name of the container in task definition to associate with the load balancer"
-}
-
 variable "container_port" {
-  description = "The port on the container to associate with the load balancer"
+  description = "The port on the container to allow via the ingress security group"
   default     = 80
 }
 
