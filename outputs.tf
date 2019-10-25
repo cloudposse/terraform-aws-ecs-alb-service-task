@@ -10,12 +10,9 @@ output "ecs_exec_role_policy_name" {
 
 output "service_name" {
   description = "ECS Service name"
-  value = element(
-    coalescelist(
-      aws_ecs_service.default.*.name,
-      aws_ecs_service.ignore_changes_task_definition.*.name
-    ),
-    0
+  value = coalesce(
+    join("", aws_ecs_service.default.*.name),
+    join("", aws_ecs_service.ignore_changes_task_definition.*.name)
   )
 }
 

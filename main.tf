@@ -243,10 +243,14 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
     type = var.deployment_controller_type
   }
 
-  network_configuration {
-    security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
-    subnets          = var.subnet_ids
-    assign_public_ip = var.assign_public_ip
+  # https://www.terraform.io/docs/providers/aws/r/ecs_service.html#network_configuration
+  dynamic "network_configuration" {
+    for_each = var.network_mode == "awsvpc" ? ["true"] : []
+    content {
+      security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
+      subnets          = var.subnet_ids
+      assign_public_ip = var.assign_public_ip
+    }
   }
 
   lifecycle {
@@ -282,9 +286,13 @@ resource "aws_ecs_service" "default" {
     type = var.deployment_controller_type
   }
 
-  network_configuration {
-    security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
-    subnets          = var.subnet_ids
-    assign_public_ip = var.assign_public_ip
+  # https://www.terraform.io/docs/providers/aws/r/ecs_service.html#network_configuration
+  dynamic "network_configuration" {
+    for_each = var.network_mode == "awsvpc" ? ["true"] : []
+    content {
+      security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
+      subnets          = var.subnet_ids
+      assign_public_ip = var.assign_public_ip
+    }
   }
 }
