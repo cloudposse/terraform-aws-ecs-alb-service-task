@@ -1,145 +1,175 @@
+variable "enabled" {
+  type        = bool
+  description = "Set to false to prevent the module from creating any resources"
+  default     = true
+}
+
 variable "namespace" {
-  type        = "string"
-  description = "Namespace, which could be your organization name, e.g. 'eg' or 'cp'"
+  type        = string
+  description = "Namespace (e.g. `eg` or `cp`)"
+  default     = ""
 }
 
 variable "stage" {
-  type        = "string"
-  description = "Stage, e.g. 'prod', 'staging', 'dev', or 'test'"
+  type        = string
+  description = "Stage (e.g. `prod`, `dev`, `staging`)"
+  default     = ""
 }
 
 variable "name" {
-  type        = "string"
-  description = "Solution name, e.g. 'app' or 'cluster'"
+  type        = string
+  description = "Name of the application"
 }
 
 variable "delimiter" {
-  type        = "string"
+  type        = string
   default     = "-"
-  description = "Delimiter to be used between `name`, `namespace`, `stage`, etc."
+  description = "Delimiter between `namespace`, `stage`, `name` and `attributes`"
 }
 
 variable "attributes" {
-  type        = "list"
+  type        = list(string)
+  description = "Additional attributes (_e.g._ \"1\")"
   default     = []
-  description = "Additional attributes (e.g. `1`)"
 }
 
 variable "tags" {
-  type        = "map"
+  type        = map(string)
+  description = "Additional tags (_e.g._ { BusinessUnit : ABC })"
   default     = {}
-  description = "Additional tags (e.g. `map('BusinessUnit`,`XYZ`)"
 }
 
 variable "vpc_id" {
-  type        = "string"
+  type        = string
   description = "The VPC ID where resources are created"
 }
 
 variable "alb_security_group" {
-  type        = "string"
+  type        = string
   description = "Security group of the ALB"
 }
 
 variable "ecs_cluster_arn" {
-  type        = "string"
+  type        = string
   description = "The ARN of the ECS cluster where service will be provisioned"
 }
 
 variable "ecs_load_balancers" {
-  default     = []
-  type        = "list"
+  type = list(object({
+    container_name   = string
+    container_port   = number
+    elb_name         = string
+    target_group_arn = string
+  }))
   description = "A list of load balancer config objects for the ECS service; see `load_balancer` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html"
+  default     = []
 }
 
 variable "container_definition_json" {
-  type        = "string"
+  type        = string
   description = "The JSON of the task container definition"
 }
 
 variable "container_port" {
+  type        = number
   description = "The port on the container to allow via the ingress security group"
   default     = 80
 }
 
 variable "subnet_ids" {
+  type        = list(string)
   description = "Subnet IDs"
-  type        = "list"
 }
 
 variable "security_group_ids" {
   description = "Security group IDs to allow in Service `network_configuration`"
-  type        = "list"
+  type        = list(string)
 }
 
 variable "launch_type" {
-  type        = "string"
+  type        = string
   description = "The launch type on which to run your service. Valid values are `EC2` and `FARGATE`"
   default     = "FARGATE"
 }
 
 variable "network_mode" {
-  type        = "string"
+  type        = string
   description = "The network mode to use for the task. This is required to be awsvpc for `FARGATE` `launch_type`"
   default     = "awsvpc"
 }
 
 variable "task_cpu" {
+  type        = number
   description = "The number of CPU units used by the task. If using `FARGATE` launch type `task_cpu` must match supported memory values (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size)"
   default     = 256
 }
 
 variable "task_memory" {
+  type        = number
   description = "The amount of memory (in MiB) used by the task. If using Fargate launch type `task_memory` must match supported cpu value (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size)"
   default     = 512
 }
 
 variable "desired_count" {
+  type        = number
   description = "The number of instances of the task definition to place and keep running"
   default     = 1
 }
 
 variable "deployment_controller_type" {
-  description = "Type of deployment controller. Valid values: `CODE_DEPLOY`, `ECS`."
+  type        = string
+  description = "Type of deployment controller. Valid values: `CODE_DEPLOY` and `ECS`"
   default     = "ECS"
 }
 
 variable "deployment_maximum_percent" {
+  type        = number
   description = "The upper limit of the number of tasks (as a percentage of `desired_count`) that can be running in a service during a deployment"
   default     = 200
 }
 
 variable "deployment_minimum_healthy_percent" {
+  type        = number
   description = "The lower limit (as a percentage of `desired_count`) of the number of tasks that must remain running and healthy in a service during a deployment"
   default     = 100
 }
 
 variable "health_check_grace_period_seconds" {
-  type        = "string"
+  type        = number
   description = "Seconds to ignore failing load balancer health checks on newly instantiated tasks to prevent premature shutdown, up to 7200. Only valid for services configured to use load balancers"
   default     = 0
 }
 
 variable "volumes" {
-  type        = "list"
-  description = "Task volume definitions as list of maps"
+  type = list(object({
+    host_path = string
+    name      = string
+    docker_volume_configuration = list(object({
+      autoprovision = bool
+      driver        = string
+      driver_opts   = map(string)
+      labels        = map(string)
+      scope         = string
+    }))
+  }))
+  description = "Task volume definitions as list of configuration objects"
   default     = []
 }
 
 variable "ignore_changes_task_definition" {
-  type        = "string"
+  type        = bool
   description = "Whether to ignore changes in container definition and task definition in the ECS service"
-  default     = "true"
+  default     = true
 }
 
 variable "assign_public_ip" {
-  type        = "string"
-  default     = "false"
-  description = "Assign a public IP address to the ENI (Fargate launch type only). Valid values are true or false. Default false."
+  type        = bool
+  description = "Assign a public IP address to the ENI (Fargate launch type only). Valid values are `true` or `false`. Default `false`"
+  default     = false
 }
 
 variable "propagate_tags" {
-  type        = "string"
-  default     = ""
-  description = "Specifies whether to propagate the tags from the task definition or the service to the tasks. The valid values are SERVICE and TASK_DEFINITION."
+  type        = string
+  description = "Specifies whether to propagate the tags from the task definition or the service to the tasks. The valid values are SERVICE and TASK_DEFINITION"
+  default     = null
 }

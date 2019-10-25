@@ -18,9 +18,9 @@ github_repo: cloudposse/terraform-aws-ecs-alb-service-task
 
 # Badges to display
 badges:
-  - name: "Build Status"
-    image: "https://travis-ci.org/cloudposse/terraform-aws-ecs-alb-service-task.svg?branch=master"
-    url: "https://travis-ci.org/cloudposse/terraform-aws-ecs-alb-service-task"
+  - name: "Codefresh Build Status"
+    image: "https://g.codefresh.io/api/badges/pipeline/cloudposse/terraform-modules%2Fterraform-aws-emr-cluster?type=cf-1"
+    url: "https://g.codefresh.io/public/accounts/cloudposse/pipelines/5d3b77ee6818e3f6dec32663"
   - name: "Latest Release"
     image: "https://img.shields.io/github/release/cloudposse/terraform-aws-ecs-alb-service-task.svg"
     url: "https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/releases/latest"
