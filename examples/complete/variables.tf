@@ -104,19 +104,6 @@ variable "container_readonly_root_filesystem" {
   description = "Determines whether a container is given read-only access to its root filesystem. Due to how Terraform type casts booleans in json it is required to double quote this value"
 }
 
-# https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_LogConfiguration.html
-variable "container_log_configuration" {
-  type = object({
-    logDriver = string
-    options   = map(string)
-    secretOptions = list(object({
-      name      = string
-      valueFrom = string
-    }))
-  })
-  description = "Log configuration options to send to a custom log driver for the container. For more details, see https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_LogConfiguration.html"
-}
-
 variable "network_mode" {
   type        = string
   description = "The network mode to use for the task. This is required to be `awsvpc` for `FARGATE` `launch_type`"
@@ -150,11 +137,6 @@ variable "deployment_maximum_percent" {
 variable "deployment_minimum_healthy_percent" {
   type        = number
   description = "The lower limit (as a percentage of `desired_count`) of the number of tasks that must remain running and healthy in a service during a deployment"
-}
-
-variable "health_check_grace_period_seconds" {
-  type        = number
-  description = "Seconds to ignore failing load balancer health checks on newly instantiated tasks to prevent premature shutdown, up to 7200. Only valid for services configured to use load balancers"
 }
 
 variable "ignore_changes_task_definition" {

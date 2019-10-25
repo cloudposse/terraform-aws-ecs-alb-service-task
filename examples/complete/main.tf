@@ -55,7 +55,6 @@ module "container_definition" {
   readonly_root_filesystem     = var.container_readonly_root_filesystem
   environment                  = var.container_environment
   port_mappings                = var.container_port_mappings
-  log_configuration            = var.container_log_configuration
 }
 
 module "ecs_alb_service_task" {
@@ -77,7 +76,6 @@ module "ecs_alb_service_task" {
   network_mode                       = var.network_mode
   assign_public_ip                   = var.assign_public_ip
   propagate_tags                     = var.propagate_tags
-  health_check_grace_period_seconds  = var.health_check_grace_period_seconds
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_controller_type         = var.deployment_controller_type

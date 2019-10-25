@@ -20,8 +20,6 @@ assign_public_ip = false
 
 propagate_tags = "TASK_DEFINITION"
 
-health_check_grace_period_seconds = 30
-
 deployment_minimum_healthy_percent = 100
 
 deployment_maximum_percent = 200
@@ -79,12 +77,3 @@ container_port_mappings = [
     protocol      = "udp"
   }
 ]
-
-container_log_configuration = {
-  logDriver = "json-file"
-  options = {
-    "max-size" = "10m"
-    "max-file" = "3"
-  }
-  secretOptions = null
-}
