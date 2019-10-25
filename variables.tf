@@ -84,6 +84,7 @@ variable "subnet_ids" {
 variable "security_group_ids" {
   description = "Security group IDs to allow in Service `network_configuration`"
   type        = list(string)
+  default     = []
 }
 
 variable "launch_type" {
@@ -94,7 +95,7 @@ variable "launch_type" {
 
 variable "network_mode" {
   type        = string
-  description = "The network mode to use for the task. This is required to be awsvpc for `FARGATE` `launch_type`"
+  description = "The network mode to use for the task. This is required to be `awsvpc` for `FARGATE` `launch_type`"
   default     = "awsvpc"
 }
 
@@ -118,7 +119,7 @@ variable "desired_count" {
 
 variable "deployment_controller_type" {
   type        = string
-  description = "Type of deployment controller. Valid values: `CODE_DEPLOY` and `ECS`"
+  description = "Type of deployment controller. Valid values are `CODE_DEPLOY` and `ECS`"
   default     = "ECS"
 }
 

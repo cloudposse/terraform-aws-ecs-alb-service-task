@@ -8,7 +8,7 @@
 | container_definition_json | The JSON of the task container definition | string | - | yes |
 | container_port | The port on the container to allow via the ingress security group | number | `80` | no |
 | delimiter | Delimiter between `namespace`, `stage`, `name` and `attributes` | string | `-` | no |
-| deployment_controller_type | Type of deployment controller. Valid values: `CODE_DEPLOY` and `ECS` | string | `ECS` | no |
+| deployment_controller_type | Type of deployment controller. Valid values are `CODE_DEPLOY` and `ECS` | string | `ECS` | no |
 | deployment_maximum_percent | The upper limit of the number of tasks (as a percentage of `desired_count`) that can be running in a service during a deployment | number | `200` | no |
 | deployment_minimum_healthy_percent | The lower limit (as a percentage of `desired_count`) of the number of tasks that must remain running and healthy in a service during a deployment | number | `100` | no |
 | desired_count | The number of instances of the task definition to place and keep running | number | `1` | no |
@@ -20,9 +20,9 @@
 | launch_type | The launch type on which to run your service. Valid values are `EC2` and `FARGATE` | string | `FARGATE` | no |
 | name | Name of the application | string | - | yes |
 | namespace | Namespace (e.g. `eg` or `cp`) | string | `` | no |
-| network_mode | The network mode to use for the task. This is required to be awsvpc for `FARGATE` `launch_type` | string | `awsvpc` | no |
+| network_mode | The network mode to use for the task. This is required to be `awsvpc` for `FARGATE` `launch_type` | string | `awsvpc` | no |
 | propagate_tags | Specifies whether to propagate the tags from the task definition or the service to the tasks. The valid values are SERVICE and TASK_DEFINITION | string | `null` | no |
-| security_group_ids | Security group IDs to allow in Service `network_configuration` | list(string) | - | yes |
+| security_group_ids | Security group IDs to allow in Service `network_configuration` | list(string) | `<list>` | no |
 | stage | Stage (e.g. `prod`, `dev`, `staging`) | string | `` | no |
 | subnet_ids | Subnet IDs | list(string) | - | yes |
 | tags | Additional tags (_e.g._ { BusinessUnit : ABC }) | map(string) | `<map>` | no |

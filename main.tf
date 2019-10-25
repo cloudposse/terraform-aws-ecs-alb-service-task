@@ -31,14 +31,15 @@ module "exec_label" {
 }
 
 resource "aws_ecs_task_definition" "default" {
+  count                    = var.enabled ? 1 : 0
   family                   = module.default_label.id
   container_definitions    = var.container_definition_json
   requires_compatibilities = [var.launch_type]
   network_mode             = var.network_mode
   cpu                      = var.task_cpu
   memory                   = var.task_memory
-  execution_role_arn       = aws_iam_role.ecs_exec.arn
-  task_role_arn            = aws_iam_role.ecs_task.arn
+  execution_role_arn       = join("", aws_iam_role.ecs_exec.*.arn)
+  task_role_arn            = join("", aws_iam_role.ecs_task.*.arn)
   tags                     = module.default_label.tags
 
   dynamic "volume" {
@@ -63,6 +64,8 @@ resource "aws_ecs_task_definition" "default" {
 
 # IAM
 data "aws_iam_policy_document" "ecs_task" {
+  count = var.enabled ? 1 : 0
+
   statement {
     effect  = "Allow"
     actions = ["sts:AssumeRole"]
@@ -75,12 +78,15 @@ data "aws_iam_policy_document" "ecs_task" {
 }
 
 resource "aws_iam_role" "ecs_task" {
+  count              = var.enabled ? 1 : 0
   name               = module.task_label.id
-  assume_role_policy = data.aws_iam_policy_document.ecs_task.json
+  assume_role_policy = join("", data.aws_iam_policy_document.ecs_task.*.json)
   tags               = module.task_label.tags
 }
 
 data "aws_iam_policy_document" "ecs_service" {
+  count = var.enabled ? 1 : 0
+
   statement {
     effect  = "Allow"
     actions = ["sts:AssumeRole"]
@@ -93,12 +99,15 @@ data "aws_iam_policy_document" "ecs_service" {
 }
 
 resource "aws_iam_role" "ecs_service" {
+  count              = var.enabled ? 1 : 0
   name               = module.service_label.id
-  assume_role_policy = data.aws_iam_policy_document.ecs_service.json
+  assume_role_policy = join("", data.aws_iam_policy_document.ecs_service.*.json)
   tags               = module.service_label.tags
 }
 
 data "aws_iam_policy_document" "ecs_service_policy" {
+  count = var.enabled ? 1 : 0
+
   statement {
     effect    = "Allow"
     resources = ["*"]
@@ -114,13 +123,16 @@ data "aws_iam_policy_document" "ecs_service_policy" {
 }
 
 resource "aws_iam_role_policy" "ecs_service" {
+  count  = var.enabled ? 1 : 0
   name   = module.service_label.id
-  policy = data.aws_iam_policy_document.ecs_service_policy.json
-  role   = aws_iam_role.ecs_service.id
+  policy = join("", data.aws_iam_policy_document.ecs_service_policy.*.json)
+  role   = join("", aws_iam_role.ecs_service.*.id)
 }
 
 # IAM role that the Amazon ECS container agent and the Docker daemon can assume
 data "aws_iam_policy_document" "ecs_task_exec" {
+  count = var.enabled ? 1 : 0
+
   statement {
     actions = ["sts:AssumeRole"]
 
@@ -132,12 +144,15 @@ data "aws_iam_policy_document" "ecs_task_exec" {
 }
 
 resource "aws_iam_role" "ecs_exec" {
+  count              = var.enabled ? 1 : 0
   name               = module.exec_label.id
-  assume_role_policy = data.aws_iam_policy_document.ecs_task_exec.json
+  assume_role_policy = join("", data.aws_iam_policy_document.ecs_task_exec.*.json)
   tags               = module.exec_label.tags
 }
 
 data "aws_iam_policy_document" "ecs_exec" {
+  count = var.enabled ? 1 : 0
+
   statement {
     effect    = "Allow"
     resources = ["*"]
@@ -154,14 +169,16 @@ data "aws_iam_policy_document" "ecs_exec" {
 }
 
 resource "aws_iam_role_policy" "ecs_exec" {
+  count  = var.enabled ? 1 : 0
   name   = module.exec_label.id
-  policy = data.aws_iam_policy_document.ecs_exec.json
-  role   = aws_iam_role.ecs_exec.id
+  policy = join("", data.aws_iam_policy_document.ecs_exec.*.json)
+  role   = join("", aws_iam_role.ecs_exec.*.id)
 }
 
 # Service
 ## Security Groups
 resource "aws_security_group" "ecs_service" {
+  count       = var.enabled ? 1 : 0
   vpc_id      = var.vpc_id
   name        = module.service_label.id
   description = "Allow ALL egress from ECS service"
@@ -169,36 +186,39 @@ resource "aws_security_group" "ecs_service" {
 }
 
 resource "aws_security_group_rule" "allow_all_egress" {
+  count             = var.enabled ? 1 : 0
   type              = "egress"
   from_port         = 0
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.ecs_service.id
+  security_group_id = join("", aws_security_group.ecs_service.*.id)
 }
 
 resource "aws_security_group_rule" "allow_icmp_ingress" {
+  count             = var.enabled ? 1 : 0
   type              = "ingress"
   from_port         = 8
   to_port           = 0
   protocol          = "icmp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = aws_security_group.ecs_service.id
+  security_group_id = join("", aws_security_group.ecs_service.*.id)
 }
 
 resource "aws_security_group_rule" "alb" {
+  count                    = var.enabled ? 1 : 0
   type                     = "ingress"
   from_port                = 0
   to_port                  = var.container_port
   protocol                 = "tcp"
   source_security_group_id = var.alb_security_group
-  security_group_id        = aws_security_group.ecs_service.id
+  security_group_id        = join("", aws_security_group.ecs_service.*.id)
 }
 
 resource "aws_ecs_service" "ignore_changes_task_definition" {
-  count                              = var.ignore_changes_task_definition ? 1 : 0
+  count                              = var.enabled && var.ignore_changes_task_definition ? 1 : 0
   name                               = module.default_label.id
-  task_definition                    = "${aws_ecs_task_definition.default.family}:${aws_ecs_task_definition.default.revision}"
+  task_definition                    = "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}"
   desired_count                      = var.desired_count
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
@@ -224,7 +244,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   }
 
   network_configuration {
-    security_groups  = [var.security_group_ids, aws_security_group.ecs_service.id]
+    security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
     subnets          = var.subnet_ids
     assign_public_ip = var.assign_public_ip
   }
@@ -235,9 +255,9 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
 }
 
 resource "aws_ecs_service" "default" {
-  count                              = var.ignore_changes_task_definition == false ? 1 : 0
+  count                              = var.enabled && var.ignore_changes_task_definition == false ? 1 : 0
   name                               = module.default_label.id
-  task_definition                    = "${aws_ecs_task_definition.default.family}:${aws_ecs_task_definition.default.revision}"
+  task_definition                    = "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}"
   desired_count                      = var.desired_count
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
@@ -263,7 +283,7 @@ resource "aws_ecs_service" "default" {
   }
 
   network_configuration {
-    security_groups  = [var.security_group_ids, aws_security_group.ecs_service.id]
+    security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
     subnets          = var.subnet_ids
     assign_public_ip = var.assign_public_ip
   }
