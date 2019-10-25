@@ -10,10 +10,7 @@ output "ecs_exec_role_policy_name" {
 
 output "service_name" {
   description = "ECS Service name"
-  value = coalesce(
-    join("", aws_ecs_service.default.*.name),
-    join("", aws_ecs_service.ignore_changes_task_definition.*.name)
-  )
+  value       = join("", aws_ecs_service.default.*.name) != "" ? join("", aws_ecs_service.default.*.name) : join("", aws_ecs_service.ignore_changes_task_definition.*.name)
 }
 
 output "service_role_arn" {
