@@ -3,7 +3,7 @@
 
 [![Cloud Posse][logo]](https://cpco.io/homepage)
 
-# terraform-aws-ecs-alb-service-task [![Build Status](https://travis-ci.org/cloudposse/terraform-aws-ecs-alb-service-task.svg?branch=master)](https://travis-ci.org/cloudposse/terraform-aws-ecs-alb-service-task) [![Latest Release](https://img.shields.io/github/release/cloudposse/terraform-aws-ecs-alb-service-task.svg)](https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/releases/latest) [![Slack Community](https://slack.cloudposse.com/badge.svg)](https://slack.cloudposse.com)
+# terraform-aws-ecs-alb-service-task [![Codefresh Build Status](https://g.codefresh.io/api/badges/pipeline/cloudposse/terraform-modules%2Fterraform-aws-ecs-alb-service-task?type=cf-1)](https://g.codefresh.io/public/accounts/cloudposse/pipelines/5db352c10c7c5a56af1de612) [![Latest Release](https://img.shields.io/github/release/cloudposse/terraform-aws-ecs-alb-service-task.svg)](https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/releases/latest) [![Slack Community](https://slack.cloudposse.com/badge.svg)](https://slack.cloudposse.com)
 
 
 Terraform module to create an ECS Service for a web app (task), and an ALB target group to route requests.
@@ -48,68 +48,98 @@ Instead pin to the release tag (e.g. `?ref=tags/x.y.z`) of one of our [latest re
 
 
 
-For a complete example, see [examples/complete](examples/complete)
+For a complete example, see [examples/complete](examples/complete).
+
+For automated test of the complete example using `bats` and `Terratest`, see [test](test).
 
 ```hcl
-module "label" {
-  source    = "git::https://github.com/cloudposse/terraform-terraform-label.git?ref=master"
-  namespace = "eg"
-  stage     = "staging"
-  name      = "app"
-}
+  provider "aws" {
+    region = var.region
+  }
 
-module "container_definition" {
-  source          = "git::https://github.com/cloudposse/terraform-aws-ecs-container-definition.git?ref=master"
-  container_name  = "app"
-  container_image = "cloudposse/geodesic:latest"
+  module "label" {
+    source     = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.15.0"
+    namespace  = var.namespace
+    name       = var.name
+    stage      = var.stage
+    delimiter  = var.delimiter
+    attributes = var.attributes
+    tags       = var.tags
+  }
 
-  environment = [
-    {
-      name  = "string_var"
-      value = "I am a string"
-    },
-    {
-      name  = "true_boolean_var"
-      value = true
-    },
-    {
-      name  = "false_boolean_var"
-      value = false
-    },
-    {
-      name  = "integer_var"
-      value = 42
-    },
-  ]
+  module "vpc" {
+    source     = "git::https://github.com/cloudposse/terraform-aws-vpc.git?ref=tags/0.8.1"
+    namespace  = var.namespace
+    stage      = var.stage
+    name       = var.name
+    delimiter  = var.delimiter
+    attributes = var.attributes
+    cidr_block = var.vpc_cidr_block
+    tags       = var.tags
+  }
 
-  port_mappings = [
-    {
-      containerPort = 8080
-      hostPort      = 80
-      protocol      = "tcp"
-    },
-    {
-      containerPort = 8081
-      hostPort      = 443
-      protocol      = "udp"
-    },
-  ]
-}
+  module "subnets" {
+    source               = "git::https://github.com/cloudposse/terraform-aws-dynamic-subnets.git?ref=tags/0.16.1"
+    availability_zones   = var.availability_zones
+    namespace            = var.namespace
+    stage                = var.stage
+    name                 = var.name
+    attributes           = var.attributes
+    delimiter            = var.delimiter
+    vpc_id               = module.vpc.vpc_id
+    igw_id               = module.vpc.igw_id
+    cidr_block           = module.vpc.vpc_cidr_block
+    nat_gateway_enabled  = true
+    nat_instance_enabled = false
+    tags                 = var.tags
+  }
 
-module "alb_service_task" {
-  source                    = "git::https://github.com/cloudposse/terraform-aws-ecs-alb-service-task.git?ref=master"
-  namespace                 = "eg"
-  stage                     = "staging"
-  name                      = "app"
-  alb_target_group_arn      = "xxxxxxx"
-  container_definition_json = "${module.container_definition.json}"
-  container_name            = "${module.label.id}"
-  ecs_cluster_arn           = "xxxxxxx"
-  launch_type               = "FARGATE"
-  vpc_id                    = "xxxxxxx"
-  security_group_ids        = ["xxxxx", "yyyyy"]
-  private_subnet_ids        = ["xxxxx", "yyyyy", "zzzzz"]
-}
+  resource "aws_ecs_cluster" "default" {
+    name = module.label.id
+    tags = module.label.tags
+  }
+
+  module "container_definition" {
+    source                       = "git::https://github.com/cloudposse/terraform-aws-ecs-container-definition.git?ref=tags/0.21.0"
+    container_name               = var.container_name
+    container_image              = var.container_image
+    container_memory             = var.container_memory
+    container_memory_reservation = var.container_memory_reservation
+    container_cpu                = var.container_cpu
+    essential                    = var.container_essential
+    readonly_root_filesystem     = var.container_readonly_root_filesystem
+    environment                  = var.container_environment
+    port_mappings                = var.container_port_mappings
+    log_configuration            = var.container_log_configuration
+  }
+
+  module "ecs_alb_service_task" {
+    source                             = "git::https://github.com/cloudposse/terraform-aws-ecs-alb-service-task.git?ref=master"
+    namespace                          = var.namespace
+    stage                              = var.stage
+    name                               = var.name
+    attributes                         = var.attributes
+    delimiter                          = var.delimiter
+    alb_security_group                 = module.vpc.vpc_default_security_group_id
+    container_definition_json          = module.container_definition.json
+    ecs_cluster_arn                    = aws_ecs_cluster.default.arn
+    launch_type                        = var.ecs_launch_type
+    vpc_id                             = module.vpc.vpc_id
+    security_group_ids                 = [module.vpc.vpc_default_security_group_id]
+    subnet_ids                         = module.subnets.public_subnet_ids
+    tags                               = var.tags
+    ignore_changes_task_definition     = var.ignore_changes_task_definition
+    network_mode                       = var.network_mode
+    assign_public_ip                   = var.assign_public_ip
+    propagate_tags                     = var.propagate_tags
+    health_check_grace_period_seconds  = var.health_check_grace_period_seconds
+    deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
+    deployment_maximum_percent         = var.deployment_maximum_percent
+    deployment_controller_type         = var.deployment_controller_type
+    desired_count                      = var.desired_count
+    task_memory                        = var.task_memory
+    task_cpu                           = var.task_cpu
+  }
 ```
 
 The `container_image` in the `container_definition` module is the Docker image used to start a container.
@@ -152,38 +182,39 @@ Available targets:
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
 | alb_security_group | Security group of the ALB | string | - | yes |
-| assign_public_ip | Assign a public IP address to the ENI (Fargate launch type only). Valid values are true or false. Default false. | string | `false` | no |
-| attributes | Additional attributes (e.g. `1`) | list | `<list>` | no |
+| assign_public_ip | Assign a public IP address to the ENI (Fargate launch type only). Valid values are `true` or `false`. Default `false` | bool | `false` | no |
+| attributes | Additional attributes (_e.g._ "1") | list(string) | `<list>` | no |
 | container_definition_json | The JSON of the task container definition | string | - | yes |
-| container_port | The port on the container to allow via the ingress security group | string | `80` | no |
-| delimiter | Delimiter to be used between `name`, `namespace`, `stage`, etc. | string | `-` | no |
-| deployment_controller_type | Type of deployment controller. Valid values: `CODE_DEPLOY`, `ECS`. | string | `ECS` | no |
-| deployment_maximum_percent | The upper limit of the number of tasks (as a percentage of `desired_count`) that can be running in a service during a deployment | string | `200` | no |
-| deployment_minimum_healthy_percent | The lower limit (as a percentage of `desired_count`) of the number of tasks that must remain running and healthy in a service during a deployment | string | `100` | no |
-| desired_count | The number of instances of the task definition to place and keep running | string | `1` | no |
+| container_port | The port on the container to allow via the ingress security group | number | `80` | no |
+| delimiter | Delimiter between `namespace`, `stage`, `name` and `attributes` | string | `-` | no |
+| deployment_controller_type | Type of deployment controller. Valid values are `CODE_DEPLOY` and `ECS` | string | `ECS` | no |
+| deployment_maximum_percent | The upper limit of the number of tasks (as a percentage of `desired_count`) that can be running in a service during a deployment | number | `200` | no |
+| deployment_minimum_healthy_percent | The lower limit (as a percentage of `desired_count`) of the number of tasks that must remain running and healthy in a service during a deployment | number | `100` | no |
+| desired_count | The number of instances of the task definition to place and keep running | number | `1` | no |
 | ecs_cluster_arn | The ARN of the ECS cluster where service will be provisioned | string | - | yes |
-| ecs_load_balancers | A list of load balancer config objects for the ECS service; see `load_balancer` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html | list | `<list>` | no |
-| health_check_grace_period_seconds | Seconds to ignore failing load balancer health checks on newly instantiated tasks to prevent premature shutdown, up to 7200. Only valid for services configured to use load balancers | string | `0` | no |
-| ignore_changes_task_definition | Whether to ignore changes in container definition and task definition in the ECS service | string | `true` | no |
+| ecs_load_balancers | A list of load balancer config objects for the ECS service; see `load_balancer` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html | object | `<list>` | no |
+| enabled | Set to false to prevent the module from creating any resources | bool | `true` | no |
+| health_check_grace_period_seconds | Seconds to ignore failing load balancer health checks on newly instantiated tasks to prevent premature shutdown, up to 7200. Only valid for services configured to use load balancers | number | `0` | no |
+| ignore_changes_task_definition | Whether to ignore changes in container definition and task definition in the ECS service | bool | `true` | no |
 | launch_type | The launch type on which to run your service. Valid values are `EC2` and `FARGATE` | string | `FARGATE` | no |
-| name | Solution name, e.g. 'app' or 'cluster' | string | - | yes |
-| namespace | Namespace, which could be your organization name, e.g. 'eg' or 'cp' | string | - | yes |
-| network_mode | The network mode to use for the task. This is required to be awsvpc for `FARGATE` `launch_type` | string | `awsvpc` | no |
-| propagate_tags | Specifies whether to propagate the tags from the task definition or the service to the tasks. The valid values are SERVICE and TASK_DEFINITION. | string | `` | no |
-| security_group_ids | Security group IDs to allow in Service `network_configuration` | list | - | yes |
-| stage | Stage, e.g. 'prod', 'staging', 'dev', or 'test' | string | - | yes |
-| subnet_ids | Subnet IDs | list | - | yes |
-| tags | Additional tags (e.g. `map('BusinessUnit`,`XYZ`) | map | `<map>` | no |
-| task_cpu | The number of CPU units used by the task. If using `FARGATE` launch type `task_cpu` must match supported memory values (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | string | `256` | no |
-| task_memory | The amount of memory (in MiB) used by the task. If using Fargate launch type `task_memory` must match supported cpu value (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | string | `512` | no |
-| volumes | Task volume definitions as list of maps | list | `<list>` | no |
+| name | Name of the application | string | - | yes |
+| namespace | Namespace (e.g. `eg` or `cp`) | string | `` | no |
+| network_mode | The network mode to use for the task. This is required to be `awsvpc` for `FARGATE` `launch_type` | string | `awsvpc` | no |
+| propagate_tags | Specifies whether to propagate the tags from the task definition or the service to the tasks. The valid values are SERVICE and TASK_DEFINITION | string | `null` | no |
+| security_group_ids | Security group IDs to allow in Service `network_configuration` | list(string) | `<list>` | no |
+| stage | Stage (e.g. `prod`, `dev`, `staging`) | string | `` | no |
+| subnet_ids | Subnet IDs | list(string) | - | yes |
+| tags | Additional tags (_e.g._ { BusinessUnit : ABC }) | map(string) | `<map>` | no |
+| task_cpu | The number of CPU units used by the task. If using `FARGATE` launch type `task_cpu` must match supported memory values (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | number | `256` | no |
+| task_memory | The amount of memory (in MiB) used by the task. If using Fargate launch type `task_memory` must match supported cpu value (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | number | `512` | no |
+| volumes | Task volume definitions as list of configuration objects | object | `<list>` | no |
 | vpc_id | The VPC ID where resources are created | string | - | yes |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| ecs_exec_role_policy_id | The ECS service role policy ID, in the form of role_name:role_policy_name |
+| ecs_exec_role_policy_id | The ECS service role policy ID, in the form of `role_name:role_policy_name` |
 | ecs_exec_role_policy_name | ECS service role name |
 | service_name | ECS Service name |
 | service_role_arn | ECS Service role ARN |

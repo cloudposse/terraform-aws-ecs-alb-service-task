@@ -9,6 +9,3 @@
 
 .build-harness
 build-harness
-
-# Terraform tfvars files
-*.tfvars
