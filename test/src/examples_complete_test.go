@@ -26,7 +26,7 @@ func TestExamplesComplete(t *testing.T) {
 	terraform.InitAndApply(t, terraformOptions)
 
 	// Run `terraform output` to get the value of an output variable
-	jsonMap := terraform.OutputRequired(t, terraformOptions, "container_definition_json")
+	jsonMap := terraform.OutputRequired(t, terraformOptions, "container_definition_json_map")
 	// Verify we're getting back the outputs we expect
 	var jsonObject map[string]interface{}
 	err := json.Unmarshal([]byte(jsonMap), &jsonObject)
