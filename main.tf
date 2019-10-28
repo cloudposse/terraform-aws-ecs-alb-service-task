@@ -210,7 +210,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
 }
 
 resource "aws_ecs_service" "default" {
-  count                              = "${var.ignore_changes_task_definition == "false" && var.network_mode != "awsvpc" ? 1 : 0}"
+  count                              = "${var.ignore_changes_task_definition == "false" && var.network_mode == "awsvpc" ? 1 : 0}"
   name                               = "${module.default_label.id}"
   task_definition                    = "${aws_ecs_task_definition.default.family}:${aws_ecs_task_definition.default.revision}"
   desired_count                      = "${var.desired_count}"
@@ -238,8 +238,8 @@ resource "aws_ecs_service" "default" {
   }
 }
 
-resource "aws_ecs_service" "ignore_changes_task_definition_awsvpc" {
-  count                              = "${var.ignore_changes_task_definition == "true" && var.network_mode == "awsvpc" ? 1 : 0}"
+resource "aws_ecs_service" "ignore_changes_task_definition_not_awsvpc" {
+  count                              = "${var.ignore_changes_task_definition == "true" && var.network_mode != "awsvpc" ? 1 : 0}"
   name                               = "${module.default_label.id}"
   task_definition                    = "${aws_ecs_task_definition.default.family}:${aws_ecs_task_definition.default.revision}"
   desired_count                      = "${var.desired_count}"
@@ -265,8 +265,8 @@ resource "aws_ecs_service" "ignore_changes_task_definition_awsvpc" {
   }
 }
 
-resource "aws_ecs_service" "default_awsvpc" {
-  count                              = "${var.ignore_changes_task_definition == "false" && var.network_mode == "awsvpc" ? 1 : 0}"
+resource "aws_ecs_service" "default_not_awsvpc" {
+  count                              = "${var.ignore_changes_task_definition == "false" && var.network_mode != "awsvpc" ? 1 : 0}"
   name                               = "${module.default_label.id}"
   task_definition                    = "${aws_ecs_task_definition.default.family}:${aws_ecs_task_definition.default.revision}"
   desired_count                      = "${var.desired_count}"
