@@ -200,13 +200,20 @@ Available targets:
 | name | Name of the application | string | - | yes |
 | namespace | Namespace (e.g. `eg` or `cp`) | string | `` | no |
 | network_mode | The network mode to use for the task. This is required to be `awsvpc` for `FARGATE` `launch_type` | string | `awsvpc` | no |
+| ordered_placement_strategy | Service level strategy rules that are taken into consideration during task placement. List from top to bottom in order of precedence. The maximum number of ordered_placement_strategy blocks is 5. See `ordered_placement_strategy` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html#ordered_placement_strategy-1 | object | `<list>` | no |
+| platform_version | The platform version on which to run your service. Only applicable for launch_type set to FARGATE. More information about Fargate platform versions can be found in the AWS ECS User Guide. | string | `LATEST` | no |
 | propagate_tags | Specifies whether to propagate the tags from the task definition or the service to the tasks. The valid values are SERVICE and TASK_DEFINITION | string | `null` | no |
+| proxy_configuration | The proxy configuration details for the App Mesh proxy. See `proxy_configuration` docs https://www.terraform.io/docs/providers/aws/r/ecs_task_definition.html#proxy-configuration-arguments | object | `null` | no |
+| scheduling_strategy | The scheduling strategy to use for the service. The valid values are REPLICA and DAEMON. Note that Fargate tasks do not support the DAEMON scheduling strategy. | string | `REPLICA` | no |
 | security_group_ids | Security group IDs to allow in Service `network_configuration` | list(string) | `<list>` | no |
+| service_placement_constraints | The rules that are taken into consideration during task placement. Maximum number of placement_constraints is 10. See `placement_constraints` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html#placement_constraints-1 | object | `<list>` | no |
+| service_registries | The service discovery registries for the service. The maximum number of service_registries blocks is 1. The currently supported service registry is Amazon Route 53 Auto Naming Service - `aws_service_discovery_service`; see `service_registries` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html#service_registries-1 | object | `<list>` | no |
 | stage | Stage (e.g. `prod`, `dev`, `staging`) | string | `` | no |
 | subnet_ids | Subnet IDs | list(string) | - | yes |
 | tags | Additional tags (_e.g._ { BusinessUnit : ABC }) | map(string) | `<map>` | no |
 | task_cpu | The number of CPU units used by the task. If using `FARGATE` launch type `task_cpu` must match supported memory values (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | number | `256` | no |
 | task_memory | The amount of memory (in MiB) used by the task. If using Fargate launch type `task_memory` must match supported cpu value (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | number | `512` | no |
+| task_placement_constraints | A set of placement constraints rules that are taken into consideration during task placement. Maximum number of placement_constraints is 10. See `placement_constraints` docs https://www.terraform.io/docs/providers/aws/r/ecs_task_definition.html#placement-constraints-arguments | object | `<list>` | no |
 | volumes | Task volume definitions as list of configuration objects | object | `<list>` | no |
 | vpc_id | The VPC ID where resources are created | string | - | yes |
 
