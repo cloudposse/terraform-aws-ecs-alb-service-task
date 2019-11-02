@@ -42,6 +42,23 @@ resource "aws_ecs_task_definition" "default" {
   task_role_arn            = join("", aws_iam_role.ecs_task.*.arn)
   tags                     = module.default_label.tags
 
+  dynamic "proxy_configuration" {
+    for_each = var.proxy_configuration == null ? [] : [var.proxy_configuration]
+    content {
+      type           = lookup(proxy_configuration.value, "type", "APPMESH")
+      container_name = proxy_configuration.value.container_name
+      properties     = proxy_configuration.value.properties
+    }
+  }
+
+  dynamic "placement_constraints" {
+    for_each = var.task_placement_constraints
+    content {
+      type       = placement_constraints.value.type
+      expression = lookup(placement_constraints.value, "expression", null)
+    }
+  }
+
   dynamic "volume" {
     for_each = var.volumes
     content {
@@ -224,6 +241,34 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
   health_check_grace_period_seconds  = var.health_check_grace_period_seconds
   launch_type                        = var.launch_type
+  platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
+  scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
+
+  dynamic "service_registries" {
+    for_each = var.service_registries
+    content {
+      registry_arn   = service_registries.value.registry_arn
+      port           = lookup(service_registries.value, "port", null)
+      container_name = lookup(service_registries.value, "container_name", null)
+      container_port = lookup(service_registries.value, "container_port", null)
+    }
+  }
+
+  dynamic "ordered_placement_strategy" {
+    for_each = var.ordered_placement_strategy
+    content {
+      type  = ordered_placement_strategy.value.type
+      field = lookup(ordered_placement_strategy.value, "field", null)
+    }
+  }
+
+  dynamic "placement_constraints" {
+    for_each = var.service_placement_constraints
+    content {
+      type       = placement_constraints.value.type
+      expression = lookup(placement_constraints.value, "expression", null)
+    }
+  }
 
   dynamic "load_balancer" {
     for_each = var.ecs_load_balancers
@@ -267,6 +312,34 @@ resource "aws_ecs_service" "default" {
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
   health_check_grace_period_seconds  = var.health_check_grace_period_seconds
   launch_type                        = var.launch_type
+  platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
+  scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
+
+  dynamic "service_registries" {
+    for_each = var.service_registries
+    content {
+      registry_arn   = service_registries.value.registry_arn
+      port           = lookup(service_registries.value, "port", null)
+      container_name = lookup(service_registries.value, "container_name", null)
+      container_port = lookup(service_registries.value, "container_port", null)
+    }
+  }
+
+  dynamic "ordered_placement_strategy" {
+    for_each = var.ordered_placement_strategy
+    content {
+      type  = ordered_placement_strategy.value.type
+      field = lookup(ordered_placement_strategy.value, "field", null)
+    }
+  }
+
+  dynamic "placement_constraints" {
+    for_each = var.service_placement_constraints
+    content {
+      type       = placement_constraints.value.type
+      expression = lookup(placement_constraints.value, "expression", null)
+    }
+  }
 
   dynamic "load_balancer" {
     for_each = var.ecs_load_balancers
