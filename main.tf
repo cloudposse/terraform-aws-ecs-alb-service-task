@@ -222,8 +222,8 @@ resource "aws_security_group_rule" "allow_icmp_ingress" {
   security_group_id = join("", aws_security_group.ecs_service.*.id)
 }
 
-resource "aws_security_group_rule" "default" {
-  count                    = var.enabled && var.alb_security_group != "" ? 1 : 0
+resource "aws_security_group_rule" "alb" {
+  count                    = var.enabled && var.use_alb_security_group != "" ? 1 : 0
   type                     = "ingress"
   from_port                = 0
   to_port                  = var.container_port
