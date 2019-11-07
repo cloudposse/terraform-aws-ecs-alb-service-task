@@ -47,6 +47,7 @@ variable "vpc_id" {
 variable "alb_security_group" {
   type        = string
   description = "Security group of the ALB"
+  default     = ""
 }
 
 variable "ecs_cluster_arn" {

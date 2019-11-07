@@ -2,7 +2,7 @@
 
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
-| alb_security_group | Security group of the ALB | string | - | yes |
+| alb_security_group | Security group of the ALB | string | `` | no |
 | assign_public_ip | Assign a public IP address to the ENI (Fargate launch type only). Valid values are `true` or `false`. Default `false` | bool | `false` | no |
 | attributes | Additional attributes (_e.g._ "1") | list(string) | `<list>` | no |
 | container_definition_json | The JSON of the task container definition | string | - | yes |
