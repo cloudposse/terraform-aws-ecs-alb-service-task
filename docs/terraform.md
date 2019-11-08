@@ -2,7 +2,7 @@
 
 | Name | Description | Type | Default | Required |
 |------|-------------|:----:|:-----:|:-----:|
-| alb_security_group | Security group of the ALB | string | - | yes |
+| alb_security_group | Security group of the ALB | string | `` | no |
 | assign_public_ip | Assign a public IP address to the ENI (Fargate launch type only). Valid values are `true` or `false`. Default `false` | bool | `false` | no |
 | attributes | Additional attributes (_e.g._ "1") | list(string) | `<list>` | no |
 | container_definition_json | The JSON of the task container definition | string | - | yes |
@@ -35,6 +35,7 @@
 | task_cpu | The number of CPU units used by the task. If using `FARGATE` launch type `task_cpu` must match supported memory values (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | number | `256` | no |
 | task_memory | The amount of memory (in MiB) used by the task. If using Fargate launch type `task_memory` must match supported cpu value (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | number | `512` | no |
 | task_placement_constraints | A set of placement constraints rules that are taken into consideration during task placement. Maximum number of placement_constraints is 10. See `placement_constraints` docs https://www.terraform.io/docs/providers/aws/r/ecs_task_definition.html#placement-constraints-arguments | object | `<list>` | no |
+| use_alb_security_group | A flag to enable/disable adding the ingress rule to the ALB security group | bool | `false` | no |
 | volumes | Task volume definitions as list of configuration objects | object | `<list>` | no |
 | vpc_id | The VPC ID where resources are created | string | - | yes |
 

@@ -223,7 +223,7 @@ resource "aws_security_group_rule" "allow_icmp_ingress" {
 }
 
 resource "aws_security_group_rule" "alb" {
-  count                    = var.enabled ? 1 : 0
+  count                    = var.enabled && var.use_alb_security_group ? 1 : 0
   type                     = "ingress"
   from_port                = 0
   to_port                  = var.container_port
