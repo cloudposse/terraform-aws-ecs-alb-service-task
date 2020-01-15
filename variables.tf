@@ -225,6 +225,22 @@ variable "propagate_tags" {
   default     = null
 }
 
+variable "enable_ecs_managed_tags" {
+  type        = bool
+  description = "Specifies whether to enable Amazon ECS managed tags for the tasks within the service"
+  default     = false
+}
+
+variable "capacity_provider_strategies" {
+  type = list(object({
+    capacity_provider = string
+    weight            = number
+    base              = number
+  }))
+  description = "The capacity provider strategies to use for the service. See `capacity_provider_strategy` configuration block: https://www.terraform.io/docs/providers/aws/r/ecs_service.html#capacity_provider_strategy"
+  default     = []
+}
+
 variable "service_registries" {
   type = list(object({
     registry_arn   = string
