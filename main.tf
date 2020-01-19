@@ -225,11 +225,21 @@ resource "aws_security_group_rule" "allow_icmp_ingress" {
 resource "aws_security_group_rule" "alb" {
   count                    = var.enabled && var.use_alb_security_group ? 1 : 0
   type                     = "ingress"
-  from_port                = 0
+  from_port                = var.container_port
   to_port                  = var.container_port
   protocol                 = "tcp"
   source_security_group_id = var.alb_security_group
   security_group_id        = join("", aws_security_group.ecs_service.*.id)
+}
+
+resource "aws_security_group_rule" "nlb" {
+  count             = var.enabled && var.use_nlb_cidr_blocks ? 1 : 0
+  type              = "ingress"
+  from_port         = var.nlb_container_port
+  to_port           = var.nlb_container_port
+  protocol          = "tcp"
+  cidr_blocks       = var.nlb_cidr_blocks
+  security_group_id = join("", aws_security_group.ecs_service.*.id)
 }
 
 resource "aws_ecs_service" "ignore_changes_task_definition" {
