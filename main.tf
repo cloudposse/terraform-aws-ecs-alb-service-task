@@ -250,9 +250,19 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
   health_check_grace_period_seconds  = var.health_check_grace_period_seconds
-  launch_type                        = var.launch_type
+  launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
   platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
   scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
+  enable_ecs_managed_tags            = var.enable_ecs_managed_tags
+
+  dynamic "capacity_provider_strategy" {
+    for_each = var.capacity_provider_strategies
+    content {
+      capacity_provider = capacity_provider_strategy.value.capacity_provider
+      weight            = capacity_provider_strategy.value.weight
+      base              = lookup(capacity_provider_strategy.value, "base", null)
+    }
+  }
 
   dynamic "service_registries" {
     for_each = var.service_registries
@@ -321,9 +331,19 @@ resource "aws_ecs_service" "default" {
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
   health_check_grace_period_seconds  = var.health_check_grace_period_seconds
-  launch_type                        = var.launch_type
+  launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
   platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
   scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
+  enable_ecs_managed_tags            = var.enable_ecs_managed_tags
+
+  dynamic "capacity_provider_strategy" {
+    for_each = var.capacity_provider_strategies
+    content {
+      capacity_provider = capacity_provider_strategy.value.capacity_provider
+      weight            = capacity_provider_strategy.value.weight
+      base              = lookup(capacity_provider_strategy.value, "base", null)
+    }
+  }
 
   dynamic "service_registries" {
     for_each = var.service_registries

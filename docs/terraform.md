@@ -5,6 +5,7 @@
 | alb_security_group | Security group of the ALB | string | `` | no |
 | assign_public_ip | Assign a public IP address to the ENI (Fargate launch type only). Valid values are `true` or `false`. Default `false` | bool | `false` | no |
 | attributes | Additional attributes (_e.g._ "1") | list(string) | `<list>` | no |
+| capacity_provider_strategies | The capacity provider strategies to use for the service. See `capacity_provider_strategy` configuration block: https://www.terraform.io/docs/providers/aws/r/ecs_service.html#capacity_provider_strategy | object | `<list>` | no |
 | container_definition_json | The JSON of the task container definition | string | - | yes |
 | container_port | The port on the container to allow via the ingress security group | number | `80` | no |
 | delimiter | Delimiter between `namespace`, `stage`, `name` and `attributes` | string | `-` | no |
@@ -14,6 +15,7 @@
 | desired_count | The number of instances of the task definition to place and keep running | number | `1` | no |
 | ecs_cluster_arn | The ARN of the ECS cluster where service will be provisioned | string | - | yes |
 | ecs_load_balancers | A list of load balancer config objects for the ECS service; see `load_balancer` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html | object | `<list>` | no |
+| enable_ecs_managed_tags | Specifies whether to enable Amazon ECS managed tags for the tasks within the service | bool | `false` | no |
 | enabled | Set to false to prevent the module from creating any resources | bool | `true` | no |
 | health_check_grace_period_seconds | Seconds to ignore failing load balancer health checks on newly instantiated tasks to prevent premature shutdown, up to 7200. Only valid for services configured to use load balancers | number | `0` | no |
 | ignore_changes_task_definition | Whether to ignore changes in container definition and task definition in the ECS service | bool | `true` | no |
