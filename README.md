@@ -223,6 +223,7 @@ Available targets:
 | alb_security_group | Security group of the ALB | string | `` | no |
 | assign_public_ip | Assign a public IP address to the ENI (Fargate launch type only). Valid values are `true` or `false`. Default `false` | bool | `false` | no |
 | attributes | Additional attributes (_e.g._ "1") | list(string) | `<list>` | no |
+| capacity_provider_strategies | The capacity provider strategies to use for the service. See `capacity_provider_strategy` configuration block: https://www.terraform.io/docs/providers/aws/r/ecs_service.html#capacity_provider_strategy | object | `<list>` | no |
 | container_definition_json | The JSON of the task container definition | string | - | yes |
 | container_port | The port on the container to allow via the ingress security group | number | `80` | no |
 | delimiter | Delimiter between `namespace`, `stage`, `name` and `attributes` | string | `-` | no |
@@ -232,6 +233,7 @@ Available targets:
 | desired_count | The number of instances of the task definition to place and keep running | number | `1` | no |
 | ecs_cluster_arn | The ARN of the ECS cluster where service will be provisioned | string | - | yes |
 | ecs_load_balancers | A list of load balancer config objects for the ECS service; see `load_balancer` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html | object | `<list>` | no |
+| enable_ecs_managed_tags | Specifies whether to enable Amazon ECS managed tags for the tasks within the service | bool | `false` | no |
 | enabled | Set to false to prevent the module from creating any resources | bool | `true` | no |
 | health_check_grace_period_seconds | Seconds to ignore failing load balancer health checks on newly instantiated tasks to prevent premature shutdown, up to 7200. Only valid for services configured to use load balancers | number | `0` | no |
 | ignore_changes_task_definition | Whether to ignore changes in container definition and task definition in the ECS service | bool | `true` | no |
@@ -239,6 +241,8 @@ Available targets:
 | name | Name of the application | string | - | yes |
 | namespace | Namespace (e.g. `eg` or `cp`) | string | `` | no |
 | network_mode | The network mode to use for the task. This is required to be `awsvpc` for `FARGATE` `launch_type` | string | `awsvpc` | no |
+| nlb_cidr_blocks | A list of CIDR blocks to add to the ingress rule for the NLB container port | list(string) | `<list>` | no |
+| nlb_container_port | The port on the container to allow via the ingress security group | number | `80` | no |
 | ordered_placement_strategy | Service level strategy rules that are taken into consideration during task placement. List from top to bottom in order of precedence. The maximum number of ordered_placement_strategy blocks is 5. See `ordered_placement_strategy` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html#ordered_placement_strategy-1 | object | `<list>` | no |
 | platform_version | The platform version on which to run your service. Only applicable for launch_type set to FARGATE. More information about Fargate platform versions can be found in the AWS ECS User Guide. | string | `LATEST` | no |
 | propagate_tags | Specifies whether to propagate the tags from the task definition or the service to the tasks. The valid values are SERVICE and TASK_DEFINITION | string | `null` | no |
@@ -254,6 +258,7 @@ Available targets:
 | task_memory | The amount of memory (in MiB) used by the task. If using Fargate launch type `task_memory` must match supported cpu value (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | number | `512` | no |
 | task_placement_constraints | A set of placement constraints rules that are taken into consideration during task placement. Maximum number of placement_constraints is 10. See `placement_constraints` docs https://www.terraform.io/docs/providers/aws/r/ecs_task_definition.html#placement-constraints-arguments | object | `<list>` | no |
 | use_alb_security_group | A flag to enable/disable adding the ingress rule to the ALB security group | bool | `false` | no |
+| use_nlb_cidr_blocks | A flag to enable/disable adding the NLB ingress rule to the security group | bool | `false` | no |
 | volumes | Task volume definitions as list of configuration objects | object | `<list>` | no |
 | vpc_id | The VPC ID where resources are created | string | - | yes |
 
@@ -367,7 +372,7 @@ In general, PRs are welcome. We follow the typical "fork-and-pull" Git workflow.
 
 ## Copyright
 
-Copyright © 2017-2019 [Cloud Posse, LLC](https://cpco.io/copyright)
+Copyright © 2017-2020 [Cloud Posse, LLC](https://cpco.io/copyright)
 
 
 

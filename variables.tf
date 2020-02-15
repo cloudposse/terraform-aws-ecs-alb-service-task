@@ -77,6 +77,12 @@ variable "container_port" {
   default     = 80
 }
 
+variable "nlb_container_port" {
+  type        = number
+  description = "The port on the container to allow via the ingress security group"
+  default     = 80
+}
+
 variable "subnet_ids" {
   type        = list(string)
   description = "Subnet IDs"
@@ -225,6 +231,22 @@ variable "propagate_tags" {
   default     = null
 }
 
+variable "enable_ecs_managed_tags" {
+  type        = bool
+  description = "Specifies whether to enable Amazon ECS managed tags for the tasks within the service"
+  default     = false
+}
+
+variable "capacity_provider_strategies" {
+  type = list(object({
+    capacity_provider = string
+    weight            = number
+    base              = number
+  }))
+  description = "The capacity provider strategies to use for the service. See `capacity_provider_strategy` configuration block: https://www.terraform.io/docs/providers/aws/r/ecs_service.html#capacity_provider_strategy"
+  default     = []
+}
+
 variable "service_registries" {
   type = list(object({
     registry_arn   = string
@@ -240,4 +262,16 @@ variable "use_alb_security_group" {
   type        = bool
   description = "A flag to enable/disable adding the ingress rule to the ALB security group"
   default     = false
+}
+
+variable "use_nlb_cidr_blocks" {
+  type        = bool
+  description = "A flag to enable/disable adding the NLB ingress rule to the security group"
+  default     = false
+}
+
+variable "nlb_cidr_blocks" {
+  type        = list(string)
+  description = "A list of CIDR blocks to add to the ingress rule for the NLB container port"
+  default     = []
 }

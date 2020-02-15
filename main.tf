@@ -226,11 +226,21 @@ resource "aws_security_group_rule" "allow_icmp_ingress" {
 resource "aws_security_group_rule" "alb" {
   count                    = var.enabled && var.use_alb_security_group ? 1 : 0
   type                     = "ingress"
-  from_port                = 0
+  from_port                = var.container_port
   to_port                  = var.container_port
   protocol                 = "tcp"
   source_security_group_id = var.alb_security_group
   security_group_id        = join("", aws_security_group.ecs_service.*.id)
+}
+
+resource "aws_security_group_rule" "nlb" {
+  count             = var.enabled && var.use_nlb_cidr_blocks ? 1 : 0
+  type              = "ingress"
+  from_port         = var.nlb_container_port
+  to_port           = var.nlb_container_port
+  protocol          = "tcp"
+  cidr_blocks       = var.nlb_cidr_blocks
+  security_group_id = join("", aws_security_group.ecs_service.*.id)
 }
 
 resource "aws_ecs_service" "ignore_changes_task_definition" {
@@ -241,9 +251,19 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
   health_check_grace_period_seconds  = var.health_check_grace_period_seconds
-  launch_type                        = var.launch_type
+  launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
   platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
   scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
+  enable_ecs_managed_tags            = var.enable_ecs_managed_tags
+
+  dynamic "capacity_provider_strategy" {
+    for_each = var.capacity_provider_strategies
+    content {
+      capacity_provider = capacity_provider_strategy.value.capacity_provider
+      weight            = capacity_provider_strategy.value.weight
+      base              = lookup(capacity_provider_strategy.value, "base", null)
+    }
+  }
 
   dynamic "service_registries" {
     for_each = var.service_registries
@@ -312,9 +332,19 @@ resource "aws_ecs_service" "default" {
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
   health_check_grace_period_seconds  = var.health_check_grace_period_seconds
-  launch_type                        = var.launch_type
+  launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
   platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
   scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
+  enable_ecs_managed_tags            = var.enable_ecs_managed_tags
+
+  dynamic "capacity_provider_strategy" {
+    for_each = var.capacity_provider_strategies
+    content {
+      capacity_provider = capacity_provider_strategy.value.capacity_provider
+      weight            = capacity_provider_strategy.value.weight
+      base              = lookup(capacity_provider_strategy.value, "base", null)
+    }
+  }
 
   dynamic "service_registries" {
     for_each = var.service_registries
