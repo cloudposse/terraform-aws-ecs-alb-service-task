@@ -275,3 +275,9 @@ variable "nlb_cidr_blocks" {
   description = "A list of CIDR blocks to add to the ingress rule for the NLB container port"
   default     = []
 }
+
+variable "permissions_boundary" {
+  type        = string
+  description = "A permissions boundary ARN to apply to the 3 roles that are created."
+  default     = ""
+}
