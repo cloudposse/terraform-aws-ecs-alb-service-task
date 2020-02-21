@@ -95,11 +95,11 @@ data "aws_iam_policy_document" "ecs_task" {
 }
 
 resource "aws_iam_role" "ecs_task" {
-  count              = var.enabled ? 1 : 0
-  name               = module.task_label.id
-  assume_role_policy = join("", data.aws_iam_policy_document.ecs_task.*.json)
+  count                = var.enabled ? 1 : 0
+  name                 = module.task_label.id
+  assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
-  tags               = module.task_label.tags
+  tags                 = module.task_label.tags
 }
 
 data "aws_iam_policy_document" "ecs_service" {
@@ -117,11 +117,11 @@ data "aws_iam_policy_document" "ecs_service" {
 }
 
 resource "aws_iam_role" "ecs_service" {
-  count              = var.enabled ? 1 : 0
-  name               = module.service_label.id
-  assume_role_policy = join("", data.aws_iam_policy_document.ecs_service.*.json)
+  count                = var.enabled ? 1 : 0
+  name                 = module.service_label.id
+  assume_role_policy   = join("", data.aws_iam_policy_document.ecs_service.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
-  tags               = module.service_label.tags
+  tags                 = module.service_label.tags
 }
 
 data "aws_iam_policy_document" "ecs_service_policy" {
@@ -163,11 +163,11 @@ data "aws_iam_policy_document" "ecs_task_exec" {
 }
 
 resource "aws_iam_role" "ecs_exec" {
-  count              = var.enabled ? 1 : 0
-  name               = module.exec_label.id
-  assume_role_policy = join("", data.aws_iam_policy_document.ecs_task_exec.*.json)
+  count                = var.enabled ? 1 : 0
+  name                 = module.exec_label.id
+  assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task_exec.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
-  tags               = module.exec_label.tags
+  tags                 = module.exec_label.tags
 }
 
 data "aws_iam_policy_document" "ecs_exec" {
