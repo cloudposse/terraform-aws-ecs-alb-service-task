@@ -244,6 +244,7 @@ Available targets:
 | nlb_cidr_blocks | A list of CIDR blocks to add to the ingress rule for the NLB container port | list(string) | `<list>` | no |
 | nlb_container_port | The port on the container to allow via the ingress security group | number | `80` | no |
 | ordered_placement_strategy | Service level strategy rules that are taken into consideration during task placement. List from top to bottom in order of precedence. The maximum number of ordered_placement_strategy blocks is 5. See `ordered_placement_strategy` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html#ordered_placement_strategy-1 | object | `<list>` | no |
+| permissions_boundary | A permissions boundary ARN to apply to the 3 roles that are created. | string | `` | no |
 | platform_version | The platform version on which to run your service. Only applicable for launch_type set to FARGATE. More information about Fargate platform versions can be found in the AWS ECS User Guide. | string | `LATEST` | no |
 | propagate_tags | Specifies whether to propagate the tags from the task definition or the service to the tasks. The valid values are SERVICE and TASK_DEFINITION | string | `null` | no |
 | proxy_configuration | The proxy configuration details for the App Mesh proxy. See `proxy_configuration` docs https://www.terraform.io/docs/providers/aws/r/ecs_task_definition.html#proxy-configuration-arguments | object | `null` | no |
