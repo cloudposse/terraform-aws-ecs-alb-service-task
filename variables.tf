@@ -281,3 +281,9 @@ variable "permissions_boundary" {
   description = "A permissions boundary ARN to apply to the 3 roles that are created."
   default     = ""
 }
+
+variable "use_old_arn" {
+  type        = bool
+  description = "A flag to enable/disable tagging the ecs resources that require the new arn format"
+  default     = false
+}

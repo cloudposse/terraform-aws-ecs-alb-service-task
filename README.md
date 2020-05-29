@@ -260,6 +260,7 @@ Available targets:
 | task_placement_constraints | A set of placement constraints rules that are taken into consideration during task placement. Maximum number of placement_constraints is 10. See `placement_constraints` docs https://www.terraform.io/docs/providers/aws/r/ecs_task_definition.html#placement-constraints-arguments | object | `<list>` | no |
 | use_alb_security_group | A flag to enable/disable adding the ingress rule to the ALB security group | bool | `false` | no |
 | use_nlb_cidr_blocks | A flag to enable/disable adding the NLB ingress rule to the security group | bool | `false` | no |
+| use\_old\_arn | A flag to enable/disable tagging the ecs resources that require the new arn format | `bool` | `false` | no |
 | volumes | Task volume definitions as list of configuration objects | object | `<list>` | no |
 | vpc_id | The VPC ID where resources are created | string | - | yes |
 
