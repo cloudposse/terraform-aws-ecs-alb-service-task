@@ -125,7 +125,7 @@ resource "aws_iam_role" "ecs_service" {
 }
 
 data "aws_iam_policy_document" "ecs_service_policy" {
-  count = var.enabled ? 1 : 0
+  count = var.enabled && var.network_mode != "awsvpc" ? 1 : 0
 
   statement {
     effect    = "Allow"
@@ -142,7 +142,7 @@ data "aws_iam_policy_document" "ecs_service_policy" {
 }
 
 resource "aws_iam_role_policy" "ecs_service" {
-  count  = var.enabled ? 1 : 0
+  count  = var.enabled && var.network_mode != "awsvpc" ? 1 : 0
   name   = module.service_label.id
   policy = join("", data.aws_iam_policy_document.ecs_service_policy.*.json)
   role   = join("", aws_iam_role.ecs_service.*.id)
