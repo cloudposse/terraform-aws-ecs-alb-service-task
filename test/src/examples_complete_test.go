@@ -75,11 +75,6 @@ func TestExamplesComplete(t *testing.T) {
 	assert.Equal(t, "eg-test-ecs-alb-service-task", serviceName)
 
 	// Run `terraform output` to get the value of an output variable
-	serviceRoleArn := terraform.Output(t, terraformOptions, "service_role_arn")
-	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "arn:aws:iam::126450723953:role/eg-test-ecs-alb-service-task-service", serviceRoleArn)
-
-	// Run `terraform output` to get the value of an output variable
 	taskDefinitionFamily := terraform.Output(t, terraformOptions, "task_definition_family")
 	// Verify we're getting back the outputs we expect
 	assert.Equal(t, "eg-test-ecs-alb-service-task", taskDefinitionFamily)

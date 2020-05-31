@@ -117,7 +117,7 @@ data "aws_iam_policy_document" "ecs_service" {
 }
 
 resource "aws_iam_role" "ecs_service" {
-  count                = var.enabled ? 1 : 0
+  count                = var.enabled && var.network_mode != "awsvpc" ? 1 : 0
   name                 = module.service_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_service.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
@@ -125,7 +125,7 @@ resource "aws_iam_role" "ecs_service" {
 }
 
 data "aws_iam_policy_document" "ecs_service_policy" {
-  count = var.enabled ? 1 : 0
+  count = var.enabled && var.network_mode != "awsvpc" ? 1 : 0
 
   statement {
     effect    = "Allow"
@@ -142,7 +142,7 @@ data "aws_iam_policy_document" "ecs_service_policy" {
 }
 
 resource "aws_iam_role_policy" "ecs_service" {
-  count  = var.enabled ? 1 : 0
+  count  = var.enabled && var.network_mode != "awsvpc" ? 1 : 0
   name   = module.service_label.id
   policy = join("", data.aws_iam_policy_document.ecs_service_policy.*.json)
   role   = join("", aws_iam_role.ecs_service.*.id)
@@ -259,6 +259,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
   scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
   enable_ecs_managed_tags            = var.enable_ecs_managed_tags
+  iam_role                           = var.network_mode != "awsvpc" ? join("", aws_iam_role.ecs_service.*.arn) : null
 
   dynamic "capacity_provider_strategy" {
     for_each = var.capacity_provider_strategies
@@ -340,6 +341,7 @@ resource "aws_ecs_service" "default" {
   platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
   scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
   enable_ecs_managed_tags            = var.enable_ecs_managed_tags
+  iam_role                           = var.network_mode != "awsvpc" ? join("", aws_iam_role.ecs_service.*.arn) : null
 
   dynamic "capacity_provider_strategy" {
     for_each = var.capacity_provider_strategies
