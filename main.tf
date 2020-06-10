@@ -218,7 +218,7 @@ resource "aws_security_group_rule" "allow_all_egress" {
 }
 
 resource "aws_security_group_rule" "allow_icmp_ingress" {
-  count             = var.enabled ? 1 : 0
+  count             = var.enabled && var.enable_icmp_rule ? 1 : 0
   type              = "ingress"
   from_port         = 8
   to_port           = 0
