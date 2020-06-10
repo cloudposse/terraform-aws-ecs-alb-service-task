@@ -77,6 +77,8 @@ resource "aws_ecs_task_definition" "default" {
       }
     }
   }
+
+  tags = var.use_old_arn ? null : module.default_label.tags
 }
 
 # IAM
