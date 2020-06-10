@@ -234,6 +234,7 @@ Available targets:
 | ecs_cluster_arn | The ARN of the ECS cluster where service will be provisioned | string | - | yes |
 | ecs_load_balancers | A list of load balancer config objects for the ECS service; see `load_balancer` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html | object | `<list>` | no |
 | enable_ecs_managed_tags | Specifies whether to enable Amazon ECS managed tags for the tasks within the service | bool | `false` | no |
+| enable_icmp_rule | Specifies whether to enable ICMP on the security group | bool | `true` | no |
 | enabled | Set to false to prevent the module from creating any resources | bool | `true` | no |
 | health_check_grace_period_seconds | Seconds to ignore failing load balancer health checks on newly instantiated tasks to prevent premature shutdown, up to 7200. Only valid for services configured to use load balancers | number | `0` | no |
 | ignore_changes_task_definition | Whether to ignore changes in container definition and task definition in the ECS service | bool | `true` | no |
