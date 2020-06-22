@@ -11,7 +11,7 @@ module "default_label" {
 
 module "task_label" {
   source     = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.15.0"
-  enabled    = var.enabled
+  enabled    = var.enabled && length(var.task_role_arn) == 0
   context    = module.default_label.context
   attributes = compact(concat(var.attributes, ["task"]))
 }
@@ -39,7 +39,7 @@ resource "aws_ecs_task_definition" "default" {
   cpu                      = var.task_cpu
   memory                   = var.task_memory
   execution_role_arn       = join("", aws_iam_role.ecs_exec.*.arn)
-  task_role_arn            = join("", aws_iam_role.ecs_task.*.arn)
+  task_role_arn            = length(var.task_role_arn) > 0 ? var.task_role_arn : join("", aws_iam_role.ecs_task.*.arn)
   tags                     = module.default_label.tags
 
   dynamic "proxy_configuration" {
@@ -81,7 +81,7 @@ resource "aws_ecs_task_definition" "default" {
 
 # IAM
 data "aws_iam_policy_document" "ecs_task" {
-  count = var.enabled ? 1 : 0
+  count = var.enabled && length(var.task_role_arn) == 0 ? 1 : 0
 
   statement {
     effect  = "Allow"
@@ -95,7 +95,8 @@ data "aws_iam_policy_document" "ecs_task" {
 }
 
 resource "aws_iam_role" "ecs_task" {
-  count                = var.enabled ? 1 : 0
+  count = var.enabled && length(var.task_role_arn) == 0 ? 1 : 0
+
   name                 = module.task_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
