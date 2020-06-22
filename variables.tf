@@ -243,6 +243,12 @@ variable "enable_ecs_managed_tags" {
   default     = false
 }
 
+variable "enable_icmp_rule" {
+  type        = bool
+  description = "Specifies whether to enable ICMP on the security group"
+  default     = true
+}
+
 variable "capacity_provider_strategies" {
   type = list(object({
     capacity_provider = string
