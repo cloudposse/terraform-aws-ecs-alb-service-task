@@ -157,6 +157,12 @@ variable "task_memory" {
   default     = 512
 }
 
+variable "task_role_arn" {
+  type        = string
+  description = "The ARN of IAM role that allows your Amazon ECS container task to make calls to other AWS services"
+  default     = ""
+}
+
 variable "desired_count" {
   type        = number
   description = "The number of instances of the task definition to place and keep running"
@@ -235,6 +241,12 @@ variable "enable_ecs_managed_tags" {
   type        = bool
   description = "Specifies whether to enable Amazon ECS managed tags for the tasks within the service"
   default     = false
+}
+
+variable "enable_icmp_rule" {
+  type        = bool
+  description = "Specifies whether to enable ICMP on the security group"
+  default     = true
 }
 
 variable "capacity_provider_strategies" {
