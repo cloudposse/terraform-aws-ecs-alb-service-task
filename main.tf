@@ -40,7 +40,6 @@ resource "aws_ecs_task_definition" "default" {
   memory                   = var.task_memory
   execution_role_arn       = join("", aws_iam_role.ecs_exec.*.arn)
   task_role_arn            = join("", aws_iam_role.ecs_task.*.arn)
-  tags                     = module.default_label.tags
 
   dynamic "proxy_configuration" {
     for_each = var.proxy_configuration == null ? [] : [var.proxy_configuration]
