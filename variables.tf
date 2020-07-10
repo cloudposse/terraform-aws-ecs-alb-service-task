@@ -159,7 +159,7 @@ variable "task_memory" {
 
 variable "task_exec_role_arn" {
   type        = string
-  description = "The ARN of IAM role that allows your Amazon ECS container task to make calls to other AWS services"
+  description = "The ARN of IAM role that allows the ECS/Fargate agent to make calls to the ECS API on your behalf"
   default     = ""
 }
 
