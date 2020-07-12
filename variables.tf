@@ -205,13 +205,13 @@ variable "volumes" {
       scope         = string
     }))
     efs_volume_configuration = list(object({
-      file_system_id = string
-      root_directory = string
-      transit_encryption = string
+      file_system_id          = string
+      root_directory          = string
+      transit_encryption      = string
       transit_encryption_port = string
       authorization_config = list(object({
         access_point_id = string
-        iam = string
+        iam             = string
       }))
     }))
   }))
