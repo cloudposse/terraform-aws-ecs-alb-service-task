@@ -26,7 +26,7 @@ module "service_label" {
 
 module "exec_label" {
   source     = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.16.0"
-  enabled    = var.enabled
+  enabled    = var.enabled && length(var.task_exec_role_arn) == 0
   context    = module.default_label.context
   attributes = compact(concat(var.attributes, ["exec"]))
 }
@@ -39,7 +39,7 @@ resource "aws_ecs_task_definition" "default" {
   network_mode             = var.network_mode
   cpu                      = var.task_cpu
   memory                   = var.task_memory
-  execution_role_arn       = join("", aws_iam_role.ecs_exec.*.arn)
+  execution_role_arn       = length(var.task_exec_role_arn) > 0 ? var.task_exec_role_arn : join("", aws_iam_role.ecs_exec.*.arn)
   task_role_arn            = length(var.task_role_arn) > 0 ? var.task_role_arn : join("", aws_iam_role.ecs_task.*.arn)
 
   dynamic "proxy_configuration" {
@@ -153,7 +153,7 @@ resource "aws_iam_role_policy" "ecs_service" {
 
 # IAM role that the Amazon ECS container agent and the Docker daemon can assume
 data "aws_iam_policy_document" "ecs_task_exec" {
-  count = var.enabled ? 1 : 0
+  count = var.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
 
   statement {
     actions = ["sts:AssumeRole"]
@@ -166,7 +166,7 @@ data "aws_iam_policy_document" "ecs_task_exec" {
 }
 
 resource "aws_iam_role" "ecs_exec" {
-  count                = var.enabled ? 1 : 0
+  count                = var.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
   name                 = module.exec_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task_exec.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary

@@ -25,7 +25,7 @@ output "task_exec_role_name" {
 
 output "task_exec_role_arn" {
   description = "ECS Task exec role ARN"
-  value       = join("", aws_iam_role.ecs_exec.*.arn)
+  value       = length(var.task_exec_role_arn) > 0 ? var.task_exec_role_arn : join("", aws_iam_role.ecs_exec.*.arn)
 }
 
 output "task_role_name" {
