@@ -173,7 +173,7 @@ resource "aws_iam_role" "ecs_exec" {
 }
 
 data "aws_iam_policy_document" "ecs_exec" {
-  count = var.enabled ? 1 : 0
+  count = var.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
 
   statement {
     effect    = "Allow"
@@ -193,7 +193,7 @@ data "aws_iam_policy_document" "ecs_exec" {
 }
 
 resource "aws_iam_role_policy" "ecs_exec" {
-  count  = var.enabled ? 1 : 0
+  count  = var.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
   name   = module.exec_label.id
   policy = join("", data.aws_iam_policy_document.ecs_exec.*.json)
   role   = join("", aws_iam_role.ecs_exec.*.id)
