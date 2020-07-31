@@ -144,18 +144,20 @@ usage: |2-
   `container_definition` is a JSON-encoded list of container definitions. Normally you would place only one container definition here as a single
   definition object in a list, i.e. `[{"name": "sweetops"}]`. However, there might be situations where more than one container per task
   [is more appropriate](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/application_architecture.html#application_architecture_fargate).
-  With [ cloudposse/terraform-aws-ecs-container-definition(v0.38+)](https://github.com/cloudposse/terraform-aws-ecs-container-definition) multi-container
+  With [cloudposse/terraform-aws-ecs-container-definition(v0.38+)](https://github.com/cloudposse/terraform-aws-ecs-container-definition) multi-container
   task definitions can be created using:
   ```hcl
   module "ecs_alb_service_task" {
     ...
     container_definition_json = jsonencode([
       module.first_container.json_map_object,
-      module.second_container.json_map_object,
+      module.second_container.json_map_object
     ])
     ...
   }
   ```
+  Refer to the ["multiple definitions" exaple](https://github.com/cloudposse/terraform-aws-ecs-container-definition/blob/master/examples/multiple_definitions/main.tf)
+  in cloudposse/terraform-aws-ecs-container-definition for details on defining multiple definitions.
 
   This string is passed directly to the Docker daemon. Images in the Docker Hub registry are available by default.
   Other repositories are specified with either `repository-url/image:tag` or `repository-url/image@digest`.
