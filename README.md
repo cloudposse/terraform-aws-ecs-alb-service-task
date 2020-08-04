@@ -163,6 +163,24 @@ For automated test of the complete example using `bats` and `Terratest`, see [te
 
 The `container_image` in the `container_definition` module is the Docker image used to start a container.
 
+`container_definition` is a string of JSON-encoded container definitions. Normally you would place only one container definition here as the example
+above demostrates. However, there might be situations where more than one container per task
+[is more appropriate](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/application_architecture.html#application_architecture_fargate).
+With [cloudposse/terraform-aws-ecs-container-definition(v0.38+)](https://github.com/cloudposse/terraform-aws-ecs-container-definition) multi-container
+task definitions can be created using:
+```hcl
+module "ecs_alb_service_task" {
+  ...
+  container_definition_json = jsonencode([
+    module.first_container.json_map_object,
+    module.second_container.json_map_object
+  ])
+  ...
+}
+```
+Refer to the ["multiple definitions" exaple](https://github.com/cloudposse/terraform-aws-ecs-container-definition/blob/master/examples/multiple_definitions/main.tf)
+in cloudposse/terraform-aws-ecs-container-definition for details on defining multiple definitions.
+
 This string is passed directly to the Docker daemon. Images in the Docker Hub registry are available by default.
 Other repositories are specified with either `repository-url/image:tag` or `repository-url/image@digest`.
 Up to 255 letters (uppercase and lowercase), numbers, hyphens, underscores, colons, periods, forward slashes, and number signs are allowed.
@@ -222,7 +240,7 @@ Available targets:
 | assign\_public\_ip | Assign a public IP address to the ENI (Fargate launch type only). Valid values are `true` or `false`. Default `false` | `bool` | `false` | no |
 | attributes | Additional attributes (\_e.g.\_ "1") | `list(string)` | `[]` | no |
 | capacity\_provider\_strategies | The capacity provider strategies to use for the service. See `capacity_provider_strategy` configuration block: https://www.terraform.io/docs/providers/aws/r/ecs_service.html#capacity_provider_strategy | <pre>list(object({<br>    capacity_provider = string<br>    weight            = number<br>    base              = number<br>  }))</pre> | `[]` | no |
-| container\_definition\_json | The JSON of the task container definition | `string` | n/a | yes |
+| container\_definition\_json | A string containing a JSON-encoded array of container definitions (`"[{ "name": "container1", ... }, { "name": "container2", ... }]"`). See https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html, https://github.com/cloudposse/terraform-aws-ecs-container-definition, or https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition#container_definitions | `string` | n/a | yes |
 | container\_port | The port on the container to allow via the ingress security group | `number` | `80` | no |
 | delimiter | Delimiter between `namespace`, `stage`, `name` and `attributes` | `string` | `"-"` | no |
 | deployment\_controller\_type | Type of deployment controller. Valid values are `CODE_DEPLOY` and `ECS` | `string` | `"ECS"` | no |
@@ -390,22 +408,24 @@ Copyright © 2017-2020 [Cloud Posse, LLC](https://cpco.io/copyright)
 
 See [LICENSE](LICENSE) for full details.
 
-    Licensed to the Apache Software Foundation (ASF) under one
-    or more contributor license agreements.  See the NOTICE file
-    distributed with this work for additional information
-    regarding copyright ownership.  The ASF licenses this file
-    to you under the Apache License, Version 2.0 (the
-    "License"); you may not use this file except in compliance
-    with the License.  You may obtain a copy of the License at
+```text
+Licensed to the Apache Software Foundation (ASF) under one
+or more contributor license agreements.  See the NOTICE file
+distributed with this work for additional information
+regarding copyright ownership.  The ASF licenses this file
+to you under the Apache License, Version 2.0 (the
+"License"); you may not use this file except in compliance
+with the License.  You may obtain a copy of the License at
 
-      https://www.apache.org/licenses/LICENSE-2.0
+  https://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing,
-    software distributed under the License is distributed on an
-    "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
-    KIND, either express or implied.  See the License for the
-    specific language governing permissions and limitations
-    under the License.
+Unless required by applicable law or agreed to in writing,
+software distributed under the License is distributed on an
+"AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+KIND, either express or implied.  See the License for the
+specific language governing permissions and limitations
+under the License.
+```
 
 
 
