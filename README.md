@@ -164,10 +164,10 @@ For automated test of the complete example using `bats` and `Terratest`, see [te
 The `container_image` in the `container_definition` module is the Docker image used to start a container.
 
 The `container_definition` is a string of JSON-encoded container definitions. Normally, you would place only one container definition here as the example
-above demonstrates. However, there might be situations where more than one container per task
-is more appropriate such as optionally in [Fargate](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/application_architecture.html#application_architecture_fargate) or in other cases where sidecars may be required.
-With [cloudposse/terraform-aws-ecs-container-definition](https://github.com/cloudposse/terraform-aws-ecs-container-definition) multi-container
-task definitions can be created using:
+above demonstrates. However, there might be situations where more than one container per task is more appropriate such as optionally in
+[Fargate](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/application_architecture.html#application_architecture_fargate) or in other cases
+where sidecars may be required. With [cloudposse/terraform-aws-ecs-container-definition](https://github.com/cloudposse/terraform-aws-ecs-container-definition)
+multi-container task definitions can be created using:
 ```hcl
 module "ecs_alb_service_task" {
   ...
