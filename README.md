@@ -178,7 +178,7 @@ module "ecs_alb_service_task" {
   ...
 }
 ```
-Refer to the ["multiple definitions" exaple](https://github.com/cloudposse/terraform-aws-ecs-container-definition/blob/master/examples/multiple_definitions/main.tf)
+Refer to the [multiple definitions](https://github.com/cloudposse/terraform-aws-ecs-container-definition/blob/master/examples/multiple_definitions/main.tf) example
 in cloudposse/terraform-aws-ecs-container-definition for details on defining multiple definitions.
 
 This string is passed directly to the Docker daemon. Images in the Docker Hub registry are available by default.
