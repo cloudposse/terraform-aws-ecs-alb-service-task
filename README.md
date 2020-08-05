@@ -202,7 +202,7 @@ Available targets:
 
 | Name | Version |
 |------|---------|
-| terraform | ~> 0.12.0 |
+| terraform | >= 0.12.0, < 0.14.0 |
 | aws | ~> 2.42 |
 | local | ~> 1.3 |
 | null | ~> 2.0 |
