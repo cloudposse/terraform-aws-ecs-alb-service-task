@@ -166,7 +166,7 @@ The `container_image` in the `container_definition` module is the Docker image u
 The `container_definition` is a string of JSON-encoded container definitions. Normally, you would place only one container definition here as the example
 above demonstrates. However, there might be situations where more than one container per task
 [is more appropriate](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/application_architecture.html#application_architecture_fargate).
-With [cloudposse/terraform-aws-ecs-container-definition(v0.38+)](https://github.com/cloudposse/terraform-aws-ecs-container-definition) multi-container
+With [cloudposse/terraform-aws-ecs-container-definition](https://github.com/cloudposse/terraform-aws-ecs-container-definition) multi-container
 task definitions can be created using:
 ```hcl
 module "ecs_alb_service_task" {
