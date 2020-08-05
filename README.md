@@ -173,7 +173,7 @@ module "ecs_alb_service_task" {
   ...
   container_definition_json = jsonencode([
     module.first_container.json_map_object,
-    module.second_container.json_map_object
+    module.second_container.json_map_object,
   ])
   ...
 }
