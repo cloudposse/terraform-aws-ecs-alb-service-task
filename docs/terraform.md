@@ -22,7 +22,7 @@
 | assign\_public\_ip | Assign a public IP address to the ENI (Fargate launch type only). Valid values are `true` or `false`. Default `false` | `bool` | `false` | no |
 | attributes | Additional attributes (\_e.g.\_ "1") | `list(string)` | `[]` | no |
 | capacity\_provider\_strategies | The capacity provider strategies to use for the service. See `capacity_provider_strategy` configuration block: https://www.terraform.io/docs/providers/aws/r/ecs_service.html#capacity_provider_strategy | <pre>list(object({<br>    capacity_provider = string<br>    weight            = number<br>    base              = number<br>  }))</pre> | `[]` | no |
-| container\_definition\_json | The JSON of the task container definition | `string` | n/a | yes |
+| container\_definition\_json | A string containing a JSON-encoded array of container definitions (`"[{ "name": "container1", ... }, { "name": "container2", ... }]"`). See https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html, https://github.com/cloudposse/terraform-aws-ecs-container-definition, or https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition#container_definitions | `string` | n/a | yes |
 | container\_port | The port on the container to allow via the ingress security group | `number` | `80` | no |
 | delimiter | Delimiter between `namespace`, `stage`, `name` and `attributes` | `string` | `"-"` | no |
 | deployment\_controller\_type | Type of deployment controller. Valid values are `CODE_DEPLOY` and `ECS` | `string` | `"ECS"` | no |
