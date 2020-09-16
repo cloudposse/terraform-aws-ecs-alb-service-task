@@ -230,7 +230,7 @@ resource "aws_security_group" "ecs_service" {
 }
 
 resource "aws_security_group_rule" "allow_all_egress" {
-  count             = var.enabled ? 1 : 0
+  count             = var.enabled && var.enable_all_egress_rule ? 1 : 0
   type              = "egress"
   from_port         = 0
   to_port           = 0
