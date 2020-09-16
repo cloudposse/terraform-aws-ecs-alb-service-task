@@ -216,6 +216,7 @@ Available targets:
 
 ```
 <!-- markdownlint-restore -->
+<!-- markdownlint-disable -->
 ## Requirements
 
 | Name | Version |
@@ -249,6 +250,7 @@ Available targets:
 | desired\_count | The number of instances of the task definition to place and keep running | `number` | `1` | no |
 | ecs\_cluster\_arn | The ARN of the ECS cluster where service will be provisioned | `string` | n/a | yes |
 | ecs\_load\_balancers | A list of load balancer config objects for the ECS service; see `load_balancer` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html | <pre>list(object({<br>    container_name   = string<br>    container_port   = number<br>    elb_name         = string<br>    target_group_arn = string<br>  }))</pre> | `[]` | no |
+| enable\_all\_egress\_rule | A flag to enable/disable adding the all ports egress rule to the ECS security group | `bool` | `true` | no |
 | enable\_ecs\_managed\_tags | Specifies whether to enable Amazon ECS managed tags for the tasks within the service | `bool` | `false` | no |
 | enable\_icmp\_rule | Specifies whether to enable ICMP on the security group | `bool` | `true` | no |
 | enabled | Set to false to prevent the module from creating any resources | `bool` | `true` | no |
@@ -301,6 +303,7 @@ Available targets:
 | task\_role\_id | ECS Task role id |
 | task\_role\_name | ECS Task role name |
 
+<!-- markdownlint-restore -->
 
 
 
