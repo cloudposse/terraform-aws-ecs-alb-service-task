@@ -84,7 +84,7 @@ resource "aws_ecs_task_definition" "default" {
           transit_encryption      = lookup(efs_volume_configuration.value, "transit_encryption", null)
           transit_encryption_port = lookup(efs_volume_configuration.value, "transit_encryption_port", null)
           dynamic "authorization_config" {
-            for_each = lookup(volume.value, "authorization_config", [])
+            for_each = lookup(efs_volume_configuration.value, "authorization_config", [])
             content {
               access_point_id = lookup(authorization_config.value, "access_point_id", null)
               iam             = lookup(authorization_config.value, "iam", null)
