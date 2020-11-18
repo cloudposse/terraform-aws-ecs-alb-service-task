@@ -1,39 +1,31 @@
-module "default_label" {
-  source      = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.17.0"
-  enabled     = var.enabled
-  attributes  = var.attributes
-  delimiter   = var.delimiter
-  name        = var.name
-  namespace   = var.namespace
-  stage       = var.stage
-  environment = var.environment
-  tags        = var.tags
+locals {
+  enabled = module.this.enabled
 }
 
 module "task_label" {
-  source     = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.17.0"
-  enabled    = var.enabled && length(var.task_role_arn) == 0
-  context    = module.default_label.context
-  attributes = compact(concat(var.attributes, ["task"]))
+  source     = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.21.0"
+  enabled    = local.enabled && length(var.task_role_arn) == 0
+  context    = module.this.context
+  attributes = ["task"]
 }
 
 module "service_label" {
-  source     = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.17.0"
-  enabled    = var.enabled
-  context    = module.default_label.context
-  attributes = compact(concat(var.attributes, ["service"]))
+  source = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.21.0"
+
+  context    = module.this.context
+  attributes = ["service"]
 }
 
 module "exec_label" {
-  source     = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.17.0"
-  enabled    = var.enabled && length(var.task_exec_role_arn) == 0
-  context    = module.default_label.context
-  attributes = compact(concat(var.attributes, ["exec"]))
+  source     = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.21.0"
+  enabled    = local.enabled && length(var.task_exec_role_arn) == 0
+  context    = module.this.context
+  attributes = ["exec"]
 }
 
 resource "aws_ecs_task_definition" "default" {
-  count                    = var.enabled ? 1 : 0
-  family                   = module.default_label.id
+  count                    = local.enabled ? 1 : 0
+  family                   = module.this.id
   container_definitions    = var.container_definition_json
   requires_compatibilities = [var.launch_type]
   network_mode             = var.network_mode
@@ -95,12 +87,12 @@ resource "aws_ecs_task_definition" "default" {
     }
   }
 
-  tags = var.use_old_arn ? null : module.default_label.tags
+  tags = var.use_old_arn ? null : module.this.tags
 }
 
 # IAM
 data "aws_iam_policy_document" "ecs_task" {
-  count = var.enabled && length(var.task_role_arn) == 0 ? 1 : 0
+  count = local.enabled && length(var.task_role_arn) == 0 ? 1 : 0
 
   statement {
     effect  = "Allow"
@@ -114,7 +106,7 @@ data "aws_iam_policy_document" "ecs_task" {
 }
 
 resource "aws_iam_role" "ecs_task" {
-  count = var.enabled && length(var.task_role_arn) == 0 ? 1 : 0
+  count = local.enabled && length(var.task_role_arn) == 0 ? 1 : 0
 
   name                 = module.task_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task.*.json)
@@ -123,7 +115,7 @@ resource "aws_iam_role" "ecs_task" {
 }
 
 data "aws_iam_policy_document" "ecs_service" {
-  count = var.enabled ? 1 : 0
+  count = local.enabled ? 1 : 0
 
   statement {
     effect  = "Allow"
@@ -137,7 +129,7 @@ data "aws_iam_policy_document" "ecs_service" {
 }
 
 resource "aws_iam_role" "ecs_service" {
-  count                = var.enabled && var.network_mode != "awsvpc" ? 1 : 0
+  count                = local.enabled && var.network_mode != "awsvpc" ? 1 : 0
   name                 = module.service_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_service.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
@@ -145,7 +137,7 @@ resource "aws_iam_role" "ecs_service" {
 }
 
 data "aws_iam_policy_document" "ecs_service_policy" {
-  count = var.enabled && var.network_mode != "awsvpc" ? 1 : 0
+  count = local.enabled && var.network_mode != "awsvpc" ? 1 : 0
 
   statement {
     effect    = "Allow"
@@ -164,7 +156,7 @@ data "aws_iam_policy_document" "ecs_service_policy" {
 }
 
 resource "aws_iam_role_policy" "ecs_service" {
-  count  = var.enabled && var.network_mode != "awsvpc" ? 1 : 0
+  count  = local.enabled && var.network_mode != "awsvpc" ? 1 : 0
   name   = module.service_label.id
   policy = join("", data.aws_iam_policy_document.ecs_service_policy.*.json)
   role   = join("", aws_iam_role.ecs_service.*.id)
@@ -172,7 +164,7 @@ resource "aws_iam_role_policy" "ecs_service" {
 
 # IAM role that the Amazon ECS container agent and the Docker daemon can assume
 data "aws_iam_policy_document" "ecs_task_exec" {
-  count = var.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
+  count = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
 
   statement {
     actions = ["sts:AssumeRole"]
@@ -185,7 +177,7 @@ data "aws_iam_policy_document" "ecs_task_exec" {
 }
 
 resource "aws_iam_role" "ecs_exec" {
-  count                = var.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
+  count                = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
   name                 = module.exec_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task_exec.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
@@ -193,7 +185,7 @@ resource "aws_iam_role" "ecs_exec" {
 }
 
 data "aws_iam_policy_document" "ecs_exec" {
-  count = var.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
+  count = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
 
   statement {
     effect    = "Allow"
@@ -213,7 +205,7 @@ data "aws_iam_policy_document" "ecs_exec" {
 }
 
 resource "aws_iam_role_policy" "ecs_exec" {
-  count  = var.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
+  count  = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
   name   = module.exec_label.id
   policy = join("", data.aws_iam_policy_document.ecs_exec.*.json)
   role   = join("", aws_iam_role.ecs_exec.*.id)
@@ -222,7 +214,7 @@ resource "aws_iam_role_policy" "ecs_exec" {
 # Service
 ## Security Groups
 resource "aws_security_group" "ecs_service" {
-  count       = var.enabled ? 1 : 0
+  count       = local.enabled ? 1 : 0
   vpc_id      = var.vpc_id
   name        = module.service_label.id
   description = "Allow ALL egress from ECS service"
@@ -230,7 +222,7 @@ resource "aws_security_group" "ecs_service" {
 }
 
 resource "aws_security_group_rule" "allow_all_egress" {
-  count             = var.enabled && var.enable_all_egress_rule ? 1 : 0
+  count             = local.enabled && var.enable_all_egress_rule ? 1 : 0
   type              = "egress"
   from_port         = 0
   to_port           = 0
@@ -240,7 +232,7 @@ resource "aws_security_group_rule" "allow_all_egress" {
 }
 
 resource "aws_security_group_rule" "allow_icmp_ingress" {
-  count             = var.enabled && var.enable_icmp_rule ? 1 : 0
+  count             = local.enabled && var.enable_icmp_rule ? 1 : 0
   description       = "Enables ping command from anywhere, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-ping"
   type              = "ingress"
   from_port         = 8
@@ -251,7 +243,7 @@ resource "aws_security_group_rule" "allow_icmp_ingress" {
 }
 
 resource "aws_security_group_rule" "alb" {
-  count                    = var.enabled && var.use_alb_security_group ? 1 : 0
+  count                    = local.enabled && var.use_alb_security_group ? 1 : 0
   type                     = "ingress"
   from_port                = var.container_port
   to_port                  = var.container_port
@@ -261,7 +253,7 @@ resource "aws_security_group_rule" "alb" {
 }
 
 resource "aws_security_group_rule" "nlb" {
-  count             = var.enabled && var.use_nlb_cidr_blocks ? 1 : 0
+  count             = local.enabled && var.use_nlb_cidr_blocks ? 1 : 0
   type              = "ingress"
   from_port         = var.nlb_container_port
   to_port           = var.nlb_container_port
@@ -271,8 +263,8 @@ resource "aws_security_group_rule" "nlb" {
 }
 
 resource "aws_ecs_service" "ignore_changes_task_definition" {
-  count                              = var.enabled && var.ignore_changes_task_definition ? 1 : 0
-  name                               = module.default_label.id
+  count                              = local.enabled && var.ignore_changes_task_definition ? 1 : 0
+  name                               = module.this.id
   task_definition                    = "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}"
   desired_count                      = var.desired_count
   deployment_maximum_percent         = var.deployment_maximum_percent
@@ -331,7 +323,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
 
   cluster        = var.ecs_cluster_arn
   propagate_tags = var.propagate_tags
-  tags           = var.use_old_arn ? null : module.default_label.tags
+  tags           = var.use_old_arn ? null : module.this.tags
 
   deployment_controller {
     type = var.deployment_controller_type
@@ -353,8 +345,8 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
 }
 
 resource "aws_ecs_service" "default" {
-  count                              = var.enabled && var.ignore_changes_task_definition == false ? 1 : 0
-  name                               = module.default_label.id
+  count                              = local.enabled && var.ignore_changes_task_definition == false ? 1 : 0
+  name                               = module.this.id
   task_definition                    = "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}"
   desired_count                      = var.desired_count
   deployment_maximum_percent         = var.deployment_maximum_percent
@@ -413,7 +405,7 @@ resource "aws_ecs_service" "default" {
 
   cluster        = var.ecs_cluster_arn
   propagate_tags = var.propagate_tags
-  tags           = var.use_old_arn ? null : module.default_label.tags
+  tags           = var.use_old_arn ? null : module.this.tags
 
   deployment_controller {
     type = var.deployment_controller_type
