@@ -14,12 +14,12 @@ output "vpc_cidr" {
 }
 
 output "container_definition_json" {
-  value       = module.container_definition.json
+  value       = module.container_definition.json_map_encoded_list
   description = "JSON encoded list of container definitions for use with other terraform resources such as aws_ecs_task_definition"
 }
 
 output "container_definition_json_map" {
-  value       = module.container_definition.json_map
+  value       = module.container_definition.json_map_encoded
   description = "JSON encoded container definitions for use with other terraform resources such as aws_ecs_task_definition"
 }
 
