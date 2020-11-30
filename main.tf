@@ -1,5 +1,6 @@
 locals {
   enabled = module.this.enabled
+  enable_ecs_service_role = local.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) <= 1
 }
 
 module "task_label" {
@@ -129,7 +130,7 @@ data "aws_iam_policy_document" "ecs_service" {
 }
 
 resource "aws_iam_role" "ecs_service" {
-  count                = local.enabled && var.network_mode != "awsvpc" ? 1 : 0
+  count                = local.enable_ecs_service_role ? 1 : 0
   name                 = module.service_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_service.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
@@ -137,7 +138,7 @@ resource "aws_iam_role" "ecs_service" {
 }
 
 data "aws_iam_policy_document" "ecs_service_policy" {
-  count = local.enabled && var.network_mode != "awsvpc" ? 1 : 0
+  count = local.enable_ecs_service_role ? 1 : 0
 
   statement {
     effect    = "Allow"
@@ -156,7 +157,7 @@ data "aws_iam_policy_document" "ecs_service_policy" {
 }
 
 resource "aws_iam_role_policy" "ecs_service" {
-  count  = local.enabled && var.network_mode != "awsvpc" ? 1 : 0
+  count  = local.enable_ecs_service_role ? 1 : 0
   name   = module.service_label.id
   policy = join("", data.aws_iam_policy_document.ecs_service_policy.*.json)
   role   = join("", aws_iam_role.ecs_service.*.id)
