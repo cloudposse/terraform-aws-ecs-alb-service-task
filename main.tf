@@ -1,5 +1,5 @@
 locals {
-  enabled = module.this.enabled
+  enabled                 = module.this.enabled
   enable_ecs_service_role = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) <= 1
 }
 
