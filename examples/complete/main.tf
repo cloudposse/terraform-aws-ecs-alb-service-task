@@ -3,7 +3,8 @@ provider "aws" {
 }
 
 module "vpc" {
-  source = "git::https://github.com/cloudposse/terraform-aws-vpc.git?ref=tags/0.18.0"
+  source  = "cloudposse/vpc/aws"
+  version = "0.18.1"
 
   cidr_block = var.vpc_cidr_block
 
@@ -11,7 +12,9 @@ module "vpc" {
 }
 
 module "subnets" {
-  source               = "git::https://github.com/cloudposse/terraform-aws-dynamic-subnets.git?ref=tags/0.31.0"
+  source               = "cloudposse/dynamic-subnets/aws"
+  version              = "0.33.0"
+
   availability_zones   = var.availability_zones
   vpc_id               = module.vpc.vpc_id
   igw_id               = module.vpc.igw_id
@@ -28,7 +31,9 @@ resource "aws_ecs_cluster" "default" {
 }
 
 module "container_definition" {
-  source                       = "git::https://github.com/cloudposse/terraform-aws-ecs-container-definition.git?ref=tags/0.45.2"
+  source                       = "cloudposse/ecs-container-definition/aws"
+  version                      = "0.45.2"
+
   container_name               = var.container_name
   container_image              = var.container_image
   container_memory             = var.container_memory
