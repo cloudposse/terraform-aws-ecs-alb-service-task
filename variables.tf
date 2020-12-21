@@ -27,7 +27,13 @@ variable "ecs_load_balancers" {
 
 variable "container_definition_json" {
   type        = string
-  description = "A string containing a JSON-encoded array of container definitions (`\"[{ \"name\": \"container1\", ... }, { \"name\": \"container2\", ... }]\"`). See https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html, https://github.com/cloudposse/terraform-aws-ecs-container-definition, or https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition#container_definitions"
+  description = <<-EOT
+    A string containing a JSON-encoded array of container definitions
+    (`"[{ "name": "container1", ... }, { "name": "container2", ... }]"`).
+    See [AWS docs](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html),
+    https://github.com/cloudposse/terraform-aws-ecs-container-definition, or
+    [Terraform docs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition#container_definitions)
+    EOT
 }
 
 variable "container_port" {
@@ -67,14 +73,20 @@ variable "launch_type" {
 
 variable "platform_version" {
   type        = string
-  description = "The platform version on which to run your service. Only applicable for launch_type set to FARGATE. More information about Fargate platform versions can be found in the AWS ECS User Guide."
   default     = "LATEST"
+  description = <<-EOT
+    The platform version on which to run your service. Only applicable for launch_type set to FARGATE.
+    More information about Fargate platform versions can be found in the AWS ECS User Guide.
+    EOT
 }
 
 variable "scheduling_strategy" {
   type        = string
-  description = "The scheduling strategy to use for the service. The valid values are REPLICA and DAEMON. Note that Fargate tasks do not support the DAEMON scheduling strategy."
   default     = "REPLICA"
+  description = <<-EOT
+    The scheduling strategy to use for the service. The valid values are REPLICA and DAEMON.
+    Note that Fargate tasks do not support the DAEMON scheduling strategy.
+    EOT
 }
 
 variable "ordered_placement_strategy" {
@@ -82,8 +94,13 @@ variable "ordered_placement_strategy" {
     type  = string
     field = string
   }))
-  description = "Service level strategy rules that are taken into consideration during task placement. List from top to bottom in order of precedence. The maximum number of ordered_placement_strategy blocks is 5. See `ordered_placement_strategy` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html#ordered_placement_strategy-1"
   default     = []
+  description = <<-EOT
+    Service level strategy rules that are taken into consideration during task placement.
+    List from top to bottom in order of precedence. The maximum number of ordered_placement_strategy blocks is 5.
+    See `ordered_placement_strategy` [Terraform docs](
+    https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#ordered_placement_strategy)
+    EOT
 }
 
 variable "task_placement_constraints" {
@@ -91,8 +108,12 @@ variable "task_placement_constraints" {
     type       = string
     expression = string
   }))
-  description = "A set of placement constraints rules that are taken into consideration during task placement. Maximum number of placement_constraints is 10. See `placement_constraints` docs https://www.terraform.io/docs/providers/aws/r/ecs_task_definition.html#placement-constraints-arguments"
   default     = []
+  description = <<-EOT
+    A set of placement constraints rules that are taken into consideration during task placement.
+    Maximum number of placement_constraints is 10. See `placement_constraints` [Terraform docs](
+    https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition#placement-constraints-arguments)
+    EOT
 }
 
 variable "service_placement_constraints" {
