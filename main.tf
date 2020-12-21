@@ -118,6 +118,13 @@ resource "aws_iam_role" "ecs_task" {
   tags                 = module.task_label.tags
 }
 
+resource "aws_iam_role_policy_attachment" "ecs_task" {
+  count      = local.enabled && length(var.task_role_arn) == 0 ? length(var.task_policy_arns) : 0
+  policy_arn = var.task_policy_arns[count.index]
+  role       = join("", aws_iam_role.ecs_task.*.id)
+}
+
+
 data "aws_iam_policy_document" "ecs_service" {
   count = local.enabled ? 1 : 0
 
@@ -213,6 +220,12 @@ resource "aws_iam_role_policy" "ecs_exec" {
   name   = module.exec_label.id
   policy = join("", data.aws_iam_policy_document.ecs_exec.*.json)
   role   = join("", aws_iam_role.ecs_exec.*.id)
+}
+
+resource "aws_iam_role_policy_attachment" "ecs_exec" {
+  count      = local.enabled && length(var.task_exec_role_arn) == 0 ? length(var.task_exec_policy_arns) : 0
+  policy_arn = var.task_exec_policy_arns[count.index]
+  role       = join("", aws_iam_role.ecs_exec.*.id)
 }
 
 # Service
