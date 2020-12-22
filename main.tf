@@ -5,26 +5,31 @@ locals {
 
 module "task_label" {
   source     = "cloudposse/label/null"
-  version    = "0.22.0"
+  version    = "0.22.1"
   enabled    = local.enabled && length(var.task_role_arn) == 0
-  context    = module.this.context
+
   attributes = ["task"]
+
+  context    = module.this.context
 }
 
 module "service_label" {
   source  = "cloudposse/label/null"
-  version = "0.22.0"
+  version = "0.22.1"
+
+  attributes = ["service"]
 
   context    = module.this.context
-  attributes = ["service"]
 }
 
 module "exec_label" {
   source     = "cloudposse/label/null"
-  version    = "0.22.0"
+  version    = "0.22.1"
   enabled    = local.enabled && length(var.task_exec_role_arn) == 0
-  context    = module.this.context
+
   attributes = ["exec"]
+
+  context    = module.this.context
 }
 
 resource "aws_ecs_task_definition" "default" {
