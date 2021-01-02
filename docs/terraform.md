@@ -64,11 +64,11 @@
 | tags | Additional tags (e.g. `map('BusinessUnit','XYZ')` | `map(string)` | `{}` | no |
 | task\_cpu | The number of CPU units used by the task. If using `FARGATE` launch type `task_cpu` must match supported memory values (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | `number` | `256` | no |
 | task\_exec\_policy\_arns | A list of IAM Policy ARNs to attach to the generated task execution role. | `list(string)` | `[]` | no |
-| task\_exec\_role\_arn | The ARN of IAM role that allows the ECS/Fargate agent to make calls to the ECS API on your behalf | `string` | `""` | no |
+| task\_exec\_role\_arn | A list of the ARNs of IAM roles that allow the ECS/Fargate agent to make calls to the ECS API on your behalf | `list(string)` | `[]` | no |
 | task\_memory | The amount of memory (in MiB) used by the task. If using Fargate launch type `task_memory` must match supported cpu value (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | `number` | `512` | no |
 | task\_placement\_constraints | A set of placement constraints rules that are taken into consideration during task placement.<br>Maximum number of placement\_constraints is 10. See `placement_constraints` [Terraform docs](<br>https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition#placement-constraints-arguments) | <pre>list(object({<br>    type       = string<br>    expression = string<br>  }))</pre> | `[]` | no |
 | task\_policy\_arns | A list of IAM Policy ARNs to attach to the generated task role. | `list(string)` | `[]` | no |
-| task\_role\_arn | The ARN of IAM role that allows your Amazon ECS container task to make calls to other AWS services | `string` | `""` | no |
+| task\_role\_arn | A list of the ARNs of IAM roles that allows your Amazon ECS container task to make calls to other AWS services | `list(string)` | `[]` | no |
 | use\_alb\_security\_group | A flag to enable/disable adding the ingress rule to the ALB security group | `bool` | `false` | no |
 | use\_nlb\_cidr\_blocks | A flag to enable/disable adding the NLB ingress rule to the security group | `bool` | `false` | no |
 | use\_old\_arn | A flag to enable/disable tagging the ecs resources that require the new arn format | `bool` | `false` | no |
