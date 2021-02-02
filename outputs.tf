@@ -13,6 +13,11 @@ output "service_name" {
   value       = join("", aws_ecs_service.default.*.name) != "" ? join("", aws_ecs_service.default.*.name) : join("", aws_ecs_service.ignore_changes_task_definition.*.name)
 }
 
+output "service_arn" {
+  description = "ECS Service ARN"
+  value       = join("", aws_ecs_service.default.*.arn) != "" ? join("", aws_ecs_service.default.*.arn) : join("", aws_ecs_service.ignore_changes_task_definition.*.arn)
+}
+
 output "service_role_arn" {
   description = "ECS Service role ARN"
   value       = join("", aws_iam_role.ecs_service.*.arn)
