@@ -331,6 +331,7 @@ Available targets:
 |------|-------------|
 | ecs\_exec\_role\_policy\_id | The ECS service role policy ID, in the form of `role_name:role_policy_name` |
 | ecs\_exec\_role\_policy\_name | ECS service role name |
+| service\_arn | ECS Service ARN |
 | service\_name | ECS Service name |
 | service\_role\_arn | ECS Service role ARN |
 | service\_security\_group\_id | Security Group ID of the ECS task |
