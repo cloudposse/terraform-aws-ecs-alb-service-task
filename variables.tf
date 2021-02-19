@@ -50,11 +50,11 @@ variable "nlb_container_port" {
 
 variable "subnet_ids" {
   type        = list(string)
-  description = "Subnet IDs used in Service `network_configuration` if `var.network_mode = "awsvpc"`"
+  description = "Subnet IDs used in Service `network_configuration` if `var.network_mode = \"awsvpc\"`"
 }
 
 variable "security_group_ids" {
-  description = "Security group IDs to allow in Service `network_configuration` if `var.network_mode = "awsvpc"`"
+  description = "Security group IDs to allow in Service `network_configuration` if `var.network_mode = \"awsvpc\"`"
   type        = list(string)
   default     = []
 }
