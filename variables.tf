@@ -314,3 +314,9 @@ variable "use_old_arn" {
   description = "A flag to enable/disable tagging the ecs resources that require the new arn format"
   default     = false
 }
+
+variable "task_definition_arn" {
+  type        = bool
+  description = "Reuse an existing task definition arn instead of creating one"
+  default     = null
+}
