@@ -297,6 +297,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
   enable_ecs_managed_tags            = var.enable_ecs_managed_tags
   iam_role                           = local.enable_ecs_service_role ? join("", aws_iam_role.ecs_service.*.arn) : null
+  wait_for_steady_state              = var.wait_for_steady_state
 
   dynamic "capacity_provider_strategy" {
     for_each = var.capacity_provider_strategies
@@ -379,6 +380,7 @@ resource "aws_ecs_service" "default" {
   scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
   enable_ecs_managed_tags            = var.enable_ecs_managed_tags
   iam_role                           = local.enable_ecs_service_role ? join("", aws_iam_role.ecs_service.*.arn) : null
+  wait_for_steady_state              = var.wait_for_steady_state
 
   dynamic "capacity_provider_strategy" {
     for_each = var.capacity_provider_strategies
