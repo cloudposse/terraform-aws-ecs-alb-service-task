@@ -314,3 +314,9 @@ variable "use_old_arn" {
   description = "A flag to enable/disable tagging the ecs resources that require the new arn format"
   default     = false
 }
+
+variable "wait_for_steady_state" {
+  type        = bool
+  description = "If true, it will wait for the service to reach a steady state (like aws ecs wait services-stable) before continuing"
+  default     = false
+}
