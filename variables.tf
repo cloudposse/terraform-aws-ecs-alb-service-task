@@ -51,6 +51,7 @@ variable "nlb_container_port" {
 variable "subnet_ids" {
   type        = list(string)
   description = "Subnet IDs"
+  default     = null
 }
 
 variable "security_group_ids" {
