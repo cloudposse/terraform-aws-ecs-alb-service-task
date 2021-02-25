@@ -145,7 +145,7 @@ data "aws_iam_policy_document" "ecs_service" {
 }
 
 resource "aws_iam_role" "ecs_service" {
-  count                = local.enable_ecs_service_role ? 1 : 0
+  count                = local.enable_ecs_service_role && var.service_role_arn == null ? 1 : 0
   name                 = module.service_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_service.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
@@ -153,7 +153,7 @@ resource "aws_iam_role" "ecs_service" {
 }
 
 data "aws_iam_policy_document" "ecs_service_policy" {
-  count = local.enable_ecs_service_role ? 1 : 0
+  count = local.enable_ecs_service_role && var.service_role_arn == null ? 1 : 0
 
   statement {
     effect    = "Allow"
@@ -172,7 +172,7 @@ data "aws_iam_policy_document" "ecs_service_policy" {
 }
 
 resource "aws_iam_role_policy" "ecs_service" {
-  count  = local.enable_ecs_service_role ? 1 : 0
+  count  = local.enable_ecs_service_role && var.service_role_arn == null ? 1 : 0
   name   = module.service_label.id
   policy = join("", data.aws_iam_policy_document.ecs_service_policy.*.json)
   role   = join("", aws_iam_role.ecs_service.*.id)
@@ -296,7 +296,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
   scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
   enable_ecs_managed_tags            = var.enable_ecs_managed_tags
-  iam_role                           = local.enable_ecs_service_role ? join("", aws_iam_role.ecs_service.*.arn) : null
+  iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
   wait_for_steady_state              = var.wait_for_steady_state
 
   dynamic "capacity_provider_strategy" {
@@ -379,7 +379,7 @@ resource "aws_ecs_service" "default" {
   platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
   scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
   enable_ecs_managed_tags            = var.enable_ecs_managed_tags
-  iam_role                           = local.enable_ecs_service_role ? join("", aws_iam_role.ecs_service.*.arn) : null
+  iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
   wait_for_steady_state              = var.wait_for_steady_state
 
   dynamic "capacity_provider_strategy" {
