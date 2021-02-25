@@ -238,7 +238,7 @@ resource "aws_iam_role_policy_attachment" "ecs_exec" {
 resource "aws_security_group" "ecs_service" {
   count       = local.enabled && var.network_mode == "awsvpc" ? 1 : 0
   vpc_id      = var.vpc_id
-  name        = module.service_label.id
+  name_prefix = module.service_label.id
   description = "Allow ALL egress from ECS service"
   tags        = module.service_label.tags
 
