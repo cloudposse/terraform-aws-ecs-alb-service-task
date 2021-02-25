@@ -313,6 +313,12 @@ variable "use_old_arn" {
   default     = false
 }
 
+variable "wait_for_steady_state" {
+  type        = bool
+  description = "If true, it will wait for the service to reach a steady state (like aws ecs wait services-stable) before continuing"
+  default     = false
+}
+
 variable "task_definition" {
   type        = string
   description = "Reuse an existing task definition family and revision for the ecs service instead of creating one"
