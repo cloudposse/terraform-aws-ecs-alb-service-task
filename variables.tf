@@ -259,7 +259,7 @@ variable "enable_ecs_managed_tags" {
 variable "enable_icmp_rule" {
   type        = bool
   description = "Specifies whether to enable ICMP on the security group"
-  default     = true
+  default     = false
 }
 
 variable "capacity_provider_strategies" {
