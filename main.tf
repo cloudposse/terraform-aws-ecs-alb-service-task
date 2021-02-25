@@ -33,7 +33,7 @@ module "exec_label" {
 }
 
 resource "aws_ecs_task_definition" "default" {
-  count                    = local.enabled && var.task_definition != null ? 1 : 0
+  count                    = local.enabled && var.task_definition == null ? 1 : 0
   family                   = module.this.id
   container_definitions    = var.container_definition_json
   requires_compatibilities = [var.launch_type]
