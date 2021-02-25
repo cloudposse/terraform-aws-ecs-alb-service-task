@@ -86,7 +86,7 @@
 | stage | Stage, e.g. 'prod', 'staging', 'dev', OR 'source', 'build', 'test', 'deploy', 'release' | `string` | `null` | no |
 | subnet\_ids | Subnet IDs used in Service `network_configuration` if `var.network_mode = "awsvpc"` | `list(string)` | `null` | no |
 | tags | Additional tags (e.g. `map('BusinessUnit','XYZ')` | `map(string)` | `{}` | no |
-| task\_cpu | The number of CPU units used by the task. If using `FARGATE` launch type `task_cpu` must match supported memory values (https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | `number` | `256` | no |
+| task\_cpu | The number of CPU units used by the task. If using `FARGATE` launch type `task_cpu` must match [supported memory values](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | `number` | `256` | no |
 | task\_definition | Reuse an existing task definition family and revision for the ecs service instead of creating one | `string` | `null` | no |
 | task\_exec\_policy\_arns | A list of IAM Policy ARNs to attach to the generated task execution role. | `list(string)` | `[]` | no |
 | task\_exec\_role\_arn | The ARN of IAM role that allows the ECS/Fargate agent to make calls to the ECS API on your behalf | `string` | `""` | no |
