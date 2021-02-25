@@ -241,6 +241,10 @@ resource "aws_security_group" "ecs_service" {
   name        = module.service_label.id
   description = "Allow ALL egress from ECS service"
   tags        = module.service_label.tags
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_security_group_rule" "allow_all_egress" {
