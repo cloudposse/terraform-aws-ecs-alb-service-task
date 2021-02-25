@@ -168,6 +168,12 @@ variable "task_policy_arns" {
   default     = []
 }
 
+variable "service_role_arn" {
+  type        = string
+  description = "ARN of the IAM role that allows Amazon ECS to make calls to your load balancer on your behalf. This parameter is required if you are using a load balancer with your service, but only if your task definition does not use the awsvpc network mode. If using awsvpc network mode, do not specify this role. If your account has already created the Amazon ECS service-linked role, that role is used by default for your service unless you specify a role here."
+  default     = null
+}
+
 variable "desired_count" {
   type        = number
   description = "The number of instances of the task definition to place and keep running"
