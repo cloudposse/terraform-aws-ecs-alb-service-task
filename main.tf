@@ -302,6 +302,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   enable_ecs_managed_tags            = var.enable_ecs_managed_tags
   iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
   wait_for_steady_state              = var.wait_for_steady_state
+  force_new_deployment               = var.force_new_deployment
 
   dynamic "capacity_provider_strategy" {
     for_each = var.capacity_provider_strategies
@@ -385,6 +386,7 @@ resource "aws_ecs_service" "default" {
   enable_ecs_managed_tags            = var.enable_ecs_managed_tags
   iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
   wait_for_steady_state              = var.wait_for_steady_state
+  force_new_deployment               = var.force_new_deployment
 
   dynamic "capacity_provider_strategy" {
     for_each = var.capacity_provider_strategies
