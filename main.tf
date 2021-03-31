@@ -178,6 +178,29 @@ resource "aws_iam_role_policy" "ecs_service" {
   role   = join("", aws_iam_role.ecs_service.*.id)
 }
 
+data "aws_iam_policy_document" "ecs_ssm_exec" {
+  count = local.enabled && var.exec_enabled ? 1 : 0
+
+  statement {
+    effect    = "Allow"
+    resources = ["*"]
+
+    actions = [
+      "ssmmessages:CreateControlChannel",
+      "ssmmessages:CreateDataChannel",
+      "ssmmessages:OpenControlChannel",
+      "ssmmessages:OpenDataChannel"
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "ecs_ssm_exec" {
+  count  = local.enabled && var.exec_enabled ? 1 : 0
+  name   = module.task_label.id
+  policy = join("", data.aws_iam_policy_document.ecs_ssm_exec.*.json)
+  role   = join("", aws_iam_role.ecs_task.*.id)
+}
+
 # IAM role that the Amazon ECS container agent and the Docker daemon can assume
 data "aws_iam_policy_document" "ecs_task_exec" {
   count = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
@@ -303,6 +326,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
   wait_for_steady_state              = var.wait_for_steady_state
   force_new_deployment               = var.force_new_deployment
+  enable_execute_command             = var.exec_enabled
 
   dynamic "capacity_provider_strategy" {
     for_each = var.capacity_provider_strategies
@@ -387,6 +411,7 @@ resource "aws_ecs_service" "default" {
   iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
   wait_for_steady_state              = var.wait_for_steady_state
   force_new_deployment               = var.force_new_deployment
+  enable_execute_command             = var.exec_enabled
 
   dynamic "capacity_provider_strategy" {
     for_each = var.capacity_provider_strategies
