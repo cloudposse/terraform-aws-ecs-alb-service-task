@@ -392,7 +392,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   }
 
   lifecycle {
-    ignore_changes = [task_definition]
+    ignore_changes = [task_definition, desired_count]
   }
 }
 
@@ -474,5 +474,9 @@ resource "aws_ecs_service" "default" {
       subnets          = var.subnet_ids
       assign_public_ip = var.assign_public_ip
     }
+  }
+
+  lifecycle {
+    ignore_changes = [desired_count]
   }
 }
