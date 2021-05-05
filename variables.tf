@@ -244,7 +244,7 @@ variable "ignore_changes_task_definition" {
   default     = true
 }
 
-variable "ignore_desired_count" {
+variable "ignore_changes_desired_count" {
   type        = bool
   description = "Whether to ignore changes for desired count in the ECS service"
   default     = false
