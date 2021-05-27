@@ -84,12 +84,12 @@ func TestExamplesComplete(t *testing.T) {
 	// Run `terraform output` to get the value of an output variable
 	serviceName := terraform.Output(t, terraformOptions, "service_name")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "eg-test-ecs-alb-service-task"+randId, serviceName)
+	assert.Equal(t, "eg-test-ecs-alb-service-task-"+randId, serviceName)
 
 	// Run `terraform output` to get the value of an output variable
 	taskDefinitionFamily := terraform.Output(t, terraformOptions, "task_definition_family")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "eg-test-ecs-alb-service-task"+randId, taskDefinitionFamily)
+	assert.Equal(t, "eg-test-ecs-alb-service-task-"+randId, taskDefinitionFamily)
 
 	// Run `terraform output` to get the value of an output variable
 	taskExecRoleName := terraform.Output(t, terraformOptions, "task_exec_role_name")
