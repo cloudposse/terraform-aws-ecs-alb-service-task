@@ -83,6 +83,7 @@ output "aws_ecs_service_obj" {
     cluster        = var.ecs_cluster_arn
     propagate_tags = var.propagate_tags
     tags           = var.use_old_arn ? null : module.this.tags
+    deployment_controller_type = var.deployment_controller_type
 
     capacity_provider_strategies = var.capacity_provider_strategies
     service_registries = var.service_registries
