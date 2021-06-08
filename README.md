@@ -229,6 +229,111 @@ Images in other online repositories are qualified further by a domain name (for 
 
 For more info, see [Container Definition](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html).
 
+### Special case
+
+Sometimes there is a need to add ignore_changes to sites. The current approach is to copy the entire block. I propose to output the necessary variables to the output, and then add the appropriate block that will create the service with your code.
+
+```hcl
+module "ecs_alb_service_task" {
+  source = "cloudposse/ecs-alb-service-task/aws"
+  # Cloud Posse recommends pinning every module to a specific version
+  # version = "x.x.x"
+  ...
+  service_created = false
+}
+
+
+resource "aws_ecs_service" "custom_app_service" {
+  name                               = module.ecs_alb_service_task.aws_ecs_service_obj["name"]
+  task_definition                    = module.ecs_alb_service_task.aws_ecs_service_obj["task_definition"]
+  desired_count                      = module.ecs_alb_service_task.aws_ecs_service_obj["desired_count"]
+  deployment_maximum_percent         = module.ecs_alb_service_task.aws_ecs_service_obj["deployment_maximum_percent"]
+  deployment_minimum_healthy_percent = module.ecs_alb_service_task.aws_ecs_service_obj["deployment_minimum_healthy_percent"]
+  health_check_grace_period_seconds  = module.ecs_alb_service_task.aws_ecs_service_obj["health_check_grace_period_seconds"]
+  launch_type                        = module.ecs_alb_service_task.aws_ecs_service_obj["launch_type"]
+  platform_version                   = module.ecs_alb_service_task.aws_ecs_service_obj["platform_version"]
+  scheduling_strategy                = module.ecs_alb_service_task.aws_ecs_service_obj["scheduling_strategy"]
+  enable_ecs_managed_tags            = module.ecs_alb_service_task.aws_ecs_service_obj["enable_ecs_managed_tags"]
+  iam_role                           = module.ecs_alb_service_task.aws_ecs_service_obj["iam_role"]
+  wait_for_steady_state              = module.ecs_alb_service_task.aws_ecs_service_obj["wait_for_steady_state"]
+  force_new_deployment               = module.ecs_alb_service_task.aws_ecs_service_obj["force_new_deployment"]
+  enable_execute_command             = module.ecs_alb_service_task.aws_ecs_service_obj["enable_execute_command"]
+
+  dynamic "capacity_provider_strategy" {
+    for_each = module.ecs_alb_service_task.aws_ecs_service_obj["capacity_provider_strategies"]
+    content {
+      capacity_provider = capacity_provider_strategy.value.capacity_provider
+      weight            = capacity_provider_strategy.value.weight
+      base              = lookup(capacity_provider_strategy.value, "base", null)
+    }
+  }
+
+  dynamic "service_registries" {
+    for_each = module.ecs_alb_service_task.aws_ecs_service_obj["service_registries"]
+    content {
+      registry_arn   = service_registries.value.registry_arn
+      port           = lookup(service_registries.value, "port", null)
+      container_name = lookup(service_registries.value, "container_name", null)
+      container_port = lookup(service_registries.value, "container_port", null)
+    }
+  }
+
+  dynamic "ordered_placement_strategy" {
+    for_each = module.ecs_alb_service_task.aws_ecs_service_obj["ordered_placement_strategy"]
+    content {
+      type  = ordered_placement_strategy.value.type
+      field = lookup(ordered_placement_strategy.value, "field", null)
+    }
+  }
+
+  dynamic "placement_constraints" {
+    for_each = module.ecs_alb_service_task.aws_ecs_service_obj["service_placement_constraints"]
+    content {
+      type       = placement_constraints.value.type
+      expression = lookup(placement_constraints.value, "expression", null)
+    }
+  }
+
+  dynamic "load_balancer" {
+    for_each = module.ecs_alb_service_task.aws_ecs_service_obj["ecs_load_balancers"]
+    content {
+      container_name   = load_balancer.value.container_name
+      container_port   = load_balancer.value.container_port
+      elb_name         = lookup(load_balancer.value, "elb_name", null)
+      target_group_arn = lookup(load_balancer.value, "target_group_arn", null)
+    }
+  }
+
+  cluster        = module.ecs_alb_service_task.aws_ecs_service_obj["cluster"]
+  propagate_tags = module.ecs_alb_service_task.aws_ecs_service_obj["propagate_tags"]
+  tags           = module.ecs_alb_service_task.aws_ecs_service_obj["tags"]
+
+  deployment_controller {
+    type = module.ecs_alb_service_task.aws_ecs_service_obj["deployment_controller_type"]
+  }
+
+  dynamic "network_configuration" {
+    for_each = module.ecs_alb_service_task.aws_ecs_service_obj["network_mode"] == "awsvpc" ? ["true"] : []
+    content {
+      security_groups  = module.app_service.aws_ecs_service_obj["security_groups"]
+      subnets          = module.app_service.aws_ecs_service_obj["subnets"]
+      assign_public_ip = module.app_service.aws_ecs_service_obj["assign_public_ip"]
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [ #example ignore changes, wh orequired in CodeDeploy
+      task_definition,
+      load_balancer,
+      network_configuration["true"].security_groups,
+      network_configuration["true"].subnets,
+      network_configuration["true"].assign_public_ip,
+    ]
+  }
+}
+
+```
+
 
 
 
@@ -346,6 +451,7 @@ Available targets:
 | <a name="input_regex_replace_chars"></a> [regex\_replace\_chars](#input\_regex\_replace\_chars) | Regex to replace chars with empty string in `namespace`, `environment`, `stage` and `name`.<br>If not set, `"/[^a-zA-Z0-9-]/"` is used to remove all characters other than hyphens, letters and digits. | `string` | `null` | no |
 | <a name="input_scheduling_strategy"></a> [scheduling\_strategy](#input\_scheduling\_strategy) | The scheduling strategy to use for the service. The valid values are `REPLICA` and `DAEMON`.<br>Note that Fargate tasks do not support the DAEMON scheduling strategy. | `string` | `"REPLICA"` | no |
 | <a name="input_security_group_ids"></a> [security\_group\_ids](#input\_security\_group\_ids) | Security group IDs to allow in Service `network_configuration` if `var.network_mode = "awsvpc"` | `list(string)` | `[]` | no |
+| <a name="input_service_created"></a> [service\_created](#input\_service\_created) | Do you want to create a service? Useful for non-standard use cases. | `bool` | `true` | no |
 | <a name="input_service_placement_constraints"></a> [service\_placement\_constraints](#input\_service\_placement\_constraints) | The rules that are taken into consideration during task placement. Maximum number of placement\_constraints is 10. See [`placement_constraints`](https://www.terraform.io/docs/providers/aws/r/ecs_service.html#placement_constraints-1) docs | <pre>list(object({<br>    type       = string<br>    expression = string<br>  }))</pre> | `[]` | no |
 | <a name="input_service_registries"></a> [service\_registries](#input\_service\_registries) | The service discovery registries for the service. The maximum number of service\_registries blocks is 1. The currently supported service registry is Amazon Route 53 Auto Naming Service - `aws_service_discovery_service`; see `service_registries` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html#service_registries-1 | <pre>list(object({<br>    registry_arn   = string<br>    port           = number<br>    container_name = string<br>    container_port = number<br>  }))</pre> | `[]` | no |
 | <a name="input_service_role_arn"></a> [service\_role\_arn](#input\_service\_role\_arn) | ARN of the IAM role that allows Amazon ECS to make calls to your load balancer on your behalf. This parameter is required if you are using a load balancer with your service, but only if your task definition does not use the awsvpc network mode. If using awsvpc network mode, do not specify this role. If your account has already created the Amazon ECS service-linked role, that role is used by default for your service unless you specify a role here. | `string` | `null` | no |
@@ -371,6 +477,7 @@ Available targets:
 
 | Name | Description |
 |------|-------------|
+| <a name="output_aws_ecs_service_obj"></a> [aws\_ecs\_service\_obj](#output\_aws\_ecs\_service\_obj) | Parameters to create the service |
 | <a name="output_ecs_exec_role_policy_id"></a> [ecs\_exec\_role\_policy\_id](#output\_ecs\_exec\_role\_policy\_id) | The ECS service role policy ID, in the form of `role_name:role_policy_name` |
 | <a name="output_ecs_exec_role_policy_name"></a> [ecs\_exec\_role\_policy\_name](#output\_ecs\_exec\_role\_policy\_name) | ECS service role name |
 | <a name="output_service_arn"></a> [service\_arn](#output\_service\_arn) | ECS Service ARN |
@@ -395,6 +502,7 @@ Like this project? Please give it a ★ on [our GitHub](https://github.com/cloud
 Are you using this project or any of our other projects? Consider [leaving a testimonial][testimonial]. =)
 
 
+
 ## Related Projects
 
 Check out these related projects.
@@ -408,8 +516,6 @@ Check out these related projects.
 - [terraform-aws-ecs-cloudwatch-sns-alarms](https://github.com/cloudposse/terraform-aws-ecs-cloudwatch-sns-alarms) - Terraform module to create CloudWatch Alarms on ECS Service level metrics
 - [terraform-aws-ecs-container-definition](https://github.com/cloudposse/terraform-aws-ecs-container-definition) - Terraform module to generate well-formed JSON documents that are passed to the aws_ecs_task_definition Terraform resource
 - [terraform-aws-lb-s3-bucket](https://github.com/cloudposse/terraform-aws-lb-s3-bucket) - Terraform module to provision an S3 bucket with built in IAM policy to allow AWS Load Balancers to ship access logs.
-
-
 
 ## Help
 
