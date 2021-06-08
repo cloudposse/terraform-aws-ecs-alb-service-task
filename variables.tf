@@ -348,3 +348,9 @@ variable "exec_enabled" {
   description = "Specifies whether to enable Amazon ECS Exec for the tasks within the service"
   default     = false
 }
+
+variable "service_created" {
+  type        = bool
+  description = "Do you want to create a service? Useful for non-standard use cases."
+  default     = true
+}
