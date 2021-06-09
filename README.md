@@ -322,12 +322,10 @@ resource "aws_ecs_service" "custom_app_service" {
   }
 
   lifecycle {
-    ignore_changes = [ #example ignore changes, wh orequired in CodeDeploy
+    ignore_changes = [ #example ignore changes, who required in CodeDeploy
       task_definition,
       load_balancer,
-      network_configuration["true"].security_groups,
-      network_configuration["true"].subnets,
-      network_configuration["true"].assign_public_ip,
+      network_configuration
     ]
   }
 }
