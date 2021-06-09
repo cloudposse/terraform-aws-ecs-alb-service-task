@@ -231,7 +231,7 @@ For more info, see [Container Definition](https://docs.aws.amazon.com/AmazonECS/
 
 ### Special case
 
-Sometimes there is a need to add ignore_changes to sites. The current approach is to copy the entire block. I propose to output the necessary variables to the output, and then add the appropriate block that will create the service with your code.
+Sometimes there is a need to add ignore_changes to service. The current approach is to copy the entire block. I propose to output the necessary variables to the output, and then add the appropriate block that will create the service with your code.
 
 ```hcl
 module "ecs_alb_service_task" {

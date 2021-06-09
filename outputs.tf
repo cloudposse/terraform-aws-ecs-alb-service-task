@@ -10,10 +10,10 @@ output "ecs_exec_role_policy_name" {
 
 output "service_name" {
   description = "ECS Service name"
-  value       = try(
-    aws_ecs_service.default[0].name, 
-    aws_ecs_service.ignore_changes_task_definition[0].name, 
-    aws_ecs_service.ignore_changes_desired_count[0].name, 
+  value = try(
+    aws_ecs_service.default[0].name,
+    aws_ecs_service.ignore_changes_task_definition[0].name,
+    aws_ecs_service.ignore_changes_desired_count[0].name,
     aws_ecs_service.ignore_changes_task_definition_and_desired_count[0].name,
     ""
   )
@@ -21,13 +21,13 @@ output "service_name" {
 
 output "service_arn" {
   description = "ECS Service ARN"
-  value       = try(
-    aws_ecs_service.default[0].id, 
-    aws_ecs_service.ignore_changes_task_definition[0].id, 
-    aws_ecs_service.ignore_changes_desired_count[0].id, 
+  value = try(
+    aws_ecs_service.default[0].id,
+    aws_ecs_service.ignore_changes_task_definition[0].id,
+    aws_ecs_service.ignore_changes_desired_count[0].id,
     aws_ecs_service.ignore_changes_task_definition_and_desired_count[0].id,
     ""
-    )
+  )
 }
 
 output "service_role_arn" {
@@ -78,34 +78,34 @@ output "task_definition_revision" {
 output "aws_ecs_service_obj" {
   description = "Parameters to create the service"
   value = {
-    name = module.this.id
-    task_definition = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
-    desired_count = var.desired_count
-    deployment_maximum_percent = var.deployment_maximum_percent
+    name                               = module.this.id
+    task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
+    desired_count                      = var.desired_count
+    deployment_maximum_percent         = var.deployment_maximum_percent
     deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
-    health_check_grace_period_seconds = var.health_check_grace_period_seconds
-    launch_type = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
-    platform_version = var.launch_type == "FARGATE" ? var.platform_version : null
-    scheduling_strategy = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
-    enable_ecs_managed_tags = var.enable_ecs_managed_tags
-    iam_role = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
-    wait_for_steady_state = var.wait_for_steady_state
-    force_new_deployment = var.force_new_deployment
-    enable_execute_command = var.exec_enabled
-    cluster        = var.ecs_cluster_arn
-    propagate_tags = var.propagate_tags
-    tags           = var.use_old_arn ? null : module.this.tags
-    deployment_controller_type = var.deployment_controller_type
+    health_check_grace_period_seconds  = var.health_check_grace_period_seconds
+    launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
+    platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
+    scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
+    enable_ecs_managed_tags            = var.enable_ecs_managed_tags
+    iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
+    wait_for_steady_state              = var.wait_for_steady_state
+    force_new_deployment               = var.force_new_deployment
+    enable_execute_command             = var.exec_enabled
+    cluster                            = var.ecs_cluster_arn
+    propagate_tags                     = var.propagate_tags
+    tags                               = var.use_old_arn ? null : module.this.tags
+    deployment_controller_type         = var.deployment_controller_type
 
-    capacity_provider_strategies = var.capacity_provider_strategies
-    service_registries = var.service_registries
-    ordered_placement_strategy = var.ordered_placement_strategy
+    capacity_provider_strategies  = var.capacity_provider_strategies
+    service_registries            = var.service_registries
+    ordered_placement_strategy    = var.ordered_placement_strategy
     service_placement_constraints = var.service_placement_constraints
-    ecs_load_balancers = var.ecs_load_balancers
+    ecs_load_balancers            = var.ecs_load_balancers
 
-    network_mode = var.network_mode
-    security_groups = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
-    subnets = var.subnet_ids
+    network_mode     = var.network_mode
+    security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
+    subnets          = var.subnet_ids
     assign_public_ip = var.assign_public_ip
   }
 }
