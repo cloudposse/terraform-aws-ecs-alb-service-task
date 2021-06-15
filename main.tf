@@ -1,6 +1,7 @@
 locals {
   enabled                 = module.this.enabled
   enable_ecs_service_role = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) <= 1
+  security_group_enabled  = module.this.enabled && var.security_group_enabled && var.network_mode == "awsvpc"
 }
 
 module "task_label" {
@@ -258,58 +259,19 @@ resource "aws_iam_role_policy_attachment" "ecs_exec" {
 
 # Service
 ## Security Groups
-resource "aws_security_group" "ecs_service" {
-  count       = local.enabled && var.network_mode == "awsvpc" ? 1 : 0
-  vpc_id      = var.vpc_id
-  name        = module.service_label.id
-  description = "Allow ALL egress from ECS service"
-  tags        = module.service_label.tags
+module "security_group" {
+  source  = "cloudposse/security-group/aws"
+  version = "0.3.1"
 
-  lifecycle {
-    create_before_destroy = true
-  }
+  use_name_prefix = var.security_group_use_name_prefix
+  rules           = var.security_group_rules
+  description     = var.security_group_description
+  vpc_id          = var.vpc_id
+
+  enabled = local.security_group_enabled
+  context = module.service_label.context
 }
 
-resource "aws_security_group_rule" "allow_all_egress" {
-  count             = local.enabled && var.enable_all_egress_rule ? 1 : 0
-  type              = "egress"
-  from_port         = 0
-  to_port           = 0
-  protocol          = "-1"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = join("", aws_security_group.ecs_service.*.id)
-}
-
-resource "aws_security_group_rule" "allow_icmp_ingress" {
-  count             = local.enabled && var.enable_icmp_rule ? 1 : 0
-  description       = "Enables ping command from anywhere, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-ping"
-  type              = "ingress"
-  from_port         = 8
-  to_port           = 0
-  protocol          = "icmp"
-  cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = join("", aws_security_group.ecs_service.*.id)
-}
-
-resource "aws_security_group_rule" "alb" {
-  count                    = local.enabled && var.use_alb_security_group ? 1 : 0
-  type                     = "ingress"
-  from_port                = var.container_port
-  to_port                  = var.container_port
-  protocol                 = "tcp"
-  source_security_group_id = var.alb_security_group
-  security_group_id        = join("", aws_security_group.ecs_service.*.id)
-}
-
-resource "aws_security_group_rule" "nlb" {
-  count             = local.enabled && var.use_nlb_cidr_blocks ? 1 : 0
-  type              = "ingress"
-  from_port         = var.nlb_container_port
-  to_port           = var.nlb_container_port
-  protocol          = "tcp"
-  cidr_blocks       = var.nlb_cidr_blocks
-  security_group_id = join("", aws_security_group.ecs_service.*.id)
-}
 
 resource "aws_ecs_service" "ignore_changes_task_definition" {
   count                              = local.enabled && var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
@@ -385,7 +347,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   dynamic "network_configuration" {
     for_each = var.network_mode == "awsvpc" ? ["true"] : []
     content {
-      security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
+      security_groups  = compact(concat(module.security_group.*.id, var.security_groups))
       subnets          = var.subnet_ids
       assign_public_ip = var.assign_public_ip
     }
@@ -640,7 +602,7 @@ resource "aws_ecs_service" "default" {
   dynamic "network_configuration" {
     for_each = var.network_mode == "awsvpc" ? ["true"] : []
     content {
-      security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
+      security_groups  = compact(concat(module.security_group.*.id, var.security_groups))
       subnets          = var.subnet_ids
       assign_public_ip = var.assign_public_ip
     }
