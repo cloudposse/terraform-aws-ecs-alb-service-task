@@ -10,12 +10,12 @@ output "ecs_exec_role_policy_name" {
 
 output "service_name" {
   description = "ECS Service name"
-  value       = join("", aws_ecs_service.default.*.name) != "" ? join("", aws_ecs_service.default.*.name) : join("", aws_ecs_service.ignore_changes_task_definition.*.name)
+  value       = try(aws_ecs_service.default[0].name, aws_ecs_service.ignore_changes_task_definition[0].name, aws_ecs_service.ignore_changes_desired_count[0].name, aws_ecs_service.ignore_changes_task_definition_and_desired_count[0].name)
 }
 
 output "service_arn" {
   description = "ECS Service ARN"
-  value       = join("", aws_ecs_service.default.*.id) != "" ? join("", aws_ecs_service.default.*.id) : join("", aws_ecs_service.ignore_changes_task_definition.*.id)
+  value       = try(aws_ecs_service.default[0].id, aws_ecs_service.ignore_changes_task_definition[0].id, aws_ecs_service.ignore_changes_desired_count[0].id, aws_ecs_service.ignore_changes_task_definition_and_desired_count[0].id)
 }
 
 output "service_role_arn" {
@@ -48,9 +48,19 @@ output "task_role_id" {
   value       = join("", aws_iam_role.ecs_task.*.unique_id)
 }
 
-output "service_security_group_id" {
+output "security_group_id" {
+  value       = module.security_group.id
   description = "Security Group ID of the ECS task"
-  value       = join("", aws_security_group.ecs_service.*.id)
+}
+
+output "security_group_arn" {
+  value       = module.security_group.arn
+  description = "Security Group ARN of the ECS task"
+}
+
+output "security_group_name" {
+  value       = module.security_group.name
+  description = "Security Group name of the ECS task"
 }
 
 output "task_definition_family" {
