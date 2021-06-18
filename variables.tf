@@ -349,13 +349,13 @@ variable "exec_enabled" {
   default     = false
 }
 
-variable "deployment_circuit_breaker" {
+variable "circuit_breaker_deployment_enabled" {
   type        = bool
   description = "Whether to enable the deployment circuit breaker logic for the service"
   default     = false
 }
 
-variable "circuit_breaker_enable_rollback" {
+variable "circuit_breaker_rollback_enabled" {
   type        = bool
   description = "Whether to enable Amazon ECS to roll back the service if a service deployment fails"
   default     = false
