@@ -273,11 +273,11 @@ module "security_group" {
 }
 
 locals {
-  ecs_service_task_definition = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
-  ecs_service_launch_type = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
-  ecs_service_platform_version = var.launch_type == "FARGATE" ? var.platform_version : null
+  ecs_service_task_definition     = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
+  ecs_service_launch_type         = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
+  ecs_service_platform_version    = var.launch_type == "FARGATE" ? var.platform_version : null
   ecs_service_scheduling_strategy = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
-  ecs_service_iam_role = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
+  ecs_service_iam_role            = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
 }
 
 resource "aws_ecs_service" "ignore_changes_task_definition" {
