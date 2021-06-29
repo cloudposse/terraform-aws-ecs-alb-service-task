@@ -272,20 +272,27 @@ module "security_group" {
   context = module.service_label.context
 }
 
+locals {
+  ecs_service_task_definition = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
+  ecs_service_launch_type = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
+  ecs_service_platform_version = var.launch_type == "FARGATE" ? var.platform_version : null
+  ecs_service_scheduling_strategy = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
+  ecs_service_iam_role = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
+}
 
 resource "aws_ecs_service" "ignore_changes_task_definition" {
   count                              = local.enabled && var.service_created && var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
   name                               = module.this.id
-  task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
+  task_definition                    = local.ecs_service_task_definition
   desired_count                      = var.desired_count
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
   health_check_grace_period_seconds  = var.health_check_grace_period_seconds
-  launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
-  platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
-  scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
+  launch_type                        = local.ecs_service_launch_type
+  platform_version                   = local.ecs_service_platform_version
+  scheduling_strategy                = local.ecs_service_scheduling_strategy
   enable_ecs_managed_tags            = var.enable_ecs_managed_tags
-  iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
+  iam_role                           = local.ecs_service_iam_role
   wait_for_steady_state              = var.wait_for_steady_state
   force_new_deployment               = var.force_new_deployment
   enable_execute_command             = var.exec_enabled
@@ -361,16 +368,16 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
 resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
   count                              = local.enabled && var.service_created && var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
   name                               = module.this.id
-  task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
+  task_definition                    = local.ecs_service_task_definition
   desired_count                      = var.desired_count
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
   health_check_grace_period_seconds  = var.health_check_grace_period_seconds
-  launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
-  platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
-  scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
+  launch_type                        = local.ecs_service_launch_type
+  platform_version                   = local.ecs_service_platform_version
+  scheduling_strategy                = local.ecs_service_scheduling_strategy
   enable_ecs_managed_tags            = var.enable_ecs_managed_tags
-  iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
+  iam_role                           = local.ecs_service_iam_role
   wait_for_steady_state              = var.wait_for_steady_state
   force_new_deployment               = var.force_new_deployment
   enable_execute_command             = var.exec_enabled
@@ -446,16 +453,16 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
 resource "aws_ecs_service" "ignore_changes_desired_count" {
   count                              = local.enabled && var.service_created && ! var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
   name                               = module.this.id
-  task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
+  task_definition                    = local.ecs_service_task_definition
   desired_count                      = var.desired_count
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
   health_check_grace_period_seconds  = var.health_check_grace_period_seconds
-  launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
-  platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
-  scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
+  launch_type                        = local.ecs_service_launch_type
+  platform_version                   = local.ecs_service_platform_version
+  scheduling_strategy                = local.ecs_service_scheduling_strategy
   enable_ecs_managed_tags            = var.enable_ecs_managed_tags
-  iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
+  iam_role                           = local.ecs_service_iam_role
   wait_for_steady_state              = var.wait_for_steady_state
   force_new_deployment               = var.force_new_deployment
   enable_execute_command             = var.exec_enabled
@@ -531,16 +538,16 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
 resource "aws_ecs_service" "default" {
   count                              = local.enabled && var.service_created && ! var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
   name                               = module.this.id
-  task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
+  task_definition                    = local.ecs_service_task_definition
   desired_count                      = var.desired_count
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
   health_check_grace_period_seconds  = var.health_check_grace_period_seconds
-  launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
-  platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
-  scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
+  launch_type                        = local.ecs_service_launch_type
+  platform_version                   = local.ecs_service_platform_version
+  scheduling_strategy                = local.ecs_service_scheduling_strategy
   enable_ecs_managed_tags            = var.enable_ecs_managed_tags
-  iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
+  iam_role                           = local.ecs_service_iam_role
   wait_for_steady_state              = var.wait_for_steady_state
   force_new_deployment               = var.force_new_deployment
   enable_execute_command             = var.exec_enabled
