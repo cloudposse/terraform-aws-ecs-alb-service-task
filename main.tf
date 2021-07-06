@@ -391,8 +391,8 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
     }
   }
 
-  circuit_breaker_deployment_enabled {
-    enable = var.circuit_breaker_deployment_enabled
+  deployment_circuit_breaker {
+    enable   = var.circuit_breaker_deployment_enabled
     rollback = var.circuit_breaker_rollback_enabled
   }
 
@@ -470,9 +470,9 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
   deployment_controller {
     type = var.deployment_controller_type
   }
-  
-  circuit_breaker_deployment_enabled {
-    enable = var.circuit_breaker_deployment_enabled
+
+  deployment_circuit_breaker {
+    enable   = var.circuit_breaker_deployment_enabled
     rollback = var.circuit_breaker_rollback_enabled
   }
 
@@ -571,8 +571,8 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
     }
   }
 
-  circuit_breaker_deployment_enabled {
-    enable = var.circuit_breaker_deployment_enabled
+  deployment_circuit_breaker {
+    enable   = var.circuit_breaker_deployment_enabled
     rollback = var.circuit_breaker_rollback_enabled
   }
 
@@ -661,8 +661,8 @@ resource "aws_ecs_service" "default" {
     }
   }
 
-  circuit_breaker_deployment_enabled {
-    enable = var.circuit_breaker_deployment_enabled
+  deployment_circuit_breaker {
+    enable   = var.circuit_breaker_deployment_enabled
     rollback = var.circuit_breaker_rollback_enabled
   }
 }

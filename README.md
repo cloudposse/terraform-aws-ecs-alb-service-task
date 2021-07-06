@@ -184,8 +184,8 @@ module "ecs_alb_service_task" {
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_controller_type         = var.deployment_controller_type
-  circuit_breaker_deployment_enabled         = var.circuit_breaker_deployment_enabled
-  circuit_breaker_rollback_enabled    = var.circuit_breaker_rollback_enabled
+  circuit_breaker_deployment_enabled = var.circuit_breaker_deployment_enabled
+  circuit_breaker_rollback_enabled   = var.circuit_breaker_rollback_enabled
   desired_count                      = var.desired_count
   task_memory                        = var.task_memory
   task_cpu                           = var.task_cpu
