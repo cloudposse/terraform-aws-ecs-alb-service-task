@@ -18,7 +18,7 @@ related:
   url: https://github.com/cloudposse/terraform-aws-alb-ingress
 - name: terraform-aws-codebuild
   description: Terraform Module to easily leverage AWS CodeBuild for Continuous Integration
-  url: https://github.com/cloudposse/terraform-aws-codebuild
+  url: https://github.com/cloudposse/terraform-aws-codebuild  
 - name: terraform-aws-ecr
   description: Terraform Module to manage Docker Container Registries on AWS ECR
   url: https://github.com/cloudposse/terraform-aws-ecr
@@ -135,6 +135,8 @@ usage: |2-
     deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
     deployment_maximum_percent         = var.deployment_maximum_percent
     deployment_controller_type         = var.deployment_controller_type
+    circuit_breaker_deployment_enabled = var.circuit_breaker_deployment_enabled
+    circuit_breaker_rollback_enabled   = var.circuit_breaker_rollback_enabled
     desired_count                      = var.desired_count
     task_memory                        = var.task_memory
     task_cpu                           = var.task_cpu
