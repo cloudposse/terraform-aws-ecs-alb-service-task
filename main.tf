@@ -360,6 +360,11 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
     }
   }
 
+  deployment_circuit_breaker {
+    enable   = var.circuit_breaker_deployment_enabled
+    rollback = var.circuit_breaker_rollback_enabled
+  }
+
   lifecycle {
     ignore_changes = [task_definition]
   }
@@ -433,6 +438,11 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
 
   deployment_controller {
     type = var.deployment_controller_type
+  }
+
+  deployment_circuit_breaker {
+    enable   = var.circuit_breaker_deployment_enabled
+    rollback = var.circuit_breaker_rollback_enabled
   }
 
   # https://www.terraform.io/docs/providers/aws/r/ecs_service.html#network_configuration
@@ -530,6 +540,11 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
     }
   }
 
+  deployment_circuit_breaker {
+    enable   = var.circuit_breaker_deployment_enabled
+    rollback = var.circuit_breaker_rollback_enabled
+  }
+
   lifecycle {
     ignore_changes = [desired_count]
   }
@@ -613,5 +628,10 @@ resource "aws_ecs_service" "default" {
       subnets          = var.subnet_ids
       assign_public_ip = var.assign_public_ip
     }
+  }
+
+  deployment_circuit_breaker {
+    enable   = var.circuit_breaker_deployment_enabled
+    rollback = var.circuit_breaker_rollback_enabled
   }
 }

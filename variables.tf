@@ -357,3 +357,15 @@ variable "service_created" {
   description = "Do you want to create a service? Useful for non-standard use cases."
   default     = true
 }
+
+variable "circuit_breaker_deployment_enabled" {
+  type        = bool
+  description = "Whether to enable the deployment circuit breaker logic for the service"
+  default     = false
+}
+
+variable "circuit_breaker_rollback_enabled" {
+  type        = bool
+  description = "Whether to enable Amazon ECS to roll back the service if a service deployment fails"
+  default     = false
+}
