@@ -351,3 +351,15 @@ variable "exec_enabled" {
   description = "Specifies whether to enable Amazon ECS Exec for the tasks within the service"
   default     = false
 }
+
+variable "circuit_breaker_deployment_enabled" {
+  type        = bool
+  description = "Whether to enable the deployment circuit breaker logic for the service"
+  default     = false
+}
+
+variable "circuit_breaker_rollback_enabled" {
+  type        = bool
+  description = "Whether to enable Amazon ECS to roll back the service if a service deployment fails"
+  default     = false
+}
