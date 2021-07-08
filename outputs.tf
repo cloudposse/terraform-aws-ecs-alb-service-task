@@ -114,7 +114,7 @@ output "aws_ecs_service_obj" {
     ecs_load_balancers            = var.ecs_load_balancers
 
     network_mode     = var.network_mode
-    security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
+    security_groups  = compact(concat(module.security_group.*.id, var.security_groups))
     subnets          = var.subnet_ids
     assign_public_ip = var.assign_public_ip
   }

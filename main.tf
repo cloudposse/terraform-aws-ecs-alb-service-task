@@ -449,7 +449,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
   dynamic "network_configuration" {
     for_each = var.network_mode == "awsvpc" ? ["true"] : []
     content {
-      security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
+      security_groups  = compact(concat(module.security_group.*.id, var.security_groups))
       subnets          = var.subnet_ids
       assign_public_ip = var.assign_public_ip
     }
@@ -534,7 +534,7 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
   dynamic "network_configuration" {
     for_each = var.network_mode == "awsvpc" ? ["true"] : []
     content {
-      security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
+      security_groups  = compact(concat(module.security_group.*.id, var.security_groups))
       subnets          = var.subnet_ids
       assign_public_ip = var.assign_public_ip
     }
