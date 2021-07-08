@@ -87,35 +87,5 @@ output "task_definition_revision" {
 
 output "aws_ecs_service_obj" {
   description = "Parameters to create the service"
-  value = {
-    name                               = module.this.id
-    task_definition                    = local.ecs_service_task_definition
-    desired_count                      = var.desired_count
-    deployment_maximum_percent         = var.deployment_maximum_percent
-    deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
-    health_check_grace_period_seconds  = var.health_check_grace_period_seconds
-    launch_type                        = local.ecs_service_launch_type
-    platform_version                   = local.ecs_service_platform_version
-    scheduling_strategy                = local.ecs_service_scheduling_strategy
-    enable_ecs_managed_tags            = var.enable_ecs_managed_tags
-    iam_role                           = local.ecs_service_iam_role
-    wait_for_steady_state              = var.wait_for_steady_state
-    force_new_deployment               = var.force_new_deployment
-    enable_execute_command             = var.exec_enabled
-    cluster                            = var.ecs_cluster_arn
-    propagate_tags                     = var.propagate_tags
-    tags                               = var.use_old_arn ? null : module.this.tags
-    deployment_controller_type         = var.deployment_controller_type
-
-    capacity_provider_strategies  = var.capacity_provider_strategies
-    service_registries            = var.service_registries
-    ordered_placement_strategy    = var.ordered_placement_strategy
-    service_placement_constraints = var.service_placement_constraints
-    ecs_load_balancers            = var.ecs_load_balancers
-
-    network_mode     = var.network_mode
-    security_groups  = compact(concat(module.security_group.*.id, var.security_groups))
-    subnets          = var.subnet_ids
-    assign_public_ip = var.assign_public_ip
-  }
+  value       = local.ecs_service_attrs
 }
