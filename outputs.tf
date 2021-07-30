@@ -74,7 +74,6 @@ output "task_definition_revision" {
 }
 
 output "task_definition_arn" {
-  type        = string
   description = "ECS task definition ARN"
   value       = join("", aws_ecs_task_definition.default.*.arn)
 }
