@@ -316,7 +316,7 @@ locals {
 }
 
 resource "aws_ecs_service" "ignore_changes_task_definition" {
-  count                              = local.enabled && var.service_created && var.ignore_changes_task_definition && !var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.enabled && var.service_created && var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
   name                               = local.ecs_service_attrs["name"]
   task_definition                    = local.ecs_service_attrs["task_definition"]
   desired_count                      = local.ecs_service_attrs["desired_count"]
@@ -496,7 +496,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
 }
 
 resource "aws_ecs_service" "ignore_changes_desired_count" {
-  count                              = local.enabled && var.service_created && !var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.enabled && var.service_created && ! var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
   name                               = local.ecs_service_attrs["name"]
   task_definition                    = local.ecs_service_attrs["task_definition"]
   desired_count                      = local.ecs_service_attrs["desired_count"]
@@ -586,7 +586,7 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
 }
 
 resource "aws_ecs_service" "default" {
-  count                              = local.enabled && var.service_created && !var.ignore_changes_task_definition && !var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.enabled && var.service_created && ! var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
   name                               = local.ecs_service_attrs["name"]
   task_definition                    = local.ecs_service_attrs["task_definition"]
   desired_count                      = local.ecs_service_attrs["desired_count"]
