@@ -298,7 +298,7 @@ Available targets:
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_exec_label"></a> [exec\_label](#module\_exec\_label) | cloudposse/label/null | 0.24.1 |
-| <a name="module_security_group"></a> [security\_group](#module\_security\_group) | cloudposse/security-group/aws | 0.3.1 |
+| <a name="module_security_group"></a> [security\_group](#module\_security\_group) | cloudposse/security-group/aws | 0.3.2 |
 | <a name="module_service_label"></a> [service\_label](#module\_service\_label) | cloudposse/label/null | 0.24.1 |
 | <a name="module_task_label"></a> [task\_label](#module\_task\_label) | cloudposse/label/null | 0.24.1 |
 | <a name="module_this"></a> [this](#module\_this) | cloudposse/label/null | 0.24.1 |
