@@ -48,19 +48,9 @@ output "task_role_id" {
   value       = join("", aws_iam_role.ecs_task.*.unique_id)
 }
 
-output "security_group_id" {
-  value       = module.security_group.id
+output "service_security_group_id" {
   description = "Security Group ID of the ECS task"
-}
-
-output "security_group_arn" {
-  value       = module.security_group.arn
-  description = "Security Group ARN of the ECS task"
-}
-
-output "security_group_name" {
-  value       = module.security_group.name
-  description = "Security Group name of the ECS task"
+  value       = join("", aws_security_group.ecs_service.*.id)
 }
 
 output "task_definition_family" {
