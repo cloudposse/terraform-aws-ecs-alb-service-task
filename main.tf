@@ -180,7 +180,7 @@ resource "aws_iam_role_policy" "ecs_service" {
 }
 
 data "aws_iam_policy_document" "ecs_ssm_exec" {
-  count = local.enabled && var.exec_enabled ? 1 : 0
+  count = local.enabled && var.exec_enabled && length(var.task_role_arn) == 0 ? 1 : 0
 
   statement {
     effect    = "Allow"
@@ -196,7 +196,7 @@ data "aws_iam_policy_document" "ecs_ssm_exec" {
 }
 
 resource "aws_iam_role_policy" "ecs_ssm_exec" {
-  count  = local.enabled && var.exec_enabled ? 1 : 0
+  count  = local.enabled && var.exec_enabled && length(var.task_role_arn) == 0 ? 1 : 0
   name   = module.task_label.id
   policy = join("", data.aws_iam_policy_document.ecs_ssm_exec.*.json)
   role   = join("", aws_iam_role.ecs_task.*.id)
@@ -274,7 +274,7 @@ module "security_group" {
 
 
 resource "aws_ecs_service" "ignore_changes_task_definition" {
-  count                              = local.enabled && var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.enabled && var.ignore_changes_task_definition && !var.ignore_changes_desired_count ? 1 : 0
   name                               = module.this.id
   task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
   desired_count                      = var.desired_count
@@ -454,7 +454,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
 }
 
 resource "aws_ecs_service" "ignore_changes_desired_count" {
-  count                              = local.enabled && ! var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.enabled && !var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
   name                               = module.this.id
   task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
   desired_count                      = var.desired_count
@@ -544,7 +544,7 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
 }
 
 resource "aws_ecs_service" "default" {
-  count                              = local.enabled && ! var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.enabled && !var.ignore_changes_task_definition && !var.ignore_changes_desired_count ? 1 : 0
   name                               = module.this.id
   task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
   desired_count                      = var.desired_count
