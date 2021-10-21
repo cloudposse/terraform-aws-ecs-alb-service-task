@@ -33,6 +33,11 @@ output "task_exec_role_arn" {
   value       = length(var.task_exec_role_arn) > 0 ? var.task_exec_role_arn : join("", aws_iam_role.ecs_exec.*.arn)
 }
 
+output "task_exec_role_id" {
+  description = "ECS Task exec role id"
+  value       = join("", aws_iam_role.ecs_exec.*.unique_id)
+}
+
 output "task_role_name" {
   description = "ECS Task role name"
   value       = join("", aws_iam_role.ecs_task.*.name)
