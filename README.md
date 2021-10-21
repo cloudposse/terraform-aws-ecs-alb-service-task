@@ -409,6 +409,7 @@ Available targets:
 | <a name="output_task_definition_family"></a> [task\_definition\_family](#output\_task\_definition\_family) | ECS task definition family |
 | <a name="output_task_definition_revision"></a> [task\_definition\_revision](#output\_task\_definition\_revision) | ECS task definition revision |
 | <a name="output_task_exec_role_arn"></a> [task\_exec\_role\_arn](#output\_task\_exec\_role\_arn) | ECS Task exec role ARN |
+| <a name="output_task_exec_role_id"></a> [task\_exec\_role\_id](#output\_task\_exec\_role\_id) | ECS Task exec role id |
 | <a name="output_task_exec_role_name"></a> [task\_exec\_role\_name](#output\_task\_exec\_role\_name) | ECS Task role name |
 | <a name="output_task_role_arn"></a> [task\_role\_arn](#output\_task\_role\_arn) | ECS Task role ARN |
 | <a name="output_task_role_id"></a> [task\_role\_id](#output\_task\_role\_id) | ECS Task role id |
