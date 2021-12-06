@@ -1,3 +1,5 @@
+# NOTE
+Forked this Dec.6, 2021, at v.0.56, because there were a number of issues around it working for an ECS blue-green scenario.  It was missing several ignores to start.
 
 <!-- markdownlint-disable -->
 # terraform-aws-ecs-alb-service-task [![Latest Release](https://img.shields.io/github/release/cloudposse/terraform-aws-ecs-alb-service-task.svg)](https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/releases/latest) [![Slack Community](https://slack.cloudposse.com/badge.svg)](https://slack.cloudposse.com)
