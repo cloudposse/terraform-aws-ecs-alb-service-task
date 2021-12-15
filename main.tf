@@ -61,6 +61,14 @@ resource "aws_ecs_task_definition" "default" {
     }
   }
 
+  dynamic "runtime_platform" {
+    for_each = var.runtime_platform == null ? [] : [var.runtime_platform]
+    content {
+      operating_system_family = lookup(runtime_platform.value, "operating_system_family", null)
+      cpu_architecture        = lookup(runtime_platform.value, "cpu_architecture", null)
+    }
+  }
+
   dynamic "volume" {
     for_each = var.volumes
     content {
