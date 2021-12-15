@@ -259,7 +259,7 @@ variable "proxy_configuration" {
   default     = null
 }
 
-variable "proxy_configuration" {
+variable "runtime_platform" {
   type = object({
     operating_system_family = string
     cpu_architecture        = string
