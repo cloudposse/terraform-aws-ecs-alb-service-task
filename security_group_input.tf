@@ -23,10 +23,6 @@ variable "allowed_security_group_ids" {
     EOT
 }
 
-locals {
-  allowed_security_group_ids = concat(var.security_groups, var.allowed_security_group_ids)
-}
-
 variable "security_group_name" {
   type        = list(string)
   default     = []
