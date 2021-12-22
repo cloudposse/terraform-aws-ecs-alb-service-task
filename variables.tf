@@ -36,57 +36,6 @@ variable "subnet_ids" {
   default     = null
 }
 
-variable "security_groups" {
-  type        = list(string)
-  description = "A list of Security Group IDs to allow in Service `network_configuration` if `var.network_mode = \"awsvpc\"`"
-  default     = []
-}
-
-variable "security_group_enabled" {
-  type        = bool
-  description = "Whether to create default Security Group for ECS service."
-  default     = true
-}
-
-variable "security_group_description" {
-  type        = string
-  default     = "ECS service Security Group"
-  description = "The Security Group description."
-}
-
-variable "security_group_use_name_prefix" {
-  type        = bool
-  default     = false
-  description = "Whether to create a default Security Group with unique name beginning with the normalized prefix."
-}
-
-variable "security_group_rules" {
-  type = list(any)
-  default = [
-    {
-      type        = "egress"
-      from_port   = 0
-      to_port     = 0
-      protocol    = -1
-      cidr_blocks = ["0.0.0.0/0"]
-      description = "Allow all outbound traffic"
-    },
-    {
-      type        = "ingress"
-      from_port   = 8
-      to_port     = 0
-      protocol    = "icmp"
-      cidr_blocks = ["0.0.0.0/0"]
-      description = "Enables ping command from anywhere, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-ping"
-    }
-  ]
-  description = <<-EOT
-    A list of maps of Security Group rules. 
-    The values of map is fully complated with `aws_security_group_rule` resource. 
-    To get more info see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule .
-  EOT
-}
-
 variable "launch_type" {
   type        = string
   description = "The launch type on which to run your service. Valid values are `EC2` and `FARGATE`"

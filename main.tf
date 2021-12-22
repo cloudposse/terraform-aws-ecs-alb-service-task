@@ -6,7 +6,7 @@ locals {
 
 module "task_label" {
   source  = "cloudposse/label/null"
-  version = "0.24.1"
+  version = "0.25.0"
   enabled = local.enabled && length(var.task_role_arn) == 0
 
   attributes = ["task"]
@@ -16,7 +16,7 @@ module "task_label" {
 
 module "service_label" {
   source  = "cloudposse/label/null"
-  version = "0.24.1"
+  version = "0.25.0"
 
   attributes = ["service"]
 
@@ -25,7 +25,7 @@ module "service_label" {
 
 module "exec_label" {
   source  = "cloudposse/label/null"
-  version = "0.24.1"
+  version = "0.25.0"
   enabled = local.enabled && length(var.task_exec_role_arn) == 0
 
   attributes = ["exec"]
@@ -269,14 +269,19 @@ resource "aws_iam_role_policy_attachment" "ecs_exec" {
 ## Security Groups
 module "security_group" {
   source  = "cloudposse/security-group/aws"
-  version = "0.3.1"
-
-  use_name_prefix = var.security_group_use_name_prefix
-  rules           = var.security_group_rules
-  description     = var.security_group_description
-  vpc_id          = var.vpc_id
+  version = "0.4.2"
 
   enabled = local.security_group_enabled
+  security_group_name           = var.security_group_name
+  create_before_destroy         = var.security_group_create_before_destroy
+  security_group_create_timeout = var.security_group_create_timeout
+  security_group_delete_timeout = var.security_group_delete_timeout
+
+  security_group_description = var.security_group_description
+  allow_all_egress           = true
+  rules                      = var.additional_security_group_rules
+  vpc_id          = var.vpc_id
+
   context = module.service_label.context
 }
 
