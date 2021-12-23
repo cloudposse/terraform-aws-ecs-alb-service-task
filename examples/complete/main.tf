@@ -65,6 +65,7 @@ module "ecs_alb_service_task" {
   task_cpu                           = var.task_cpu
 
   security_group_rules = [
+    {
     source_security_group_id = module.vpc.vpc_default_security_group_id
     rules = [
     {
@@ -76,7 +77,9 @@ module "ecs_alb_service_task" {
           description = "Allow inbound traffic to container port"
         }
     ]
+    }
   ]
+
 
   context = module.this.context
 }
