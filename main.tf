@@ -280,6 +280,7 @@ module "security_group" {
   security_group_description = var.security_group_description
   allow_all_egress           = true
   rules                      = var.additional_security_group_rules
+  rule_matrix                = var.security_group_rules
   vpc_id                     = var.vpc_id
 
   context = module.service_label.context
@@ -287,7 +288,7 @@ module "security_group" {
 
 
 resource "aws_ecs_service" "ignore_changes_task_definition" {
-  count                              = local.enabled && var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.enabled && var.ignore_changes_task_definition && !var.ignore_changes_desired_count ? 1 : 0
   name                               = module.this.id
   task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
   desired_count                      = var.desired_count
@@ -356,7 +357,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
     type = var.deployment_controller_type
   }
 
-  # https://www.terraform.io/docs/providers/aws/r/ecs_service.html#network_configuration
+  # https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#network_configuration
   dynamic "network_configuration" {
     for_each = var.network_mode == "awsvpc" ? ["true"] : []
     content {
@@ -467,7 +468,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
 }
 
 resource "aws_ecs_service" "ignore_changes_desired_count" {
-  count                              = local.enabled && ! var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.enabled && !var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
   name                               = module.this.id
   task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
   desired_count                      = var.desired_count
@@ -557,7 +558,7 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
 }
 
 resource "aws_ecs_service" "default" {
-  count                              = local.enabled && ! var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.enabled && !var.ignore_changes_task_definition && !var.ignore_changes_desired_count ? 1 : 0
   name                               = module.this.id
   task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
   desired_count                      = var.desired_count

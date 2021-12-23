@@ -7,6 +7,43 @@ variable "security_group_enabled" {
   default     = true
 }
 
+variable "security_group_rules" {
+  type = list(any)
+  default = [
+    # {
+    #   type        = "egress"
+    #   from_port   = 0
+    #   to_port     = 0
+    #   protocol    = -1
+    #   cidr_blocks = ["0.0.0.0/0"]
+    #   description = "Allow all outbound traffic"
+    # },
+    # {
+    #   type        = "ingress"
+    #   from_port   = 8
+    #   to_port     = 0
+    #   protocol    = "icmp"
+    #   cidr_blocks = ["0.0.0.0/0"]
+    #   description = "Enables ping command from anywhere, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-ping"
+    # }
+  ]
+  description = <<-EOT
+    A list of maps of Security Group rules. 
+    The values of map is fully complated with `aws_security_group_rule` resource. 
+    To get more info see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule .
+  EOT
+}
+
+variable "security_groups" {
+  type        = list(string)
+  description = "A list of Security Group IDs to allow in Service `network_configuration` if `var.network_mode = \"awsvpc\"`"
+  default     = []
+}
+
+locals {
+  allowed_security_group_ids = concat(var.security_groups, var.allowed_security_group_ids)
+}
+
 variable "associated_security_group_ids" {
   type        = list(string)
   default     = []
