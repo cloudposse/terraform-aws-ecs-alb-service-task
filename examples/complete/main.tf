@@ -66,9 +66,9 @@ module "ecs_alb_service_task" {
 
   security_group_rules = [
     {
-    source_security_group_id = module.vpc.vpc_default_security_group_id
-    rules = [
-    {
+      source_security_group_id = module.vpc.vpc_default_security_group_id
+      rules = [
+        {
           key         = "in"
           type        = "ingress"
           from_port   = 80
@@ -76,7 +76,7 @@ module "ecs_alb_service_task" {
           protocol    = "tcp"
           description = "Allow inbound traffic to container port"
         }
-    ]
+      ]
     }
   ]
 
