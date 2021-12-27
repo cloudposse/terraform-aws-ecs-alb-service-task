@@ -79,18 +79,8 @@ output "task_role_id" {
 }
 
 output "service_security_group_id" {
-  value       = module.ecs_alb_service_task.security_group_id
   description = "Security Group ID of the ECS task"
-}
-
-output "service_security_group_arn" {
-  value       = module.ecs_alb_service_task.security_group_arn
-  description = "Security Group ARN of the ECS task"
-}
-
-output "service_security_group_name" {
-  value       = module.ecs_alb_service_task.security_group_name
-  description = "Security Group name of the ECS task"
+  value       = module.ecs_alb_service_task.service_security_group_id
 }
 
 output "task_definition_family" {

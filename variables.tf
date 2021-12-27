@@ -3,6 +3,12 @@ variable "vpc_id" {
   description = "The VPC ID where resources are created"
 }
 
+variable "alb_security_group" {
+  type        = string
+  description = "Security group of the ALB"
+  default     = ""
+}
+
 variable "ecs_cluster_arn" {
   type        = string
   description = "The ARN of the ECS cluster where service will be provisioned"
@@ -30,61 +36,34 @@ variable "container_definition_json" {
     EOT
 }
 
+variable "container_port" {
+  type        = number
+  description = "The port on the container to allow via the ingress security group"
+  default     = 80
+}
+
+variable "nlb_container_port" {
+  type        = number
+  description = "The port on the container to allow via the ingress security group"
+  default     = 80
+}
+
 variable "subnet_ids" {
   type        = list(string)
   description = "Subnet IDs used in Service `network_configuration` if `var.network_mode = \"awsvpc\"`"
   default     = null
 }
 
-variable "security_groups" {
+variable "security_group_ids" {
+  description = "Security group IDs to allow in Service `network_configuration` if `var.network_mode = \"awsvpc\"`"
   type        = list(string)
-  description = "A list of Security Group IDs to allow in Service `network_configuration` if `var.network_mode = \"awsvpc\"`"
   default     = []
 }
 
-variable "security_group_enabled" {
+variable "enable_all_egress_rule" {
   type        = bool
-  description = "Whether to create default Security Group for ECS service."
+  description = "A flag to enable/disable adding the all ports egress rule to the ECS security group"
   default     = true
-}
-
-variable "security_group_description" {
-  type        = string
-  default     = "ECS service Security Group"
-  description = "The Security Group description."
-}
-
-variable "security_group_use_name_prefix" {
-  type        = bool
-  default     = false
-  description = "Whether to create a default Security Group with unique name beginning with the normalized prefix."
-}
-
-variable "security_group_rules" {
-  type = list(any)
-  default = [
-    {
-      type        = "egress"
-      from_port   = 0
-      to_port     = 0
-      protocol    = -1
-      cidr_blocks = ["0.0.0.0/0"]
-      description = "Allow all outbound traffic"
-    },
-    {
-      type        = "ingress"
-      from_port   = 8
-      to_port     = 0
-      protocol    = "icmp"
-      cidr_blocks = ["0.0.0.0/0"]
-      description = "Enables ping command from anywhere, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-ping"
-    }
-  ]
-  description = <<-EOT
-    A list of maps of Security Group rules. 
-    The values of map is fully complated with `aws_security_group_rule` resource. 
-    To get more info see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule .
-  EOT
 }
 
 variable "launch_type" {
@@ -164,9 +143,15 @@ variable "task_memory" {
 }
 
 variable "task_exec_role_arn" {
-  type        = string
-  description = "The ARN of IAM role that allows the ECS/Fargate agent to make calls to the ECS API on your behalf"
-  default     = ""
+  type        = any
+  description = <<-EOT
+    A `list(string)` of zero or one ARNs of IAM roles that allows the
+    ECS/Fargate agent to make calls to the ECS API on your behalf.
+    If the list is empty, a role will be created for you.
+    DEPRECATED: you can also pass a `string` with the ARN, but that
+    string must be known a "plan" time.
+    EOT
+  default     = []
 }
 
 variable "task_exec_policy_arns" {
@@ -176,9 +161,15 @@ variable "task_exec_policy_arns" {
 }
 
 variable "task_role_arn" {
-  type        = string
-  description = "The ARN of IAM role that allows your Amazon ECS container task to make calls to other AWS services"
-  default     = ""
+  type        = any
+  description = <<-EOT
+    A `list(string)` of zero or one ARNs of IAM roles that allows
+    your Amazon ECS container task to make calls to other AWS services.
+    If the list is empty, a role will be created for you.
+    DEPRECATED: you can also pass a `string` with the ARN, but that
+    string must be known a "plan" time.
+    EOT
+  default     = []
 }
 
 variable "task_policy_arns" {
@@ -223,6 +214,16 @@ variable "health_check_grace_period_seconds" {
   default     = 0
 }
 
+variable "runtime_platform" {
+  type        = list(map(string))
+  description = <<-EOT
+    Zero or one runtime platform configurations that containers in your task may use.
+    Map of strings with optional keys `operating_system_family` and `cpu_architecture`.
+    See `runtime_platform` docs https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition#runtime_platform
+    EOT
+  default     = []
+}
+
 variable "volumes" {
   type = list(object({
     host_path = string
@@ -256,15 +257,6 @@ variable "proxy_configuration" {
     properties     = map(string)
   })
   description = "The proxy configuration details for the App Mesh proxy. See `proxy_configuration` docs https://www.terraform.io/docs/providers/aws/r/ecs_task_definition.html#proxy-configuration-arguments"
-  default     = null
-}
-
-variable "runtime_platform" {
-  type = object({
-    operating_system_family = string
-    cpu_architecture        = string
-  })
-  description = "The runtime platform configuration details that containers in your task may use. See `runtime_platform` docs https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition#runtime_platform"
   default     = null
 }
 
@@ -315,13 +307,35 @@ variable "capacity_provider_strategies" {
 }
 
 variable "service_registries" {
-  type = list(object({
-    registry_arn   = string
-    port           = number
-    container_name = string
-    container_port = number
-  }))
-  description = "The service discovery registries for the service. The maximum number of service_registries blocks is 1. The currently supported service registry is Amazon Route 53 Auto Naming Service - `aws_service_discovery_service`; see `service_registries` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html#service_registries-1"
+  type        = list(any)
+  description = <<-EOT
+    Zero or one service discovery registries for the service.
+    The currently supported service registry is Amazon Route 53 Auto Naming Service - `aws_service_discovery_service`;
+    see `service_registries` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html#service_registries-1"
+    Service registry is object with required key `registry_arn = string` and optional keys
+      `port           = number`
+      `container_name = string`
+      `container_port = number`
+    EOT
+
+  default = []
+}
+
+variable "use_alb_security_group" {
+  type        = bool
+  description = "A flag to enable/disable adding the ingress rule to the ALB security group"
+  default     = false
+}
+
+variable "use_nlb_cidr_blocks" {
+  type        = bool
+  description = "A flag to enable/disable adding the NLB ingress rule to the security group"
+  default     = false
+}
+
+variable "nlb_cidr_blocks" {
+  type        = list(string)
+  description = "A list of CIDR blocks to add to the ingress rule for the NLB container port"
   default     = []
 }
 
@@ -363,12 +377,12 @@ variable "exec_enabled" {
 
 variable "circuit_breaker_deployment_enabled" {
   type        = bool
-  description = "Whether to enable the deployment circuit breaker logic for the service"
+  description = "If `true`, enable the deployment circuit breaker logic for the service"
   default     = false
 }
 
 variable "circuit_breaker_rollback_enabled" {
   type        = bool
-  description = "Whether to enable Amazon ECS to roll back the service if a service deployment fails"
+  description = "If `true`, Amazon ECS will roll back the service if a service deployment fails"
   default     = false
 }
