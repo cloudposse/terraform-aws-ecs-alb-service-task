@@ -47,11 +47,12 @@ module "container_definition" {
 
 module "ecs_alb_service_task" {
   source                             = "../.."
+  alb_security_group                 = module.vpc.vpc_default_security_group_id
   container_definition_json          = module.container_definition.json_map_encoded_list
   ecs_cluster_arn                    = aws_ecs_cluster.default.arn
   launch_type                        = var.ecs_launch_type
   vpc_id                             = module.vpc.vpc_id
-  security_groups                    = [module.vpc.vpc_default_security_group_id]
+  security_group_ids                 = [module.vpc.vpc_default_security_group_id]
   subnet_ids                         = module.subnets.public_subnet_ids
   ignore_changes_task_definition     = var.ignore_changes_task_definition
   network_mode                       = var.network_mode
@@ -63,36 +64,6 @@ module "ecs_alb_service_task" {
   desired_count                      = var.desired_count
   task_memory                        = var.task_memory
   task_cpu                           = var.task_cpu
-
-  security_group_rules = [
-    {
-      type                     = "egress"
-      from_port                = 0
-      to_port                  = 0
-      protocol                 = -1
-      cidr_blocks              = ["0.0.0.0/0"]
-      source_security_group_id = null
-      description              = "Allow all outbound traffic"
-    },
-    {
-      type                     = "ingress"
-      from_port                = 8
-      to_port                  = 0
-      protocol                 = "icmp"
-      cidr_blocks              = ["0.0.0.0/0"]
-      source_security_group_id = null
-      description              = "Enables ping command from anywhere, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-ping"
-    },
-    {
-      type                     = "ingress"
-      from_port                = 80
-      to_port                  = 80
-      protocol                 = "tcp"
-      cidr_blocks              = []
-      source_security_group_id = module.vpc.vpc_default_security_group_id
-      description              = "Allow inbound traffic to container port"
-    }
-  ]
 
   context = module.this.context
 }
