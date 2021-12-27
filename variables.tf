@@ -259,15 +259,6 @@ variable "proxy_configuration" {
   default     = null
 }
 
-variable "runtime_platform" {
-  type = object({
-    operating_system_family = string
-    cpu_architecture        = string
-  })
-  description = "The runtime platform configuration details that containers in your task may use. See `runtime_platform` docs https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition#runtime_platform"
-  default     = null
-}
-
 variable "ignore_changes_task_definition" {
   type        = bool
   description = "Whether to ignore changes in container definition and task definition in the ECS service"
