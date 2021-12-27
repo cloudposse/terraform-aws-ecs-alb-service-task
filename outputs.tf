@@ -30,7 +30,12 @@ output "task_exec_role_name" {
 
 output "task_exec_role_arn" {
   description = "ECS Task exec role ARN"
-  value       = length(var.task_exec_role_arn) > 0 ? var.task_exec_role_arn : join("", aws_iam_role.ecs_exec.*.arn)
+  value       = length(local.task_exec_role_arn) > 0 ? local.task_exec_role_arn : join("", aws_iam_role.ecs_exec.*.arn)
+}
+
+output "task_exec_role_id" {
+  description = "ECS Task exec role id"
+  value       = join("", aws_iam_role.ecs_exec.*.unique_id)
 }
 
 output "task_role_name" {
@@ -40,7 +45,7 @@ output "task_role_name" {
 
 output "task_role_arn" {
   description = "ECS Task role ARN"
-  value       = length(var.task_role_arn) > 0 ? var.task_role_arn : join("", aws_iam_role.ecs_task.*.arn)
+  value       = length(local.task_role_arn) > 0 ? local.task_role_arn : join("", aws_iam_role.ecs_task.*.arn)
 }
 
 output "task_role_id" {
@@ -61,4 +66,9 @@ output "task_definition_family" {
 output "task_definition_revision" {
   description = "ECS task definition revision"
   value       = join("", aws_ecs_task_definition.default.*.revision)
+}
+
+output "task_definition_arn" {
+  description = "ECS task definition ARN"
+  value       = join("", aws_ecs_task_definition.default.*.arn)
 }

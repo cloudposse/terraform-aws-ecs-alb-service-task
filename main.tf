@@ -1,12 +1,16 @@
 locals {
   enabled                 = module.this.enabled
+  task_role_arn           = try(var.task_role_arn[0], tostring(var.task_role_arn), "")
+  create_task_role        = local.enabled && length(var.task_role_arn) == 0
+  task_exec_role_arn      = try(var.task_exec_role_arn[0], tostring(var.task_exec_role_arn), "")
+  create_exec_role        = local.enabled && length(var.task_exec_role_arn) == 0
   enable_ecs_service_role = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) <= 1
 }
 
 module "task_label" {
   source  = "cloudposse/label/null"
-  version = "0.24.1"
-  enabled = local.enabled && length(var.task_role_arn) == 0
+  version = "0.25.0"
+  enabled = local.create_task_role
 
   attributes = ["task"]
 
@@ -15,7 +19,7 @@ module "task_label" {
 
 module "service_label" {
   source  = "cloudposse/label/null"
-  version = "0.24.1"
+  version = "0.25.0"
 
   attributes = ["service"]
 
@@ -24,8 +28,8 @@ module "service_label" {
 
 module "exec_label" {
   source  = "cloudposse/label/null"
-  version = "0.24.1"
-  enabled = local.enabled && length(var.task_exec_role_arn) == 0
+  version = "0.25.0"
+  enabled = local.create_exec_role
 
   attributes = ["exec"]
 
@@ -40,8 +44,8 @@ resource "aws_ecs_task_definition" "default" {
   network_mode             = var.network_mode
   cpu                      = var.task_cpu
   memory                   = var.task_memory
-  execution_role_arn       = length(var.task_exec_role_arn) > 0 ? var.task_exec_role_arn : join("", aws_iam_role.ecs_exec.*.arn)
-  task_role_arn            = length(var.task_role_arn) > 0 ? var.task_role_arn : join("", aws_iam_role.ecs_task.*.arn)
+  execution_role_arn       = length(local.task_exec_role_arn) > 0 ? local.task_exec_role_arn : join("", aws_iam_role.ecs_exec.*.arn)
+  task_role_arn            = length(local.task_role_arn) > 0 ? local.task_role_arn : join("", aws_iam_role.ecs_task.*.arn)
 
   dynamic "proxy_configuration" {
     for_each = var.proxy_configuration == null ? [] : [var.proxy_configuration]
@@ -57,6 +61,14 @@ resource "aws_ecs_task_definition" "default" {
     content {
       type       = placement_constraints.value.type
       expression = lookup(placement_constraints.value, "expression", null)
+    }
+  }
+
+  dynamic "runtime_platform" {
+    for_each = var.runtime_platform
+    content {
+      operating_system_family = lookup(runtime_platform.value, "operating_system_family", null)
+      cpu_architecture        = lookup(runtime_platform.value, "cpu_architecture", null)
     }
   }
 
@@ -101,7 +113,7 @@ resource "aws_ecs_task_definition" "default" {
 
 # IAM
 data "aws_iam_policy_document" "ecs_task" {
-  count = local.enabled && length(var.task_role_arn) == 0 ? 1 : 0
+  count = local.create_task_role ? 1 : 0
 
   statement {
     effect  = "Allow"
@@ -115,7 +127,7 @@ data "aws_iam_policy_document" "ecs_task" {
 }
 
 resource "aws_iam_role" "ecs_task" {
-  count = local.enabled && length(var.task_role_arn) == 0 ? 1 : 0
+  count = local.create_task_role ? 1 : 0
 
   name                 = module.task_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task.*.json)
@@ -124,7 +136,7 @@ resource "aws_iam_role" "ecs_task" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task" {
-  count      = local.enabled && length(var.task_role_arn) == 0 ? length(var.task_policy_arns) : 0
+  count      = local.create_task_role ? length(var.task_policy_arns) : 0
   policy_arn = var.task_policy_arns[count.index]
   role       = join("", aws_iam_role.ecs_task.*.id)
 }
@@ -179,7 +191,7 @@ resource "aws_iam_role_policy" "ecs_service" {
 }
 
 data "aws_iam_policy_document" "ecs_ssm_exec" {
-  count = local.enabled && var.exec_enabled ? 1 : 0
+  count = local.create_task_role && var.exec_enabled ? 1 : 0
 
   statement {
     effect    = "Allow"
@@ -195,7 +207,7 @@ data "aws_iam_policy_document" "ecs_ssm_exec" {
 }
 
 resource "aws_iam_role_policy" "ecs_ssm_exec" {
-  count  = local.enabled && var.exec_enabled ? 1 : 0
+  count  = local.create_task_role && var.exec_enabled ? 1 : 0
   name   = module.task_label.id
   policy = join("", data.aws_iam_policy_document.ecs_ssm_exec.*.json)
   role   = join("", aws_iam_role.ecs_task.*.id)
@@ -203,7 +215,7 @@ resource "aws_iam_role_policy" "ecs_ssm_exec" {
 
 # IAM role that the Amazon ECS container agent and the Docker daemon can assume
 data "aws_iam_policy_document" "ecs_task_exec" {
-  count = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
+  count = local.create_exec_role ? 1 : 0
 
   statement {
     actions = ["sts:AssumeRole"]
@@ -216,7 +228,7 @@ data "aws_iam_policy_document" "ecs_task_exec" {
 }
 
 resource "aws_iam_role" "ecs_exec" {
-  count                = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
+  count                = local.create_exec_role ? 1 : 0
   name                 = module.exec_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task_exec.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
@@ -224,7 +236,7 @@ resource "aws_iam_role" "ecs_exec" {
 }
 
 data "aws_iam_policy_document" "ecs_exec" {
-  count = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
+  count = local.create_exec_role ? 1 : 0
 
   statement {
     effect    = "Allow"
@@ -244,14 +256,14 @@ data "aws_iam_policy_document" "ecs_exec" {
 }
 
 resource "aws_iam_role_policy" "ecs_exec" {
-  count  = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
+  count  = local.create_exec_role ? 1 : 0
   name   = module.exec_label.id
   policy = join("", data.aws_iam_policy_document.ecs_exec.*.json)
   role   = join("", aws_iam_role.ecs_exec.*.id)
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_exec" {
-  count      = local.enabled && length(var.task_exec_role_arn) == 0 ? length(var.task_exec_policy_arns) : 0
+  count      = local.create_exec_role ? length(var.task_exec_policy_arns) : 0
   policy_arn = var.task_exec_policy_arns[count.index]
   role       = join("", aws_iam_role.ecs_exec.*.id)
 }
@@ -391,6 +403,11 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
     }
   }
 
+  deployment_circuit_breaker {
+    enable   = var.circuit_breaker_deployment_enabled
+    rollback = var.circuit_breaker_rollback_enabled
+  }
+
   lifecycle {
     ignore_changes = [task_definition]
   }
@@ -474,6 +491,11 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
       subnets          = var.subnet_ids
       assign_public_ip = var.assign_public_ip
     }
+  }
+
+  deployment_circuit_breaker {
+    enable   = var.circuit_breaker_deployment_enabled
+    rollback = var.circuit_breaker_rollback_enabled
   }
 
   lifecycle {
@@ -561,6 +583,11 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
     }
   }
 
+  deployment_circuit_breaker {
+    enable   = var.circuit_breaker_deployment_enabled
+    rollback = var.circuit_breaker_rollback_enabled
+  }
+
   lifecycle {
     ignore_changes = [desired_count]
   }
@@ -644,5 +671,10 @@ resource "aws_ecs_service" "default" {
       subnets          = var.subnet_ids
       assign_public_ip = var.assign_public_ip
     }
+  }
+
+  deployment_circuit_breaker {
+    enable   = var.circuit_breaker_deployment_enabled
+    rollback = var.circuit_breaker_rollback_enabled
   }
 }

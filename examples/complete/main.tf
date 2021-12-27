@@ -4,7 +4,7 @@ provider "aws" {
 
 module "vpc" {
   source  = "cloudposse/vpc/aws"
-  version = "0.18.1"
+  version = "0.28.1"
 
   cidr_block = var.vpc_cidr_block
 
@@ -13,7 +13,7 @@ module "vpc" {
 
 module "subnets" {
   source  = "cloudposse/dynamic-subnets/aws"
-  version = "0.33.0"
+  version = "0.39.8"
 
   availability_zones   = var.availability_zones
   vpc_id               = module.vpc.vpc_id
@@ -32,7 +32,7 @@ resource "aws_ecs_cluster" "default" {
 
 module "container_definition" {
   source  = "cloudposse/ecs-container-definition/aws"
-  version = "0.45.2"
+  version = "0.58.1"
 
   container_name               = var.container_name
   container_image              = var.container_image

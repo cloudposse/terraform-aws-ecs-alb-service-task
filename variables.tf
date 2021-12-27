@@ -143,9 +143,15 @@ variable "task_memory" {
 }
 
 variable "task_exec_role_arn" {
-  type        = string
-  description = "The ARN of IAM role that allows the ECS/Fargate agent to make calls to the ECS API on your behalf"
-  default     = ""
+  type        = any
+  description = <<-EOT
+    A `list(string)` of zero or one ARNs of IAM roles that allows the
+    ECS/Fargate agent to make calls to the ECS API on your behalf.
+    If the list is empty, a role will be created for you.
+    DEPRECATED: you can also pass a `string` with the ARN, but that
+    string must be known a "plan" time.
+    EOT
+  default     = []
 }
 
 variable "task_exec_policy_arns" {
@@ -155,9 +161,15 @@ variable "task_exec_policy_arns" {
 }
 
 variable "task_role_arn" {
-  type        = string
-  description = "The ARN of IAM role that allows your Amazon ECS container task to make calls to other AWS services"
-  default     = ""
+  type        = any
+  description = <<-EOT
+    A `list(string)` of zero or one ARNs of IAM roles that allows
+    your Amazon ECS container task to make calls to other AWS services.
+    If the list is empty, a role will be created for you.
+    DEPRECATED: you can also pass a `string` with the ARN, but that
+    string must be known a "plan" time.
+    EOT
+  default     = []
 }
 
 variable "task_policy_arns" {
@@ -200,6 +212,16 @@ variable "health_check_grace_period_seconds" {
   type        = number
   description = "Seconds to ignore failing load balancer health checks on newly instantiated tasks to prevent premature shutdown, up to 7200. Only valid for services configured to use load balancers"
   default     = 0
+}
+
+variable "runtime_platform" {
+  type        = list(map(string))
+  description = <<-EOT
+    Zero or one runtime platform configurations that containers in your task may use.
+    Map of strings with optional keys `operating_system_family` and `cpu_architecture`.
+    See `runtime_platform` docs https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition#runtime_platform
+    EOT
+  default     = []
 }
 
 variable "volumes" {
@@ -285,14 +307,18 @@ variable "capacity_provider_strategies" {
 }
 
 variable "service_registries" {
-  type = list(object({
-    registry_arn   = string
-    port           = number
-    container_name = string
-    container_port = number
-  }))
-  description = "The service discovery registries for the service. The maximum number of service_registries blocks is 1. The currently supported service registry is Amazon Route 53 Auto Naming Service - `aws_service_discovery_service`; see `service_registries` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html#service_registries-1"
-  default     = []
+  type        = list(any)
+  description = <<-EOT
+    Zero or one service discovery registries for the service.
+    The currently supported service registry is Amazon Route 53 Auto Naming Service - `aws_service_discovery_service`;
+    see `service_registries` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html#service_registries-1"
+    Service registry is object with required key `registry_arn = string` and optional keys
+      `port           = number`
+      `container_name = string`
+      `container_port = number`
+    EOT
+
+  default = []
 }
 
 variable "use_alb_security_group" {
@@ -346,5 +372,17 @@ variable "force_new_deployment" {
 variable "exec_enabled" {
   type        = bool
   description = "Specifies whether to enable Amazon ECS Exec for the tasks within the service"
+  default     = false
+}
+
+variable "circuit_breaker_deployment_enabled" {
+  type        = bool
+  description = "If `true`, enable the deployment circuit breaker logic for the service"
+  default     = false
+}
+
+variable "circuit_breaker_rollback_enabled" {
+  type        = bool
+  description = "If `true`, Amazon ECS will roll back the service if a service deployment fails"
   default     = false
 }
