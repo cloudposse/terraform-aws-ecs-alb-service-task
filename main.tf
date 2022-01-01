@@ -5,6 +5,7 @@ locals {
   task_exec_role_arn      = try(var.task_exec_role_arn[0], tostring(var.task_exec_role_arn), "")
   create_exec_role        = local.enabled && length(var.task_exec_role_arn) == 0
   enable_ecs_service_role = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) >= 1
+  create_security_group   = local.enabled && var.network_mode == "awsvpc" && var.security_group_enabled
 
   volumes = concat(var.docker_volumes, var.efs_volumes)
 }
@@ -280,7 +281,7 @@ resource "aws_iam_role_policy_attachment" "ecs_exec" {
 # Service
 ## Security Groups
 resource "aws_security_group" "ecs_service" {
-  count       = local.enabled && var.network_mode == "awsvpc" ? 1 : 0
+  count       = local.create_security_group ? 1 : 0
   vpc_id      = var.vpc_id
   name        = module.service_label.id
   description = "Allow ALL egress from ECS service"
@@ -292,7 +293,7 @@ resource "aws_security_group" "ecs_service" {
 }
 
 resource "aws_security_group_rule" "allow_all_egress" {
-  count             = local.enabled && var.enable_all_egress_rule ? 1 : 0
+  count             = local.create_security_group && var.enable_all_egress_rule ? 1 : 0
   type              = "egress"
   from_port         = 0
   to_port           = 0
@@ -302,7 +303,7 @@ resource "aws_security_group_rule" "allow_all_egress" {
 }
 
 resource "aws_security_group_rule" "allow_icmp_ingress" {
-  count             = local.enabled && var.enable_icmp_rule ? 1 : 0
+  count             = local.create_security_group && var.enable_icmp_rule ? 1 : 0
   description       = "Enables ping command from anywhere, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-ping"
   type              = "ingress"
   from_port         = 8
@@ -313,7 +314,7 @@ resource "aws_security_group_rule" "allow_icmp_ingress" {
 }
 
 resource "aws_security_group_rule" "alb" {
-  count                    = local.enabled && var.use_alb_security_group ? 1 : 0
+  count                    = local.create_security_group && var.use_alb_security_group ? 1 : 0
   type                     = "ingress"
   from_port                = var.container_port
   to_port                  = var.container_port
@@ -323,7 +324,7 @@ resource "aws_security_group_rule" "alb" {
 }
 
 resource "aws_security_group_rule" "nlb" {
-  count             = local.enabled && var.use_nlb_cidr_blocks ? 1 : 0
+  count             = local.create_security_group && var.use_nlb_cidr_blocks ? 1 : 0
   type              = "ingress"
   from_port         = var.nlb_container_port
   to_port           = var.nlb_container_port
