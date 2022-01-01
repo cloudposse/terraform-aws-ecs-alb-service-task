@@ -4,7 +4,7 @@ locals {
   create_task_role        = local.enabled && length(var.task_role_arn) == 0
   task_exec_role_arn      = try(var.task_exec_role_arn[0], tostring(var.task_exec_role_arn), "")
   create_exec_role        = local.enabled && length(var.task_exec_role_arn) == 0
-  enable_ecs_service_role = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) <= 1
+  enable_ecs_service_role = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) >= 1
 
   volumes = concat(var.docker_volumes, var.efs_volumes)
 }
