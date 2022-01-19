@@ -386,3 +386,14 @@ variable "circuit_breaker_rollback_enabled" {
   description = "If `true`, Amazon ECS will roll back the service if a service deployment fails"
   default     = false
 }
+
+variable "ephemeral_storage_size" {
+  type        = number
+  description = "The number of GBs to provision for ephemeral storage on Fargate tasks. Must be greater than or equal to 21 and less than or equal to 200"
+  default     = 0
+
+  validation {
+    condition     = var.ephemeral_storage_size == 0 || (var.ephemeral_storage_size >= 21 && var.ephemeral_storage_size <= 200)
+    error_message = "The ephemeral_storage_size value must be inclusively between 21 and 200."
+  }
+}
