@@ -56,6 +56,13 @@ resource "aws_ecs_task_definition" "default" {
     }
   }
 
+  dynamic "ephemeral_storage" {
+    for_each = var.ephemeral_storage_size == 0 ? [] : [var.ephemeral_storage_size]
+    content {
+      size_in_gib = var.ephemeral_storage_size
+    }
+  }
+
   dynamic "placement_constraints" {
     for_each = var.task_placement_constraints
     content {
