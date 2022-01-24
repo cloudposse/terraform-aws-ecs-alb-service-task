@@ -240,7 +240,7 @@ variable "efs_volumes" {
     }))
   }))
 
-  description = "Task EFS volume definitions as list of configuration objects"
+  description = "Task EFS volume definitions as list of configuration objects. You cannot define both Docker volumes and EFS volumes on the same task definition."
   default     = []
 }
 
@@ -257,7 +257,7 @@ variable "docker_volumes" {
     }))
   }))
 
-  description = "Task docker volume definitions as list of configuration objects"
+  description = "Task docker volume definitions as list of configuration objects. You cannot define both Docker volumes and EFS volumes on the same task definition."
   default     = []
 }
 
