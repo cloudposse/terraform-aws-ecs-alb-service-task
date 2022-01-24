@@ -224,18 +224,11 @@ variable "runtime_platform" {
   default     = []
 }
 
-variable "volumes" {
+variable "efs_volumes" {
   type = list(object({
     host_path = string
     name      = string
-    docker_volume_configuration = list(object({
-      autoprovision = bool
-      driver        = string
-      driver_opts   = map(string)
-      labels        = map(string)
-      scope         = string
-    }))
-    efs_volume_configuration = list(object({
+    volume_configuration = list(object({
       file_system_id          = string
       root_directory          = string
       transit_encryption      = string
@@ -246,7 +239,25 @@ variable "volumes" {
       }))
     }))
   }))
-  description = "Task volume definitions as list of configuration objects"
+
+  description = "Task EFS volume definitions as list of configuration objects. You cannot define both Docker volumes and EFS volumes on the same task definition."
+  default     = []
+}
+
+variable "docker_volumes" {
+  type = list(object({
+    host_path = string
+    name      = string
+    volume_configuration = list(object({
+      autoprovision = bool
+      driver        = string
+      driver_opts   = map(string)
+      labels        = map(string)
+      scope         = string
+    }))
+  }))
+
+  description = "Task docker volume definitions as list of configuration objects. You cannot define both Docker volumes and EFS volumes on the same task definition."
   default     = []
 }
 
