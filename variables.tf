@@ -239,9 +239,9 @@ variable "efs_volumes" {
       }))
     }))
   }))
-  
+
   description = "Task EFS volume definitions as list of configuration objects"
-  default = []
+  default     = []
 }
 
 variable "docker_volumes" {
@@ -256,9 +256,9 @@ variable "docker_volumes" {
       scope         = string
     }))
   }))
-  
+
   description = "Task docker volume definitions as list of configuration objects"
-  default = []
+  default     = []
 }
 
 variable "proxy_configuration" {
