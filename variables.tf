@@ -3,12 +3,6 @@ variable "vpc_id" {
   description = "The VPC ID where resources are created"
 }
 
-variable "alb_security_group" {
-  type        = string
-  description = "Security group of the ALB"
-  default     = ""
-}
-
 variable "ecs_cluster_arn" {
   type        = string
   description = "The ARN of the ECS cluster where service will be provisioned"
@@ -36,18 +30,6 @@ variable "container_definition_json" {
     EOT
 }
 
-variable "container_port" {
-  type        = number
-  description = "The port on the container to allow via the ingress security group"
-  default     = 80
-}
-
-variable "nlb_container_port" {
-  type        = number
-  description = "The port on the container to allow via the ingress security group"
-  default     = 80
-}
-
 variable "subnet_ids" {
   type        = list(string)
   description = "Subnet IDs used in Service `network_configuration` if `var.network_mode = \"awsvpc\"`"
@@ -60,16 +42,58 @@ variable "security_group_enabled" {
   default     = true
 }
 
-variable "security_group_ids" {
-  description = "Security group IDs to allow in Service `network_configuration` if `var.network_mode = \"awsvpc\"`"
-  type        = list(string)
-  default     = []
-}
-
 variable "enable_all_egress_rule" {
   type        = bool
   description = "A flag to enable/disable adding the all ports egress rule to the ECS security group"
   default     = true
+}
+
+variable "enable_icmp_rule" {
+  type        = bool
+  description = "Specifies whether to enable ICMP on the security group"
+  default     = false
+}
+
+variable "use_alb_security_group" {
+  type        = bool
+  description = "A flag to enable/disable adding the ingress rule to the ALB security group"
+  default     = false
+}
+
+variable "alb_security_group" {
+  type        = string
+  description = "Security group of the ALB"
+  default     = ""
+}
+
+variable "container_port" {
+  type        = number
+  description = "The port on the container to allow via the ingress security group"
+  default     = 80
+}
+
+variable "use_nlb_cidr_blocks" {
+  type        = bool
+  description = "A flag to enable/disable adding the NLB ingress rule to the security group"
+  default     = false
+}
+
+variable "nlb_container_port" {
+  type        = number
+  description = "The port on the container to allow via the ingress security group"
+  default     = 80
+}
+
+variable "nlb_cidr_blocks" {
+  type        = list(string)
+  description = "A list of CIDR blocks to add to the ingress rule for the NLB container port"
+  default     = []
+}
+
+variable "security_group_ids" {
+  description = "Security group IDs to allow in Service `network_configuration` if `var.network_mode = \"awsvpc\"`"
+  type        = list(string)
+  default     = []
 }
 
 variable "launch_type" {
@@ -307,12 +331,6 @@ variable "enable_ecs_managed_tags" {
   default     = false
 }
 
-variable "enable_icmp_rule" {
-  type        = bool
-  description = "Specifies whether to enable ICMP on the security group"
-  default     = false
-}
-
 variable "capacity_provider_strategies" {
   type = list(object({
     capacity_provider = string
@@ -336,24 +354,6 @@ variable "service_registries" {
     EOT
 
   default = []
-}
-
-variable "use_alb_security_group" {
-  type        = bool
-  description = "A flag to enable/disable adding the ingress rule to the ALB security group"
-  default     = false
-}
-
-variable "use_nlb_cidr_blocks" {
-  type        = bool
-  description = "A flag to enable/disable adding the NLB ingress rule to the security group"
-  default     = false
-}
-
-variable "nlb_cidr_blocks" {
-  type        = list(string)
-  description = "A list of CIDR blocks to add to the ingress rule for the NLB container port"
-  default     = []
 }
 
 variable "permissions_boundary" {
