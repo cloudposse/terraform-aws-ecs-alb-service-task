@@ -44,19 +44,19 @@ variable "security_group_enabled" {
 
 variable "enable_all_egress_rule" {
   type        = bool
-  description = "A flag to enable/disable adding the all ports egress rule to the ECS security group"
+  description = "A flag to enable/disable adding the all ports egress rule to the service security group"
   default     = true
 }
 
 variable "enable_icmp_rule" {
   type        = bool
-  description = "Specifies whether to enable ICMP on the security group"
+  description = "Specifies whether to enable ICMP on the service security group"
   default     = false
 }
 
 variable "use_alb_security_group" {
   type        = bool
-  description = "A flag to enable/disable adding the ingress rule to the ALB security group"
+  description = "A flag to enable/disable allowing traffic from the ALB security group to the service security group"
   default     = false
 }
 
@@ -68,19 +68,19 @@ variable "alb_security_group" {
 
 variable "container_port" {
   type        = number
-  description = "The port on the container to allow via the ingress security group"
+  description = "The port on the container to allow traffic from the ALB security group"
   default     = 80
 }
 
 variable "use_nlb_cidr_blocks" {
   type        = bool
-  description = "A flag to enable/disable adding the NLB ingress rule to the security group"
+  description = "A flag to enable/disable adding the NLB ingress rule to the service security group"
   default     = false
 }
 
 variable "nlb_container_port" {
   type        = number
-  description = "The port on the container to allow via the ingress security group"
+  description = "The port on the container to allow traffic from the NLB"
   default     = 80
 }
 
