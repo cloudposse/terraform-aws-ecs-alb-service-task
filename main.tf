@@ -305,7 +305,7 @@ resource "aws_security_group_rule" "allow_all_egress" {
 
 resource "aws_security_group_rule" "allow_icmp_ingress" {
   count             = local.create_security_group && var.enable_icmp_rule ? 1 : 0
-  description       = "Enables ping command from anywhere, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-ping"
+  description       = "Allow ping command from anywhere, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-ping"
   type              = "ingress"
   from_port         = 8
   to_port           = 0
