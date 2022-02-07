@@ -294,6 +294,7 @@ resource "aws_security_group" "ecs_service" {
 
 resource "aws_security_group_rule" "allow_all_egress" {
   count             = local.create_security_group && var.enable_all_egress_rule ? 1 : 0
+  description       = "Allow all outbound traffic to any IPv4 address"
   type              = "egress"
   from_port         = 0
   to_port           = 0
@@ -315,6 +316,7 @@ resource "aws_security_group_rule" "allow_icmp_ingress" {
 
 resource "aws_security_group_rule" "alb" {
   count                    = local.create_security_group && var.use_alb_security_group ? 1 : 0
+  description              = "Allow inbound traffic from ALB"
   type                     = "ingress"
   from_port                = var.container_port
   to_port                  = var.container_port
@@ -325,6 +327,7 @@ resource "aws_security_group_rule" "alb" {
 
 resource "aws_security_group_rule" "nlb" {
   count             = local.create_security_group && var.use_nlb_cidr_blocks ? 1 : 0
+  description       = "Allow inbound traffic from NLB"
   type              = "ingress"
   from_port         = var.nlb_container_port
   to_port           = var.nlb_container_port
