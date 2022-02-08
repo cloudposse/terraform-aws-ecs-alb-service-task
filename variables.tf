@@ -42,6 +42,15 @@ variable "security_group_enabled" {
   default     = true
 }
 
+variable "security_group_description" {
+  type        = string
+  default     = "Allow ALL egress from ECS service"
+  description = <<-EOT
+    The description to assign to the service security group.
+    Warning: Changing the description causes the security group to be replaced.
+    EOT
+}
+
 variable "enable_all_egress_rule" {
   type        = bool
   description = "A flag to enable/disable adding the all ports egress rule to the service security group"

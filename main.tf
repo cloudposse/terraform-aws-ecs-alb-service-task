@@ -284,7 +284,7 @@ resource "aws_security_group" "ecs_service" {
   count       = local.create_security_group ? 1 : 0
   vpc_id      = var.vpc_id
   name        = module.service_label.id
-  description = "Controls traffic to/from ECS service ${module.this.id}"
+  description = var.security_group_description
   tags        = module.service_label.tags
 
   lifecycle {
