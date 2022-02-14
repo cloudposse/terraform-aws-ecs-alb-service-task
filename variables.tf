@@ -267,7 +267,7 @@ variable "efs_volumes" {
   type = list(object({
     host_path = string
     name      = string
-    volume_configuration = list(object({
+    efs_volume_configuration = list(object({
       file_system_id          = string
       root_directory          = string
       transit_encryption      = string
@@ -287,7 +287,7 @@ variable "docker_volumes" {
   type = list(object({
     host_path = string
     name      = string
-    volume_configuration = list(object({
+    docker_volume_configuration = list(object({
       autoprovision = bool
       driver        = string
       driver_opts   = map(string)
