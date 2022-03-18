@@ -239,7 +239,7 @@ resource "aws_iam_role" "ecs_exec" {
   name                 = module.exec_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task_exec.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
-  tags                 = var.role_tags_enabled ? module.exec_label.tag : null
+  tags                 = var.role_tags_enabled ? module.exec_label.tags : null
 }
 
 data "aws_iam_policy_document" "ecs_exec" {
