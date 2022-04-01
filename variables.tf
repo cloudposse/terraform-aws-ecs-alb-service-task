@@ -423,3 +423,9 @@ variable "ephemeral_storage_size" {
     error_message = "The ephemeral_storage_size value must be inclusively between 21 and 200."
   }
 }
+
+variable "role_tags_enabled" {
+  type        = string
+  description = "Enable/disable tags on ECS roles"
+  default     = true
+}

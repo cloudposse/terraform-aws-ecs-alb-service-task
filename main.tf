@@ -11,29 +11,26 @@ locals {
 }
 
 module "task_label" {
-  source  = "cloudposse/label/null"
-  version = "0.25.0"
-  enabled = local.create_task_role
-
+  source     = "cloudposse/label/null"
+  version    = "0.25.0"
+  enabled    = local.create_task_role
   attributes = ["task"]
 
   context = module.this.context
 }
 
 module "service_label" {
-  source  = "cloudposse/label/null"
-  version = "0.25.0"
-
+  source     = "cloudposse/label/null"
+  version    = "0.25.0"
   attributes = ["service"]
 
   context = module.this.context
 }
 
 module "exec_label" {
-  source  = "cloudposse/label/null"
-  version = "0.25.0"
-  enabled = local.create_exec_role
-
+  source     = "cloudposse/label/null"
+  version    = "0.25.0"
+  enabled    = local.create_exec_role
   attributes = ["exec"]
 
   context = module.this.context
@@ -142,7 +139,7 @@ resource "aws_iam_role" "ecs_task" {
   name                 = module.task_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
-  tags                 = module.task_label.tags
+  tags                 = var.role_tags_enabled ? module.task_label.tags : null
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task" {
@@ -171,7 +168,7 @@ resource "aws_iam_role" "ecs_service" {
   name                 = module.service_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_service.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
-  tags                 = module.service_label.tags
+  tags                 = var.role_tags_enabled ? module.service_label.tags : null
 }
 
 data "aws_iam_policy_document" "ecs_service_policy" {
@@ -242,7 +239,7 @@ resource "aws_iam_role" "ecs_exec" {
   name                 = module.exec_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task_exec.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
-  tags                 = module.exec_label.tags
+  tags                 = var.role_tags_enabled ? module.exec_label.tags : null
 }
 
 data "aws_iam_policy_document" "ecs_exec" {
