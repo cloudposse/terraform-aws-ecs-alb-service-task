@@ -7,7 +7,7 @@ locals {
   enable_ecs_service_role = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) >= 1
   create_security_group   = local.enabled && var.network_mode == "awsvpc" && var.security_group_enabled
 
-  volumes = concat(var.docker_volumes, var.efs_volumes)
+  volumes = concat(var.docker_volumes, var.efs_volumes, var.fsx_volumes)
 }
 
 module "task_label" {
@@ -108,6 +108,21 @@ resource "aws_ecs_task_definition" "default" {
             content {
               access_point_id = lookup(authorization_config.value, "access_point_id", null)
               iam             = lookup(authorization_config.value, "iam", null)
+            }
+          }
+        }
+      }
+
+      dynamic "fsx_windows_file_server_volume_configuration" {
+        for_each = lookup(volume.value, "fsx_windows_file_server_volume_configuration", [])
+        content {
+          file_system_id          = lookup(fsx_windows_file_server_volume_configuration.value, "file_system_id", null)
+          root_directory          = lookup(fsx_windows_file_server_volume_configuration.value, "root_directory", null)
+          dynamic "authorization_config" {
+            for_each = lookup(fsx_windows_file_server_volume_configuration.value, "authorization_config", [])
+            content {
+              credentials_parameter = lookup(authorization_config.value, "credentials_parameter", null)
+              domain                = lookup(authorization_config.value, "domain", null)
             }
           }
         }
