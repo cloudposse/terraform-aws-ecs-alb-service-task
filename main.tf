@@ -116,8 +116,8 @@ resource "aws_ecs_task_definition" "default" {
       dynamic "fsx_windows_file_server_volume_configuration" {
         for_each = lookup(volume.value, "fsx_windows_file_server_volume_configuration", [])
         content {
-          file_system_id          = lookup(fsx_windows_file_server_volume_configuration.value, "file_system_id", null)
-          root_directory          = lookup(fsx_windows_file_server_volume_configuration.value, "root_directory", null)
+          file_system_id = lookup(fsx_windows_file_server_volume_configuration.value, "file_system_id", null)
+          root_directory = lookup(fsx_windows_file_server_volume_configuration.value, "root_directory", null)
           dynamic "authorization_config" {
             for_each = lookup(fsx_windows_file_server_volume_configuration.value, "authorization_config", [])
             content {
