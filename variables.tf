@@ -279,7 +279,7 @@ variable "efs_volumes" {
     }))
   }))
 
-  description = "Task EFS volume definitions as list of configuration objects. You can define only one of Docker volumes, EFS volumes and FSx volumes on the same task definition."
+  description = "Task EFS volume definitions as list of configuration objects. You can define multiple EFS volumes on the same task definition, but a single volume can only have one `efs_volume_configuration`."
   default     = []
 }
 
@@ -296,7 +296,7 @@ variable "docker_volumes" {
     }))
   }))
 
-  description = "Task docker volume definitions as list of configuration objects. You can define only one of Docker volumes, EFS volumes and FSx volumes  on the same task definition."
+  description = "Task docker volume definitions as list of configuration objects. You can define multiple Docker volumes on the same task definition, but a single volume can only have one `docker_volume_configuration`."
   default     = []
 }
 
@@ -314,7 +314,7 @@ variable "fsx_volumes" {
     }))
   }))
 
-  description = "Task FSx volume definitions as list of configuration objects. You can define only one of Docker volumes, EFS volumes and FSx volumes on the same task definition."
+  description = "Task FSx volume definitions as list of configuration objects. You can define multiple FSx volumes on the same task definition, but a single volume can only have one `fsx_windows_file_server_volume_configuration`."
   default     = []
 }
 
