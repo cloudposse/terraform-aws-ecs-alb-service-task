@@ -428,9 +428,12 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
     }
   }
 
-  deployment_circuit_breaker {
-    enable   = var.circuit_breaker_deployment_enabled
-    rollback = var.circuit_breaker_rollback_enabled
+  dynamic "deployment_circuit_breaker" {
+    for_each = var.deployment_controller_type == "ECS" ? ["true"] : []
+    content {
+      enable   = var.circuit_breaker_deployment_enabled
+      rollback = var.circuit_breaker_rollback_enabled
+    }
   }
 
   lifecycle {
@@ -518,9 +521,12 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
     }
   }
 
-  deployment_circuit_breaker {
-    enable   = var.circuit_breaker_deployment_enabled
-    rollback = var.circuit_breaker_rollback_enabled
+  dynamic "deployment_circuit_breaker" {
+    for_each = var.deployment_controller_type == "ECS" ? ["true"] : []
+    content {
+      enable   = var.circuit_breaker_deployment_enabled
+      rollback = var.circuit_breaker_rollback_enabled
+    }
   }
 
   lifecycle {
@@ -608,9 +614,12 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
     }
   }
 
-  deployment_circuit_breaker {
-    enable   = var.circuit_breaker_deployment_enabled
-    rollback = var.circuit_breaker_rollback_enabled
+  dynamic "deployment_circuit_breaker" {
+    for_each = var.deployment_controller_type == "ECS" ? ["true"] : []
+    content {
+      enable   = var.circuit_breaker_deployment_enabled
+      rollback = var.circuit_breaker_rollback_enabled
+    }
   }
 
   lifecycle {
@@ -698,8 +707,11 @@ resource "aws_ecs_service" "default" {
     }
   }
 
-  deployment_circuit_breaker {
-    enable   = var.circuit_breaker_deployment_enabled
-    rollback = var.circuit_breaker_rollback_enabled
+  dynamic "deployment_circuit_breaker" {
+    for_each = var.deployment_controller_type == "ECS" ? ["true"] : []
+    content {
+      enable   = var.circuit_breaker_deployment_enabled
+      rollback = var.circuit_breaker_rollback_enabled
+    }
   }
 }

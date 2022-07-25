@@ -421,13 +421,13 @@ variable "exec_enabled" {
 
 variable "circuit_breaker_deployment_enabled" {
   type        = bool
-  description = "If `true`, enable the deployment circuit breaker logic for the service"
+  description = "If `true`, enable the deployment circuit breaker logic for the service. If using `CODE_DEPLOY` for `deployment_controller_type`, this value will be ignored"
   default     = false
 }
 
 variable "circuit_breaker_rollback_enabled" {
   type        = bool
-  description = "If `true`, Amazon ECS will roll back the service if a service deployment fails"
+  description = "If `true`, Amazon ECS will roll back the service if a service deployment fails. If using `CODE_DEPLOY` for `deployment_controller_type`, this value will be ignored"
   default     = false
 }
 
