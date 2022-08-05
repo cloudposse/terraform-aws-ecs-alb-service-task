@@ -447,3 +447,9 @@ variable "role_tags_enabled" {
   description = "Enable/disable tags on ECS roles"
   default     = true
 }
+
+variable "ecs_service_enabled" {
+  type        = string
+  description = "Whether or not to create the aws_ecs_service resource"
+  default     = true
+}
