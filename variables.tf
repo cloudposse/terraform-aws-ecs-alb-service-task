@@ -443,8 +443,8 @@ variable "ephemeral_storage_size" {
 }
 
 variable "role_tags_enabled" {
-  type        = string
-  description = "Enable/disable tags on ECS roles"
+  type        = bool
+  description = "Whether or not to create tags on ECS roles"
   default     = true
 }
 
