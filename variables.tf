@@ -449,7 +449,7 @@ variable "role_tags_enabled" {
 }
 
 variable "ecs_service_enabled" {
-  type        = string
+  type        = bool
   description = "Whether or not to create the aws_ecs_service resource"
   default     = true
 }
