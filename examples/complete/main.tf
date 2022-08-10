@@ -64,6 +64,7 @@ module "ecs_alb_service_task" {
   desired_count                      = var.desired_count
   task_memory                        = var.task_memory
   task_cpu                           = var.task_cpu
+  ecs_service_enabled                = var.ecs_service_enabled
 
   context = module.this.context
 }
