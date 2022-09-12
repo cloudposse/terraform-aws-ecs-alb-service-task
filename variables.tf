@@ -289,7 +289,7 @@ variable "bind_mount_volumes" {
     name      = string
   }))
 
-  description = "Task bind mount volume definitions as list of configuration objects. You can define multiple Docker volumes on the same task definition."
+  description = "Task bind mount volume definitions as list of configuration objects. You can define multiple bind mount volumes on the same task definition."
   default     = []
 }
 
