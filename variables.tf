@@ -283,6 +283,16 @@ variable "efs_volumes" {
   default     = []
 }
 
+variable "bind_mount_volumes" {
+  type = list(object({
+    host_path = string
+    name      = string
+  }))
+
+  description = "Task bind mount volume definitions as list of configuration objects. You can define multiple bind mount volumes on the same task definition."
+  default     = []
+}
+
 variable "docker_volumes" {
   type = list(object({
     host_path = string

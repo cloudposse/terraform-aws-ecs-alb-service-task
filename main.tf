@@ -8,7 +8,7 @@ locals {
   enable_ecs_service_role = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) >= 1
   create_security_group   = local.enabled && var.network_mode == "awsvpc" && var.security_group_enabled
 
-  volumes = concat(var.docker_volumes, var.efs_volumes, var.fsx_volumes)
+  volumes = concat(var.docker_volumes, var.efs_volumes, var.fsx_volumes, var.bind_mount_volumes)
 }
 
 module "task_label" {
