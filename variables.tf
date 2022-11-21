@@ -285,7 +285,7 @@ variable "efs_volumes" {
 
 variable "bind_mount_volumes" {
   type = list(object({
-    host_path = string
+    host_path = optional(string)
     name      = string
   }))
 
