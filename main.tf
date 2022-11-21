@@ -350,7 +350,7 @@ resource "aws_security_group_rule" "nlb" {
 }
 
 resource "aws_ecs_service" "ignore_changes_task_definition" {
-  count                              = local.ecs_service_enabled && var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.ecs_service_enabled && var.ignore_changes_task_definition && !var.ignore_changes_desired_count ? 1 : 0
   name                               = module.this.id
   task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
   desired_count                      = var.desired_count
@@ -536,7 +536,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
 }
 
 resource "aws_ecs_service" "ignore_changes_desired_count" {
-  count                              = local.ecs_service_enabled && ! var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.ecs_service_enabled && !var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
   name                               = module.this.id
   task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
   desired_count                      = var.desired_count
@@ -629,7 +629,7 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
 }
 
 resource "aws_ecs_service" "default" {
-  count                              = local.ecs_service_enabled && ! var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.ecs_service_enabled && !var.ignore_changes_task_definition && !var.ignore_changes_desired_count ? 1 : 0
   name                               = module.this.id
   task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
   desired_count                      = var.desired_count
