@@ -152,7 +152,7 @@ data "aws_iam_policy_document" "ecs_task" {
 resource "aws_iam_role" "ecs_task" {
   count = local.create_task_role ? 1 : 0
 
-  name                 = module.task_label.id
+  name_prefix          = module.task_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
   tags                 = var.role_tags_enabled ? module.task_label.tags : null
@@ -181,7 +181,7 @@ data "aws_iam_policy_document" "ecs_service" {
 
 resource "aws_iam_role" "ecs_service" {
   count                = local.enable_ecs_service_role && var.service_role_arn == null ? 1 : 0
-  name                 = module.service_label.id
+  name_prefix          = module.service_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_service.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
   tags                 = var.role_tags_enabled ? module.service_label.tags : null
@@ -252,7 +252,7 @@ data "aws_iam_policy_document" "ecs_task_exec" {
 
 resource "aws_iam_role" "ecs_exec" {
   count                = local.create_exec_role ? 1 : 0
-  name                 = module.exec_label.id
+  name_prefix          = module.exec_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task_exec.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
   tags                 = var.role_tags_enabled ? module.exec_label.tags : null
