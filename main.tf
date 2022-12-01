@@ -279,8 +279,6 @@ data "aws_iam_policy_document" "ecs_exec" {
 }
 
 resource "aws_iam_role_policy" "ecs_exec" {
-#  count  = local.create_exec_role ? 1 : 0
-
   for_each = local.create_exec_role ? toset(["true"]) : toset([])
   name   = module.exec_label.id
   policy = join("", data.aws_iam_policy_document.ecs_exec.*.json)
