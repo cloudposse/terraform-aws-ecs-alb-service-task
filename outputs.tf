@@ -3,7 +3,6 @@ output "ecs_exec_role_policy_id" {
   value = join("", [
     for k, v in aws_iam_role_policy.ecs_exec : v.id
   ])
-#  value       = join("", aws_iam_role_policy.ecs_exec[*].id)
 }
 
 output "ecs_exec_role_policy_name" {
