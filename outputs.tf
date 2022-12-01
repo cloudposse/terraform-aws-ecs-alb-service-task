@@ -1,11 +1,15 @@
 output "ecs_exec_role_policy_id" {
   description = "The ECS service role policy ID, in the form of `role_name:role_policy_name`"
-  value       = join("", aws_iam_role_policy.ecs_exec.*.id)
+  value = join("", [
+    for k, v in aws_iam_role_policy.ecs_exec : v.id
+  ])
 }
 
 output "ecs_exec_role_policy_name" {
   description = "ECS service role name"
-  value       = join("", aws_iam_role_policy.ecs_exec.*.name)
+  value = join("", [
+    for k, v in aws_iam_role_policy.ecs_exec : v.name
+  ])
 }
 
 output "service_name" {

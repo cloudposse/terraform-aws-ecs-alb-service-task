@@ -159,8 +159,8 @@ resource "aws_iam_role" "ecs_task" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task" {
-  count      = local.create_task_role ? length(var.task_policy_arns) : 0
-  policy_arn = var.task_policy_arns[count.index]
+  for_each   = local.create_task_role ? toset(var.task_policy_arns) : toset([])
+  policy_arn = each.value
   role       = join("", aws_iam_role.ecs_task.*.id)
 }
 
@@ -279,15 +279,15 @@ data "aws_iam_policy_document" "ecs_exec" {
 }
 
 resource "aws_iam_role_policy" "ecs_exec" {
-  count  = local.create_exec_role ? 1 : 0
-  name   = module.exec_label.id
-  policy = join("", data.aws_iam_policy_document.ecs_exec.*.json)
-  role   = join("", aws_iam_role.ecs_exec.*.id)
+  for_each = local.create_exec_role ? toset(["true"]) : toset([])
+  name     = module.exec_label.id
+  policy   = join("", data.aws_iam_policy_document.ecs_exec.*.json)
+  role     = join("", aws_iam_role.ecs_exec.*.id)
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_exec" {
-  count      = local.create_exec_role ? length(var.task_exec_policy_arns) : 0
-  policy_arn = var.task_exec_policy_arns[count.index]
+  for_each   = local.create_exec_role ? toset(var.task_exec_policy_arns) : toset([])
+  policy_arn = each.value
   role       = join("", aws_iam_role.ecs_exec.*.id)
 }
 
