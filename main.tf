@@ -38,8 +38,8 @@ module "exec_label" {
 }
 
 module "ecs_service_label" {
-  source     = "cloudposse/label/null"
-  version    = "0.25.0"
+  source      = "cloudposse/label/null"
+  version     = "0.25.0"
   label_order = length(var.ecs_service_label_order) == 0 ? module.this.label_order : var.ecs_service_label_order
 
   context = module.this.context
