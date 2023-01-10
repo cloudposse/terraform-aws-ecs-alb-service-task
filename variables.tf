@@ -461,3 +461,9 @@ variable "ecs_service_enabled" {
   description = "Whether or not to create the aws_ecs_service resource"
   default     = true
 }
+
+variable "ecs_service_label_order" {
+  type        = list(string)
+  default     = null
+  description = "Overrides the `labels_order` for `aws_ecs_service` resources to modify ID elements appear in the `id`"
+}
