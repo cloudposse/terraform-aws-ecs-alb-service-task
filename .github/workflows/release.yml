@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - main
-      - master
     paths:
       - '**/*.tpl'
       - '**/*.py'
@@ -35,7 +34,6 @@ jobs:
           branches: |
             [
               '+([0-9])?(.{+([0-9]),x}).x',
-              'master',
               'main'
             ]
         env:
