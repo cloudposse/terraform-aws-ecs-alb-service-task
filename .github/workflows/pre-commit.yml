@@ -4,7 +4,6 @@ on:
   pull_request:
     branches:
       - main
-      - master
 
 env:
   TERRAFORM_DOCS_VERSION: v0.16.0
