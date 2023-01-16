@@ -1,7 +1,6 @@
 {
   "branches": [
-    "main",
-    "master"
+    "main"
   ],
   "ci": false,
   "plugins": [
