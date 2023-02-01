@@ -266,7 +266,6 @@ data "aws_iam_policy_document" "ecs_exec" {
     resources = ["*"]
 
     actions = [
-      "ssm:GetParameters",
       "ecr:GetAuthorizationToken",
       "ecr:BatchCheckLayerAvailability",
       "ecr:GetDownloadUrlForLayer",
