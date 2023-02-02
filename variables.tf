@@ -36,55 +36,73 @@ variable "subnet_ids" {
   default     = null
 }
 
-variable "security_groups" {
-  type        = list(string)
-  description = "A list of Security Group IDs to allow in Service `network_configuration` if `var.network_mode = \"awsvpc\"`"
-  default     = []
-}
-
 variable "security_group_enabled" {
   type        = bool
-  description = "Whether to create default Security Group for ECS service."
+  description = "Whether to create a security group for the service."
   default     = true
 }
 
 variable "security_group_description" {
   type        = string
-  default     = "ECS service Security Group"
-  description = "The Security Group description."
-}
-
-variable "security_group_use_name_prefix" {
-  type        = bool
-  default     = false
-  description = "Whether to create a default Security Group with unique name beginning with the normalized prefix."
-}
-
-variable "security_group_rules" {
-  type = list(any)
-  default = [
-    {
-      type        = "egress"
-      from_port   = 0
-      to_port     = 0
-      protocol    = -1
-      cidr_blocks = ["0.0.0.0/0"]
-      description = "Allow all outbound traffic"
-    },
-    {
-      type        = "ingress"
-      from_port   = 8
-      to_port     = 0
-      protocol    = "icmp"
-      cidr_blocks = ["0.0.0.0/0"]
-      description = "Enables ping command from anywhere, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-ping"
-    }
-  ]
+  default     = "Allow ALL egress from ECS service"
   description = <<-EOT
-    A list of maps of Security Group rules. 
-    The values of map is fully complated with `aws_security_group_rule` resource. 
-    To get more info see https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule .
-  EOT
+    The description to assign to the service security group.
+    Warning: Changing the description causes the security group to be replaced.
+    EOT
+}
+
+variable "enable_all_egress_rule" {
+  type        = bool
+  description = "A flag to enable/disable adding the all ports egress rule to the service security group"
+  default     = true
+}
+
+variable "enable_icmp_rule" {
+  type        = bool
+  description = "Specifies whether to enable ICMP on the service security group"
+  default     = false
+}
+
+variable "use_alb_security_group" {
+  type        = bool
+  description = "A flag to enable/disable allowing traffic from the ALB security group to the service security group"
+  default     = false
+}
+
+variable "alb_security_group" {
+  type        = string
+  description = "Security group of the ALB"
+  default     = ""
+}
+
+variable "container_port" {
+  type        = number
+  description = "The port on the container to allow traffic from the ALB security group"
+  default     = 80
+}
+
+variable "use_nlb_cidr_blocks" {
+  type        = bool
+  description = "A flag to enable/disable adding the NLB ingress rule to the service security group"
+  default     = false
+}
+
+variable "nlb_container_port" {
+  type        = number
+  description = "The port on the container to allow traffic from the NLB"
+  default     = 80
+}
+
+variable "nlb_cidr_blocks" {
+  type        = list(string)
+  description = "A list of CIDR blocks to add to the ingress rule for the NLB container port"
+  default     = []
+}
+
+variable "security_group_ids" {
+  description = "Security group IDs to allow in Service `network_configuration` if `var.network_mode = \"awsvpc\"`"
+  type        = list(string)
+  default     = []
 }
 
 variable "launch_type" {
@@ -164,9 +182,15 @@ variable "task_memory" {
 }
 
 variable "task_exec_role_arn" {
-  type        = string
-  description = "The ARN of IAM role that allows the ECS/Fargate agent to make calls to the ECS API on your behalf"
-  default     = ""
+  type        = any
+  description = <<-EOT
+    A `list(string)` of zero or one ARNs of IAM roles that allows the
+    ECS/Fargate agent to make calls to the ECS API on your behalf.
+    If the list is empty, a role will be created for you.
+    DEPRECATED: you can also pass a `string` with the ARN, but that
+    string must be known a "plan" time.
+    EOT
+  default     = []
 }
 
 variable "task_exec_policy_arns" {
@@ -176,9 +200,15 @@ variable "task_exec_policy_arns" {
 }
 
 variable "task_role_arn" {
-  type        = string
-  description = "The ARN of IAM role that allows your Amazon ECS container task to make calls to other AWS services"
-  default     = ""
+  type        = any
+  description = <<-EOT
+    A `list(string)` of zero or one ARNs of IAM roles that allows
+    your Amazon ECS container task to make calls to other AWS services.
+    If the list is empty, a role will be created for you.
+    DEPRECATED: you can also pass a `string` with the ARN, but that
+    string must be known a "plan" time.
+    EOT
+  default     = []
 }
 
 variable "task_policy_arns" {
@@ -223,17 +253,20 @@ variable "health_check_grace_period_seconds" {
   default     = 0
 }
 
-variable "volumes" {
+variable "runtime_platform" {
+  type        = list(map(string))
+  description = <<-EOT
+    Zero or one runtime platform configurations that containers in your task may use.
+    Map of strings with optional keys `operating_system_family` and `cpu_architecture`.
+    See `runtime_platform` docs https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition#runtime_platform
+    EOT
+  default     = []
+}
+
+variable "efs_volumes" {
   type = list(object({
     host_path = string
     name      = string
-    docker_volume_configuration = list(object({
-      autoprovision = bool
-      driver        = string
-      driver_opts   = map(string)
-      labels        = map(string)
-      scope         = string
-    }))
     efs_volume_configuration = list(object({
       file_system_id          = string
       root_directory          = string
@@ -245,7 +278,51 @@ variable "volumes" {
       }))
     }))
   }))
-  description = "Task volume definitions as list of configuration objects"
+
+  description = "Task EFS volume definitions as list of configuration objects. You can define multiple EFS volumes on the same task definition, but a single volume can only have one `efs_volume_configuration`."
+  default     = []
+}
+
+variable "bind_mount_volumes" {
+  type = list(any)
+  #  host_path = optional(string)
+  #  name      = string
+  description = "Task bind mount volume definitions as list of configuration objects. You can define multiple bind mount volumes on the same task definition. Requires `name` and optionally `host_path`"
+  default     = []
+}
+
+variable "docker_volumes" {
+  type = list(object({
+    host_path = string
+    name      = string
+    docker_volume_configuration = list(object({
+      autoprovision = bool
+      driver        = string
+      driver_opts   = map(string)
+      labels        = map(string)
+      scope         = string
+    }))
+  }))
+
+  description = "Task docker volume definitions as list of configuration objects. You can define multiple Docker volumes on the same task definition, but a single volume can only have one `docker_volume_configuration`."
+  default     = []
+}
+
+variable "fsx_volumes" {
+  type = list(object({
+    host_path = string
+    name      = string
+    fsx_windows_file_server_volume_configuration = list(object({
+      file_system_id = string
+      root_directory = string
+      authorization_config = list(object({
+        credentials_parameter = string
+        domain                = string
+      }))
+    }))
+  }))
+
+  description = "Task FSx volume definitions as list of configuration objects. You can define multiple FSx volumes on the same task definition, but a single volume can only have one `fsx_windows_file_server_volume_configuration`."
   default     = []
 }
 
@@ -289,12 +366,6 @@ variable "enable_ecs_managed_tags" {
   default     = false
 }
 
-variable "enable_icmp_rule" {
-  type        = bool
-  description = "Specifies whether to enable ICMP on the security group"
-  default     = false
-}
-
 variable "capacity_provider_strategies" {
   type = list(object({
     capacity_provider = string
@@ -306,14 +377,18 @@ variable "capacity_provider_strategies" {
 }
 
 variable "service_registries" {
-  type = list(object({
-    registry_arn   = string
-    port           = number
-    container_name = string
-    container_port = number
-  }))
-  description = "The service discovery registries for the service. The maximum number of service_registries blocks is 1. The currently supported service registry is Amazon Route 53 Auto Naming Service - `aws_service_discovery_service`; see `service_registries` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html#service_registries-1"
-  default     = []
+  type        = list(any)
+  description = <<-EOT
+    Zero or one service discovery registries for the service.
+    The currently supported service registry is Amazon Route 53 Auto Naming Service - `aws_service_discovery_service`;
+    see `service_registries` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html#service_registries-1"
+    Service registry is object with required key `registry_arn = string` and optional keys
+      `port           = number`
+      `container_name = string`
+      `container_port = number`
+    EOT
+
+  default = []
 }
 
 variable "permissions_boundary" {
@@ -354,12 +429,35 @@ variable "exec_enabled" {
 
 variable "circuit_breaker_deployment_enabled" {
   type        = bool
-  description = "Whether to enable the deployment circuit breaker logic for the service"
+  description = "If `true`, enable the deployment circuit breaker logic for the service. If using `CODE_DEPLOY` for `deployment_controller_type`, this value will be ignored"
   default     = false
 }
 
 variable "circuit_breaker_rollback_enabled" {
   type        = bool
-  description = "Whether to enable Amazon ECS to roll back the service if a service deployment fails"
+  description = "If `true`, Amazon ECS will roll back the service if a service deployment fails. If using `CODE_DEPLOY` for `deployment_controller_type`, this value will be ignored"
   default     = false
+}
+
+variable "ephemeral_storage_size" {
+  type        = number
+  description = "The number of GBs to provision for ephemeral storage on Fargate tasks. Must be greater than or equal to 21 and less than or equal to 200"
+  default     = 0
+
+  validation {
+    condition     = var.ephemeral_storage_size == 0 || (var.ephemeral_storage_size >= 21 && var.ephemeral_storage_size <= 200)
+    error_message = "The ephemeral_storage_size value must be inclusively between 21 and 200."
+  }
+}
+
+variable "role_tags_enabled" {
+  type        = bool
+  description = "Whether or not to create tags on ECS roles"
+  default     = true
+}
+
+variable "ecs_service_enabled" {
+  type        = bool
+  description = "Whether or not to create the aws_ecs_service resource"
+  default     = true
 }

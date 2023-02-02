@@ -1,33 +1,37 @@
 locals {
   enabled                 = module.this.enabled
-  enable_ecs_service_role = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) <= 1
-  security_group_enabled  = module.this.enabled && var.security_group_enabled && var.network_mode == "awsvpc"
+  ecs_service_enabled     = local.enabled && var.ecs_service_enabled
+  task_role_arn           = try(var.task_role_arn[0], tostring(var.task_role_arn), "")
+  create_task_role        = local.enabled && length(var.task_role_arn) == 0
+  task_exec_role_arn      = try(var.task_exec_role_arn[0], tostring(var.task_exec_role_arn), "")
+  create_exec_role        = local.enabled && length(var.task_exec_role_arn) == 0
+  enable_ecs_service_role = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) >= 1
+  create_security_group   = local.enabled && var.network_mode == "awsvpc" && var.security_group_enabled
+
+  volumes = concat(var.docker_volumes, var.efs_volumes, var.fsx_volumes, var.bind_mount_volumes)
 }
 
 module "task_label" {
-  source  = "cloudposse/label/null"
-  version = "0.24.1"
-  enabled = local.enabled && length(var.task_role_arn) == 0
-
+  source     = "cloudposse/label/null"
+  version    = "0.25.0"
+  enabled    = local.create_task_role
   attributes = ["task"]
 
   context = module.this.context
 }
 
 module "service_label" {
-  source  = "cloudposse/label/null"
-  version = "0.24.1"
-
+  source     = "cloudposse/label/null"
+  version    = "0.25.0"
   attributes = ["service"]
 
   context = module.this.context
 }
 
 module "exec_label" {
-  source  = "cloudposse/label/null"
-  version = "0.24.1"
-  enabled = local.enabled && length(var.task_exec_role_arn) == 0
-
+  source     = "cloudposse/label/null"
+  version    = "0.25.0"
+  enabled    = local.create_exec_role
   attributes = ["exec"]
 
   context = module.this.context
@@ -41,8 +45,8 @@ resource "aws_ecs_task_definition" "default" {
   network_mode             = var.network_mode
   cpu                      = var.task_cpu
   memory                   = var.task_memory
-  execution_role_arn       = length(var.task_exec_role_arn) > 0 ? var.task_exec_role_arn : join("", aws_iam_role.ecs_exec.*.arn)
-  task_role_arn            = length(var.task_role_arn) > 0 ? var.task_role_arn : join("", aws_iam_role.ecs_task.*.arn)
+  execution_role_arn       = length(local.task_exec_role_arn) > 0 ? local.task_exec_role_arn : join("", aws_iam_role.ecs_exec.*.arn)
+  task_role_arn            = length(local.task_role_arn) > 0 ? local.task_role_arn : join("", aws_iam_role.ecs_task.*.arn)
 
   dynamic "proxy_configuration" {
     for_each = var.proxy_configuration == null ? [] : [var.proxy_configuration]
@@ -50,6 +54,13 @@ resource "aws_ecs_task_definition" "default" {
       type           = lookup(proxy_configuration.value, "type", "APPMESH")
       container_name = proxy_configuration.value.container_name
       properties     = proxy_configuration.value.properties
+    }
+  }
+
+  dynamic "ephemeral_storage" {
+    for_each = var.ephemeral_storage_size == 0 ? [] : [var.ephemeral_storage_size]
+    content {
+      size_in_gib = var.ephemeral_storage_size
     }
   }
 
@@ -61,8 +72,16 @@ resource "aws_ecs_task_definition" "default" {
     }
   }
 
+  dynamic "runtime_platform" {
+    for_each = var.runtime_platform
+    content {
+      operating_system_family = lookup(runtime_platform.value, "operating_system_family", null)
+      cpu_architecture        = lookup(runtime_platform.value, "cpu_architecture", null)
+    }
+  }
+
   dynamic "volume" {
-    for_each = var.volumes
+    for_each = local.volumes
     content {
       host_path = lookup(volume.value, "host_path", null)
       name      = volume.value.name
@@ -94,6 +113,21 @@ resource "aws_ecs_task_definition" "default" {
           }
         }
       }
+
+      dynamic "fsx_windows_file_server_volume_configuration" {
+        for_each = lookup(volume.value, "fsx_windows_file_server_volume_configuration", [])
+        content {
+          file_system_id = lookup(fsx_windows_file_server_volume_configuration.value, "file_system_id", null)
+          root_directory = lookup(fsx_windows_file_server_volume_configuration.value, "root_directory", null)
+          dynamic "authorization_config" {
+            for_each = lookup(fsx_windows_file_server_volume_configuration.value, "authorization_config", [])
+            content {
+              credentials_parameter = lookup(authorization_config.value, "credentials_parameter", null)
+              domain                = lookup(authorization_config.value, "domain", null)
+            }
+          }
+        }
+      }
     }
   }
 
@@ -106,7 +140,7 @@ resource "aws_ecs_task_definition" "default" {
 
 # IAM
 data "aws_iam_policy_document" "ecs_task" {
-  count = local.enabled && length(var.task_role_arn) == 0 ? 1 : 0
+  count = local.create_task_role ? 1 : 0
 
   statement {
     effect  = "Allow"
@@ -120,17 +154,17 @@ data "aws_iam_policy_document" "ecs_task" {
 }
 
 resource "aws_iam_role" "ecs_task" {
-  count = local.enabled && length(var.task_role_arn) == 0 ? 1 : 0
+  count = local.create_task_role ? 1 : 0
 
   name                 = module.task_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
-  tags                 = module.task_label.tags
+  tags                 = var.role_tags_enabled ? module.task_label.tags : null
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task" {
-  count      = local.enabled && length(var.task_role_arn) == 0 ? length(var.task_policy_arns) : 0
-  policy_arn = var.task_policy_arns[count.index]
+  for_each   = local.create_task_role ? toset(var.task_policy_arns) : toset([])
+  policy_arn = each.value
   role       = join("", aws_iam_role.ecs_task.*.id)
 }
 
@@ -154,7 +188,7 @@ resource "aws_iam_role" "ecs_service" {
   name                 = module.service_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_service.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
-  tags                 = module.service_label.tags
+  tags                 = var.role_tags_enabled ? module.service_label.tags : null
 }
 
 data "aws_iam_policy_document" "ecs_service_policy" {
@@ -184,7 +218,7 @@ resource "aws_iam_role_policy" "ecs_service" {
 }
 
 data "aws_iam_policy_document" "ecs_ssm_exec" {
-  count = local.enabled && var.exec_enabled ? 1 : 0
+  count = local.create_task_role && var.exec_enabled ? 1 : 0
 
   statement {
     effect    = "Allow"
@@ -200,7 +234,7 @@ data "aws_iam_policy_document" "ecs_ssm_exec" {
 }
 
 resource "aws_iam_role_policy" "ecs_ssm_exec" {
-  count  = local.enabled && var.exec_enabled ? 1 : 0
+  count  = local.create_task_role && var.exec_enabled ? 1 : 0
   name   = module.task_label.id
   policy = join("", data.aws_iam_policy_document.ecs_ssm_exec.*.json)
   role   = join("", aws_iam_role.ecs_task.*.id)
@@ -208,7 +242,7 @@ resource "aws_iam_role_policy" "ecs_ssm_exec" {
 
 # IAM role that the Amazon ECS container agent and the Docker daemon can assume
 data "aws_iam_policy_document" "ecs_task_exec" {
-  count = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
+  count = local.create_exec_role ? 1 : 0
 
   statement {
     actions = ["sts:AssumeRole"]
@@ -221,15 +255,15 @@ data "aws_iam_policy_document" "ecs_task_exec" {
 }
 
 resource "aws_iam_role" "ecs_exec" {
-  count                = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
+  count                = local.create_exec_role ? 1 : 0
   name                 = module.exec_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task_exec.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
-  tags                 = module.exec_label.tags
+  tags                 = var.role_tags_enabled ? module.exec_label.tags : null
 }
 
 data "aws_iam_policy_document" "ecs_exec" {
-  count = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
+  count = local.create_exec_role ? 1 : 0
 
   statement {
     effect    = "Allow"
@@ -249,126 +283,78 @@ data "aws_iam_policy_document" "ecs_exec" {
 }
 
 resource "aws_iam_role_policy" "ecs_exec" {
-  count  = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
-  name   = module.exec_label.id
-  policy = join("", data.aws_iam_policy_document.ecs_exec.*.json)
-  role   = join("", aws_iam_role.ecs_exec.*.id)
+  for_each = local.create_exec_role ? toset(["true"]) : toset([])
+  name     = module.exec_label.id
+  policy   = join("", data.aws_iam_policy_document.ecs_exec.*.json)
+  role     = join("", aws_iam_role.ecs_exec.*.id)
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_exec" {
-  count      = local.enabled && length(var.task_exec_role_arn) == 0 ? length(var.task_exec_policy_arns) : 0
-  policy_arn = var.task_exec_policy_arns[count.index]
+  for_each   = local.create_exec_role ? toset(var.task_exec_policy_arns) : toset([])
+  policy_arn = each.value
   role       = join("", aws_iam_role.ecs_exec.*.id)
 }
 
 # Service
 ## Security Groups
-module "security_group" {
-  source  = "cloudposse/security-group/aws"
-  version = "0.3.1"
-
-  use_name_prefix = var.security_group_use_name_prefix
-  rules           = var.security_group_rules
-  description     = var.security_group_description
-  vpc_id          = var.vpc_id
-
-  enabled = local.security_group_enabled
-  context = module.service_label.context
-}
-
-
-resource "aws_ecs_service" "ignore_changes_task_definition" {
-  count                              = local.enabled && var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
-  name                               = module.this.id
-  task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
-  desired_count                      = var.desired_count
-  deployment_maximum_percent         = var.deployment_maximum_percent
-  deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
-  health_check_grace_period_seconds  = var.health_check_grace_period_seconds
-  launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
-  platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
-  scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
-  enable_ecs_managed_tags            = var.enable_ecs_managed_tags
-  iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
-  wait_for_steady_state              = var.wait_for_steady_state
-  force_new_deployment               = var.force_new_deployment
-  enable_execute_command             = var.exec_enabled
-
-  dynamic "capacity_provider_strategy" {
-    for_each = var.capacity_provider_strategies
-    content {
-      capacity_provider = capacity_provider_strategy.value.capacity_provider
-      weight            = capacity_provider_strategy.value.weight
-      base              = lookup(capacity_provider_strategy.value, "base", null)
-    }
-  }
-
-  dynamic "service_registries" {
-    for_each = var.service_registries
-    content {
-      registry_arn   = service_registries.value.registry_arn
-      port           = lookup(service_registries.value, "port", null)
-      container_name = lookup(service_registries.value, "container_name", null)
-      container_port = lookup(service_registries.value, "container_port", null)
-    }
-  }
-
-  dynamic "ordered_placement_strategy" {
-    for_each = var.ordered_placement_strategy
-    content {
-      type  = ordered_placement_strategy.value.type
-      field = lookup(ordered_placement_strategy.value, "field", null)
-    }
-  }
-
-  dynamic "placement_constraints" {
-    for_each = var.service_placement_constraints
-    content {
-      type       = placement_constraints.value.type
-      expression = lookup(placement_constraints.value, "expression", null)
-    }
-  }
-
-  dynamic "load_balancer" {
-    for_each = var.ecs_load_balancers
-    content {
-      container_name   = load_balancer.value.container_name
-      container_port   = load_balancer.value.container_port
-      elb_name         = lookup(load_balancer.value, "elb_name", null)
-      target_group_arn = lookup(load_balancer.value, "target_group_arn", null)
-    }
-  }
-
-  cluster        = var.ecs_cluster_arn
-  propagate_tags = var.propagate_tags
-  tags           = var.use_old_arn ? null : module.this.tags
-
-  deployment_controller {
-    type = var.deployment_controller_type
-  }
-
-  # https://www.terraform.io/docs/providers/aws/r/ecs_service.html#network_configuration
-  dynamic "network_configuration" {
-    for_each = var.network_mode == "awsvpc" ? ["true"] : []
-    content {
-      security_groups  = compact(concat(module.security_group.*.id, var.security_groups))
-      subnets          = var.subnet_ids
-      assign_public_ip = var.assign_public_ip
-    }
-  }
-
-  deployment_circuit_breaker {
-    enable   = var.circuit_breaker_deployment_enabled
-    rollback = var.circuit_breaker_rollback_enabled
-  }
+resource "aws_security_group" "ecs_service" {
+  count       = local.create_security_group ? 1 : 0
+  vpc_id      = var.vpc_id
+  name        = module.service_label.id
+  description = var.security_group_description
+  tags        = module.service_label.tags
 
   lifecycle {
-    ignore_changes = [task_definition]
+    create_before_destroy = true
   }
 }
 
-resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
-  count                              = local.enabled && var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
+resource "aws_security_group_rule" "allow_all_egress" {
+  count             = local.create_security_group && var.enable_all_egress_rule ? 1 : 0
+  description       = "Allow all outbound traffic to any IPv4 address"
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = join("", aws_security_group.ecs_service.*.id)
+}
+
+resource "aws_security_group_rule" "allow_icmp_ingress" {
+  count             = local.create_security_group && var.enable_icmp_rule ? 1 : 0
+  description       = "Allow ping command from anywhere, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-ping"
+  type              = "ingress"
+  from_port         = 8
+  to_port           = 0
+  protocol          = "icmp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = join("", aws_security_group.ecs_service.*.id)
+}
+
+resource "aws_security_group_rule" "alb" {
+  count                    = local.create_security_group && var.use_alb_security_group ? 1 : 0
+  description              = "Allow inbound traffic from ALB"
+  type                     = "ingress"
+  from_port                = var.container_port
+  to_port                  = var.container_port
+  protocol                 = "tcp"
+  source_security_group_id = var.alb_security_group
+  security_group_id        = join("", aws_security_group.ecs_service.*.id)
+}
+
+resource "aws_security_group_rule" "nlb" {
+  count             = local.create_security_group && var.use_nlb_cidr_blocks ? 1 : 0
+  description       = "Allow inbound traffic from NLB"
+  type              = "ingress"
+  from_port         = var.nlb_container_port
+  to_port           = var.nlb_container_port
+  protocol          = "tcp"
+  cidr_blocks       = var.nlb_cidr_blocks
+  security_group_id = join("", aws_security_group.ecs_service.*.id)
+}
+
+resource "aws_ecs_service" "ignore_changes_task_definition" {
+  count                              = local.ecs_service_enabled && var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
   name                               = module.this.id
   task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
   desired_count                      = var.desired_count
@@ -435,11 +421,6 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
 
   deployment_controller {
     type = var.deployment_controller_type
-  }
-
-  deployment_circuit_breaker {
-    enable   = var.circuit_breaker_deployment_enabled
-    rollback = var.circuit_breaker_rollback_enabled
   }
 
   # https://www.terraform.io/docs/providers/aws/r/ecs_service.html#network_configuration
@@ -449,6 +430,107 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
       security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
       subnets          = var.subnet_ids
       assign_public_ip = var.assign_public_ip
+    }
+  }
+
+  dynamic "deployment_circuit_breaker" {
+    for_each = var.deployment_controller_type == "ECS" ? ["true"] : []
+    content {
+      enable   = var.circuit_breaker_deployment_enabled
+      rollback = var.circuit_breaker_rollback_enabled
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [task_definition]
+  }
+}
+
+resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
+  count                              = local.ecs_service_enabled && var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
+  name                               = module.this.id
+  task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
+  desired_count                      = var.desired_count
+  deployment_maximum_percent         = var.deployment_maximum_percent
+  deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
+  health_check_grace_period_seconds  = var.health_check_grace_period_seconds
+  launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
+  platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
+  scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
+  enable_ecs_managed_tags            = var.enable_ecs_managed_tags
+  iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
+  wait_for_steady_state              = var.wait_for_steady_state
+  force_new_deployment               = var.force_new_deployment
+  enable_execute_command             = var.exec_enabled
+
+  dynamic "capacity_provider_strategy" {
+    for_each = var.capacity_provider_strategies
+    content {
+      capacity_provider = capacity_provider_strategy.value.capacity_provider
+      weight            = capacity_provider_strategy.value.weight
+      base              = lookup(capacity_provider_strategy.value, "base", null)
+    }
+  }
+
+  dynamic "service_registries" {
+    for_each = var.service_registries
+    content {
+      registry_arn   = service_registries.value.registry_arn
+      port           = lookup(service_registries.value, "port", null)
+      container_name = lookup(service_registries.value, "container_name", null)
+      container_port = lookup(service_registries.value, "container_port", null)
+    }
+  }
+
+  dynamic "ordered_placement_strategy" {
+    for_each = var.ordered_placement_strategy
+    content {
+      type  = ordered_placement_strategy.value.type
+      field = lookup(ordered_placement_strategy.value, "field", null)
+    }
+  }
+
+  dynamic "placement_constraints" {
+    for_each = var.service_placement_constraints
+    content {
+      type       = placement_constraints.value.type
+      expression = lookup(placement_constraints.value, "expression", null)
+    }
+  }
+
+  dynamic "load_balancer" {
+    for_each = var.ecs_load_balancers
+    content {
+      container_name   = load_balancer.value.container_name
+      container_port   = load_balancer.value.container_port
+      elb_name         = lookup(load_balancer.value, "elb_name", null)
+      target_group_arn = lookup(load_balancer.value, "target_group_arn", null)
+    }
+  }
+
+  cluster        = var.ecs_cluster_arn
+  propagate_tags = var.propagate_tags
+  tags           = var.use_old_arn ? null : module.this.tags
+
+  deployment_controller {
+    type = var.deployment_controller_type
+  }
+
+  # https://www.terraform.io/docs/providers/aws/r/ecs_service.html#network_configuration
+  dynamic "network_configuration" {
+    for_each = var.network_mode == "awsvpc" ? ["true"] : []
+    content {
+      security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
+      subnets          = var.subnet_ids
+      assign_public_ip = var.assign_public_ip
+    }
+  }
+
+  dynamic "deployment_circuit_breaker" {
+    for_each = var.deployment_controller_type == "ECS" ? ["true"] : []
+    content {
+      enable   = var.circuit_breaker_deployment_enabled
+      rollback = var.circuit_breaker_rollback_enabled
     }
   }
 
@@ -458,7 +540,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
 }
 
 resource "aws_ecs_service" "ignore_changes_desired_count" {
-  count                              = local.enabled && ! var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.ecs_service_enabled && ! var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
   name                               = module.this.id
   task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
   desired_count                      = var.desired_count
@@ -537,9 +619,12 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
     }
   }
 
-  deployment_circuit_breaker {
-    enable   = var.circuit_breaker_deployment_enabled
-    rollback = var.circuit_breaker_rollback_enabled
+  dynamic "deployment_circuit_breaker" {
+    for_each = var.deployment_controller_type == "ECS" ? ["true"] : []
+    content {
+      enable   = var.circuit_breaker_deployment_enabled
+      rollback = var.circuit_breaker_rollback_enabled
+    }
   }
 
   lifecycle {
@@ -548,7 +633,7 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
 }
 
 resource "aws_ecs_service" "default" {
-  count                              = local.enabled && ! var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.ecs_service_enabled && ! var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
   name                               = module.this.id
   task_definition                    = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
   desired_count                      = var.desired_count
@@ -621,14 +706,17 @@ resource "aws_ecs_service" "default" {
   dynamic "network_configuration" {
     for_each = var.network_mode == "awsvpc" ? ["true"] : []
     content {
-      security_groups  = compact(concat(module.security_group.*.id, var.security_groups))
+      security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
       subnets          = var.subnet_ids
       assign_public_ip = var.assign_public_ip
     }
   }
 
-  deployment_circuit_breaker {
-    enable   = var.circuit_breaker_deployment_enabled
-    rollback = var.circuit_breaker_rollback_enabled
+  dynamic "deployment_circuit_breaker" {
+    for_each = var.deployment_controller_type == "ECS" ? ["true"] : []
+    content {
+      enable   = var.circuit_breaker_deployment_enabled
+      rollback = var.circuit_breaker_rollback_enabled
+    }
   }
 }
