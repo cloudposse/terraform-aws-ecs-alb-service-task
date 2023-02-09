@@ -462,6 +462,12 @@ variable "ecs_service_enabled" {
   default     = true
 }
 
+variable "ecs_service_role_enabled" {
+  type        = bool
+  description = "Whether or not to create the ecs service aws_iam_role resource"
+  default     = true
+}
+
 variable "label_orders" {
   type = object({
     ecs = optional(list(string)),
