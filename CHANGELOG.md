@@ -1,3 +1,10 @@
+## [1.1.0](https://github.com/justtrackio/terraform-aws-ecs-alb-service-task/compare/v1.0.0...v1.1.0) (2023-02-10)
+
+
+### Features
+
+* add_variable_for_ecs_service_role ([#2](https://github.com/justtrackio/terraform-aws-ecs-alb-service-task/issues/2)) ([6a7bf0c](https://github.com/justtrackio/terraform-aws-ecs-alb-service-task/commit/6a7bf0c0541fbd1131f9ea59b41be4663412889b))
+
 # Changelog
 
 All notable changes to this project will be documented in this file.
