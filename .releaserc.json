@@ -17,8 +17,12 @@
       }
     ],
     [
-      "@semantic-release/github",
-      "@semantic-release/changelog",
+      "@semantic-release/github"
+    ],
+    [
+      "@semantic-release/changelog"
+    ],
+    [
       "@semantic-release/git"
     ]
   ]
