@@ -534,6 +534,10 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
     }
   }
 
+  triggers = var.force_new_deployment && var.redeploy_on_apply ? {
+    redeployment = timestamp()
+  } : {}
+
   lifecycle {
     ignore_changes = [task_definition, desired_count]
   }
@@ -627,6 +631,10 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
     }
   }
 
+  triggers = var.force_new_deployment && var.redeploy_on_apply ? {
+    redeployment = timestamp()
+  } : {}
+
   lifecycle {
     ignore_changes = [desired_count]
   }
@@ -719,4 +727,8 @@ resource "aws_ecs_service" "default" {
       rollback = var.circuit_breaker_rollback_enabled
     }
   }
+
+  triggers = var.force_new_deployment && var.redeploy_on_apply ? {
+    redeployment = timestamp()
+  } : {}
 }
