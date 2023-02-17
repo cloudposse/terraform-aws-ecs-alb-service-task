@@ -421,6 +421,12 @@ variable "force_new_deployment" {
   default     = false
 }
 
+variable "redeploy_on_apply" {
+  type        = bool
+  description = "Updates the service to the latest task definition on each apply"
+  default     = false
+}
+
 variable "exec_enabled" {
   type        = bool
   description = "Specifies whether to enable Amazon ECS Exec for the tasks within the service"
