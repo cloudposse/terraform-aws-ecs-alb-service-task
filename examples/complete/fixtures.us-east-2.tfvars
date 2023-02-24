@@ -77,3 +77,6 @@ container_port_mappings = [
     protocol      = "udp"
   }
 ]
+
+force_new_deployment = true
+redeploy_on_apply    = true
