@@ -13,6 +13,8 @@ locals {
   redeployment_trigger = var.force_new_deployment && var.redeploy_on_apply ? {
     redeployment = timestamp()
   } : {}
+
+  task_policy_arns_list = length(var.task_policy_arns) > 0 ? var.task_policy_arns : values(var.task_policy_arns_map)
 }
 
 module "task_label" {
@@ -163,7 +165,7 @@ resource "aws_iam_role" "ecs_task" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task" {
-  for_each   = local.create_task_role ? toset(var.task_policy_arns) : toset([])
+  for_each   = local.create_task_role ? toset(local.task_policy_arns_list) : toset([])
   policy_arn = each.value
   role       = join("", aws_iam_role.ecs_task.*.id)
 }
