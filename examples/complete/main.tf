@@ -45,6 +45,29 @@ module "container_definition" {
   port_mappings                = var.container_port_mappings
 }
 
+module "test_policy" {
+  source  = "cloudposse/iam-policy/aws"
+  version = "0.4.0"
+
+  name       = "policy"
+  attributes = ["test"]
+
+  iam_policy_enabled = true
+  description        = "Test policy"
+
+  iam_policy_statements = [
+    {
+      sid        = "DummyStatement"
+      effect     = "Allow"
+      actions    = ["none:null"]
+      resources  = ["*"]
+      conditions = []
+    }
+  ]
+
+  context = module.this.context
+}
+
 module "ecs_alb_service_task" {
   source                             = "../.."
   alb_security_group                 = module.vpc.vpc_default_security_group_id
@@ -65,6 +88,10 @@ module "ecs_alb_service_task" {
   task_memory                        = var.task_memory
   task_cpu                           = var.task_cpu
   ecs_service_enabled                = var.ecs_service_enabled
+  force_new_deployment               = var.force_new_deployment
+  redeploy_on_apply                  = var.redeploy_on_apply
+  task_policy_arns                   = [module.test_policy.policy_arn]
+  # task_policy_arns_map = { test = module.test_policy.policy_arn }
 
   context = module.this.context
 }
