@@ -64,7 +64,7 @@ module "test_policy" {
       conditions = []
     }
   ]
-  
+
   context = module.this.context
 }
 
@@ -88,9 +88,9 @@ module "ecs_alb_service_task" {
   task_memory                        = var.task_memory
   task_cpu                           = var.task_cpu
   ecs_service_enabled                = var.ecs_service_enabled
-  force_new_deployment = var.force_new_deployment
-  redeploy_on_apply = var.redeploy_on_apply
-  task_policy_arns = [module.test_policy.policy_arn]
+  force_new_deployment               = var.force_new_deployment
+  redeploy_on_apply                  = var.redeploy_on_apply
+  task_policy_arns                   = [module.test_policy.policy_arn]
   # task_policy_arns_map = { test = module.test_policy.policy_arn }
 
   context = module.this.context
