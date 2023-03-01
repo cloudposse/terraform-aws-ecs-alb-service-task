@@ -193,10 +193,10 @@ variable "task_exec_role_arn" {
   default     = []
 }
 
-variable "task_exec_policy_arns" {
-  type        = list(string)
-  description = "A list of IAM Policy ARNs to attach to the generated task execution role."
-  default     = []
+variable "task_exec_policy_arns_map" {
+  type        = map(string)
+  description = "A map of name to IAM Policy ARNs to attach to the generated task execution role."
+  default     = {}
 }
 
 variable "task_role_arn" {
