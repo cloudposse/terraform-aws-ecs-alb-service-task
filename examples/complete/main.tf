@@ -57,7 +57,7 @@ module "test_policy" {
 
   iam_policy_statements = [
     {
-      sid        = "ListBucket"
+      sid        = "DummyStatement"
       effect     = "Allow"
       actions    = ["none:null"]
       resources  = ["*"]
