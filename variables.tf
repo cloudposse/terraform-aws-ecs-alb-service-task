@@ -284,7 +284,10 @@ variable "efs_volumes" {
 }
 
 variable "bind_mount_volumes" {
-  type = list(any)
+  type = list(object({
+    host_path = string
+    name      = string
+  }))
   #  host_path = optional(string)
   #  name      = string
   description = "Task bind mount volume definitions as list of configuration objects. You can define multiple bind mount volumes on the same task definition. Requires `name` and optionally `host_path`"
