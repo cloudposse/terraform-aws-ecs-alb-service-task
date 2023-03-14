@@ -14,9 +14,9 @@ locals {
     redeployment = timestamp()
   } : {}
 
-  task_policy_arns_map = length(var.task_policy_arns) > 0 ? { for i, a in var.task_policy_arns : i => a } : var.task_policy_arns_map
+  task_policy_arns_map = length(var.task_policy_arns) > 0 ? { for a in var.task_policy_arns : a => a } : var.task_policy_arns_map
 
-  task_exec_policy_arns_map = length(var.task_exec_policy_arns) > 0 ? { for i, a in var.task_exec_policy_arns : i => a } : var.task_exec_policy_arns_map
+  task_exec_policy_arns_map = length(var.task_exec_policy_arns) > 0 ? { for a in var.task_exec_policy_arns : a => a } : var.task_exec_policy_arns_map
 }
 
 module "task_label" {
