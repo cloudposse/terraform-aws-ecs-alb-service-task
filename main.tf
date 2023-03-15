@@ -14,9 +14,9 @@ locals {
     redeployment = timestamp()
   } : {}
 
-  task_policy_arns_map = length(var.task_policy_arns) > 0 ? { for i, a in var.task_policy_arns : i => a } : var.task_policy_arns_map
+  task_policy_arns_map = { for i, a in var.task_policy_arns : i => a }
 
-  task_exec_policy_arns_map = length(var.task_exec_policy_arns) > 0 ? { for i, a in var.task_exec_policy_arns : i => a } : var.task_exec_policy_arns_map
+  task_exec_policy_arns_map = { for i, a in var.task_exec_policy_arns : i => a }
 }
 
 module "task_label" {
@@ -167,7 +167,7 @@ resource "aws_iam_role" "ecs_task" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task" {
-  for_each   = local.create_task_role ? local.task_policy_arns_map : {}
+  for_each   = local.create_task_role ? { for i, a in local.task_policy_arns_map : a => a} : {}
   policy_arn = each.value
   role       = join("", aws_iam_role.ecs_task.*.id)
 }
@@ -294,7 +294,7 @@ resource "aws_iam_role_policy" "ecs_exec" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_exec" {
-  for_each   = local.create_exec_role ? local.task_exec_policy_arns_map : {}
+  for_each   = local.create_exec_role ? { for i, a in local.task_exec_policy_arns_map : a => a } : {}
   policy_arn = each.value
   role       = join("", aws_iam_role.ecs_exec.*.id)
 }
