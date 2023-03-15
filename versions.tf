@@ -6,5 +6,9 @@ terraform {
       source  = "hashicorp/aws"
       version = ">= 4.40"
     }
+    value = {
+      source  = "pseudo-dynamic/value"
+      version = "0.5.5"
+    }
   }
 }

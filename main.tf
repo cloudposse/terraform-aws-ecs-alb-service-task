@@ -13,11 +13,29 @@ locals {
   redeployment_trigger = var.force_new_deployment && var.redeploy_on_apply ? {
     redeployment = timestamp()
   } : {}
-
-  task_policy_arns_map = { for a in var.task_policy_arns : tostring(a) => a }
-
-  task_exec_policy_arns_map = { for a in var.task_exec_policy_arns : tostring(a) => a }
 }
+
+# Set "count" logic for ARNs changed in the same apply with this module
+resource "value_unknown_proposer" "default" {}
+
+resource "value_is_fully_known" "task_exec_policy_arns" {
+  value            = var.task_exec_policy_arns
+  guid_seed        = "var.task_exec_policy_arns"
+  proposed_unknown = value_unknown_proposer.default.value
+}
+
+resource "value_is_fully_known" "task_policy_arns" {
+  value            = var.task_policy_arns
+  guid_seed        = "var.task_policy_arns"
+  proposed_unknown = value_unknown_proposer.default.value
+}
+
+locals {
+  task_policy_arns_map = value_is_fully_known.task_policy_arns.result ? { for a in var.task_policy_arns : a => a } : { for i, a in var.task_policy_arns : i => a }
+
+  task_exec_policy_arns_map = value_is_fully_known.task_exec_policy_arns.result ? { for a in var.task_exec_policy_arns : a => a } : { for i, a in var.task_exec_policy_arns : i => a }
+}
+
 
 module "task_label" {
   source     = "cloudposse/label/null"
