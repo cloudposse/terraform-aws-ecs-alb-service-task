@@ -252,14 +252,14 @@ Available targets:
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.0 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.40 |
-| <a name="requirement_value"></a> [value](#requirement\_value) | 0.5.5 |
+| <a name="requirement_value"></a> [value](#requirement\_value) | >= 0.5.5 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
 | <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.40 |
-| <a name="provider_value"></a> [value](#provider\_value) | 0.5.5 |
+| <a name="provider_value"></a> [value](#provider\_value) | >= 0.5.5 |
 
 ## Modules
 
@@ -292,9 +292,9 @@ Available targets:
 | [aws_security_group_rule.allow_all_egress](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
 | [aws_security_group_rule.allow_icmp_ingress](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
 | [aws_security_group_rule.nlb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
-| [value_is_fully_known.task_exec_policy_arns](https://registry.terraform.io/providers/pseudo-dynamic/value/0.5.5/docs/resources/is_fully_known) | resource |
-| [value_is_fully_known.task_policy_arns](https://registry.terraform.io/providers/pseudo-dynamic/value/0.5.5/docs/resources/is_fully_known) | resource |
-| [value_unknown_proposer.default](https://registry.terraform.io/providers/pseudo-dynamic/value/0.5.5/docs/resources/unknown_proposer) | resource |
+| [value_is_fully_known.task_exec_policy_arns](https://registry.terraform.io/providers/pseudo-dynamic/value/latest/docs/resources/is_fully_known) | resource |
+| [value_is_fully_known.task_policy_arns](https://registry.terraform.io/providers/pseudo-dynamic/value/latest/docs/resources/is_fully_known) | resource |
+| [value_unknown_proposer.default](https://registry.terraform.io/providers/pseudo-dynamic/value/latest/docs/resources/unknown_proposer) | resource |
 | [aws_iam_policy_document.ecs_exec](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.ecs_service](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.ecs_service_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
