@@ -8,7 +8,7 @@ terraform {
     }
     value = {
       source  = "pseudo-dynamic/value"
-      version = "0.5.5"
+      version = ">= 0.5.5"
     }
   }
 }
