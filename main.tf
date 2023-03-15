@@ -167,7 +167,7 @@ resource "aws_iam_role" "ecs_task" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task" {
-  for_each   = local.create_task_role ? { for i, a in local.task_policy_arns_map : a => a} : {}
+  for_each   = local.create_task_role ? { for i, a in local.task_policy_arns_map : a => a } : {}
   policy_arn = each.value
   role       = join("", aws_iam_role.ecs_task.*.id)
 }
