@@ -167,8 +167,8 @@ resource "aws_iam_role" "ecs_task" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task" {
-  for_each   = local.create_task_role ? { for i, a in local.task_policy_arns_map : a => a } : {}
-  policy_arn = each.value
+  for_each   = local.create_task_role ? { for i, a in local.task_policy_arns_map : a => i } : {}
+  policy_arn = each.key
   role       = join("", aws_iam_role.ecs_task.*.id)
 }
 
@@ -294,8 +294,8 @@ resource "aws_iam_role_policy" "ecs_exec" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_exec" {
-  for_each   = local.create_exec_role ? { for i, a in local.task_exec_policy_arns_map : a => a } : {}
-  policy_arn = each.value
+  for_each   = local.create_exec_role ? { for i, a in local.task_exec_policy_arns_map : a => i } : {}
+  policy_arn = each.key
   role       = join("", aws_iam_role.ecs_exec.*.id)
 }
 
