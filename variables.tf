@@ -284,7 +284,10 @@ variable "efs_volumes" {
 }
 
 variable "bind_mount_volumes" {
-  type = list(any)
+  type = list(object({
+    name      = string
+    host_path = optional(string)
+  }))
   #  host_path = optional(string)
   #  name      = string
   description = "Task bind mount volume definitions as list of configuration objects. You can define multiple bind mount volumes on the same task definition. Requires `name` and optionally `host_path`"
@@ -293,14 +296,14 @@ variable "bind_mount_volumes" {
 
 variable "docker_volumes" {
   type = list(object({
-    host_path = string
+    host_path = optional(string)
     name      = string
     docker_volume_configuration = list(object({
-      autoprovision = bool
+      autoprovision = optional(bool)
       driver        = string
-      driver_opts   = map(string)
-      labels        = map(string)
-      scope         = string
+      driver_opts   = optional(map(string))
+      labels        = optional(map(string))
+      scope         = optional(string)
     }))
   }))
 
