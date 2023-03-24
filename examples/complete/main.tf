@@ -30,6 +30,7 @@ module "subnets" {
 }
 
 resource "aws_ecs_cluster" "default" {
+  #bridgecrew:skip=BC_AWS_LOGGING_11: not required for testing
   count = local.enabled ? 1 : 0
   name  = module.this.id
   tags  = module.this.tags
