@@ -2,37 +2,45 @@ provider "aws" {
   region = var.region
 }
 
+locals {
+  enabled = module.this.enabled
+}
+
 module "vpc" {
   source  = "cloudposse/vpc/aws"
-  version = "0.28.1"
+  version = "2.0.0"
 
-  cidr_block = var.vpc_cidr_block
+  ipv4_primary_cidr_block = var.vpc_cidr_block
 
   context = module.this.context
 }
 
 module "subnets" {
   source  = "cloudposse/dynamic-subnets/aws"
-  version = "0.39.8"
+  version = "2.1.0"
 
   availability_zones   = var.availability_zones
   vpc_id               = module.vpc.vpc_id
-  igw_id               = module.vpc.igw_id
-  cidr_block           = module.vpc.vpc_cidr_block
-  nat_gateway_enabled  = true
+  igw_id               = [module.vpc.igw_id]
+  ipv4_cidr_block      = [module.vpc.vpc_cidr_block]
+  nat_gateway_enabled  = false
   nat_instance_enabled = false
 
   context = module.this.context
 }
 
 resource "aws_ecs_cluster" "default" {
-  name = module.this.id
-  tags = module.this.tags
+  #bridgecrew:skip=BC_AWS_LOGGING_11: not required for testing
+  count = local.enabled ? 1 : 0
+  name  = module.this.id
+  tags  = module.this.tags
 }
 
 module "container_definition" {
+  count = local.enabled ? 1 : 0
+
   source  = "cloudposse/ecs-container-definition/aws"
-  version = "0.58.1"
+  version = "0.58.2"
 
   container_name               = var.container_name
   container_image              = var.container_image
@@ -71,8 +79,8 @@ module "test_policy" {
 module "ecs_alb_service_task" {
   source                             = "../.."
   alb_security_group                 = module.vpc.vpc_default_security_group_id
-  container_definition_json          = module.container_definition.json_map_encoded_list
-  ecs_cluster_arn                    = aws_ecs_cluster.default.arn
+  container_definition_json          = one(module.container_definition.*.json_map_encoded_list)
+  ecs_cluster_arn                    = one(aws_ecs_cluster.default.*.id)
   launch_type                        = var.ecs_launch_type
   vpc_id                             = module.vpc.vpc_id
   security_group_ids                 = [module.vpc.vpc_default_security_group_id]
@@ -91,7 +99,7 @@ module "ecs_alb_service_task" {
   force_new_deployment               = var.force_new_deployment
   redeploy_on_apply                  = var.redeploy_on_apply
   task_policy_arns                   = [module.test_policy.policy_arn]
-  # task_policy_arns_map = { test = module.test_policy.policy_arn }
+  task_exec_policy_arns_map          = { test = module.test_policy.policy_arn }
 
   context = module.this.context
 }

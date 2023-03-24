@@ -14,9 +14,9 @@ locals {
     redeployment = timestamp()
   } : {}
 
-  task_policy_arns_map = length(var.task_policy_arns) > 0 ? { for i, a in var.task_policy_arns : i => a } : var.task_policy_arns_map
+  task_policy_arns_map = merge({ for i, a in var.task_policy_arns : format("_#%v_", i) => a }, var.task_policy_arns_map)
 
-  task_exec_policy_arns_map = length(var.task_exec_policy_arns) > 0 ? { for i, a in var.task_exec_policy_arns : i => a } : var.task_exec_policy_arns_map
+  task_exec_policy_arns_map = merge({ for i, a in var.task_exec_policy_arns : format("_#%v_", i) => a }, var.task_exec_policy_arns_map)
 }
 
 module "task_label" {
@@ -450,6 +450,10 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   lifecycle {
     ignore_changes = [task_definition]
   }
+
+  # Avoid race condition on destroy.
+  # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
 }
 
 resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
@@ -545,6 +549,10 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
   lifecycle {
     ignore_changes = [task_definition, desired_count]
   }
+
+  # Avoid race condition on destroy.
+  # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
 }
 
 resource "aws_ecs_service" "ignore_changes_desired_count" {
@@ -640,6 +648,10 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
   lifecycle {
     ignore_changes = [desired_count]
   }
+
+  # Avoid race condition on destroy.
+  # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
 }
 
 resource "aws_ecs_service" "default" {
@@ -731,4 +743,9 @@ resource "aws_ecs_service" "default" {
   }
 
   triggers = local.redeployment_trigger
+
+  # Avoid race condition on destroy.
+  # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
+
 }
