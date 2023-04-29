@@ -2,40 +2,52 @@ package test
 
 import (
 	"encoding/json"
-	"math/rand"
-	"strconv"
+	"os"
+	"regexp"
+	"strings"
 	"testing"
-	"time"
 
+	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
+	testStructure "github.com/gruntwork-io/terratest/modules/test-structure"
 	"github.com/stretchr/testify/assert"
 )
+
+func cleanup(t *testing.T, terraformOptions *terraform.Options, tempTestFolder string) {
+	terraform.Destroy(t, terraformOptions)
+	os.RemoveAll(tempTestFolder)
+}
 
 // Test the Terraform module in examples/complete using Terratest.
 func TestExamplesComplete(t *testing.T) {
 	t.Parallel()
+	randID := strings.ToLower(random.UniqueId())
+	attributes := []string{randID}
 
-	rand.Seed(time.Now().UnixNano())
+	rootFolder := "../../"
+	terraformFolderRelativeToRoot := "examples/complete"
+	varFiles := []string{"fixtures.us-east-2.tfvars"}
 
-	randId := strconv.Itoa(rand.Intn(100000))
-	attributes := []string{randId}
+	tempTestFolder := testStructure.CopyTerraformFolderToTemp(t, rootFolder, terraformFolderRelativeToRoot)
 
 	terraformOptions := &terraform.Options{
 		// The path to where our Terraform code is located
-		TerraformDir: "../../examples/complete",
+		TerraformDir: tempTestFolder,
 		Upgrade:      true,
 		// Variables to pass to our Terraform code using -var-file options
-		VarFiles: []string{"fixtures.us-east-2.tfvars"},
+		VarFiles: varFiles,
 		Vars: map[string]interface{}{
 			"attributes": attributes,
 		},
 	}
 
 	// At the end of the test, run `terraform destroy` to clean up any resources that were created
-	defer terraform.Destroy(t, terraformOptions)
+	defer cleanup(t, terraformOptions, tempTestFolder)
 
 	// This will run `terraform init` and `terraform apply` and fail the test if there are any errors
 	terraform.InitAndApply(t, terraformOptions)
+
+	basename := "eg-test-ecs-alb-service-task-" + randID
 
 	// Run `terraform output` to get the value of an output variable
 	jsonMap := terraform.OutputRequired(t, terraformOptions, "container_definition_json_map")
@@ -69,61 +81,81 @@ func TestExamplesComplete(t *testing.T) {
 	// Run `terraform output` to get the value of an output variable
 	ecsClusterId := terraform.Output(t, terraformOptions, "ecs_cluster_id")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "arn:aws:ecs:us-east-2:126450723953:cluster/eg-test-ecs-alb-service-task-"+randId, ecsClusterId)
+	assert.Equal(t, "arn:aws:ecs:us-east-2:126450723953:cluster/"+basename, ecsClusterId)
 
 	// Run `terraform output` to get the value of an output variable
 	ecsClusterArn := terraform.Output(t, terraformOptions, "ecs_cluster_arn")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "arn:aws:ecs:us-east-2:126450723953:cluster/eg-test-ecs-alb-service-task-"+randId, ecsClusterArn)
+	assert.Equal(t, "arn:aws:ecs:us-east-2:126450723953:cluster/"+basename, ecsClusterArn)
 
 	// Run `terraform output` to get the value of an output variable
 	ecsExecRolePolicyName := terraform.Output(t, terraformOptions, "ecs_exec_role_policy_name")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "eg-test-ecs-alb-service-task-"+randId+"-exec", ecsExecRolePolicyName)
+	assert.Equal(t, basename+"-exec", ecsExecRolePolicyName)
 
 	// Run `terraform output` to get the value of an output variable
 	serviceName := terraform.Output(t, terraformOptions, "service_name")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "eg-test-ecs-alb-service-task-"+randId, serviceName)
+	assert.Equal(t, basename, serviceName)
 
 	// Run `terraform output` to get the value of an output variable
 	taskDefinitionFamily := terraform.Output(t, terraformOptions, "task_definition_family")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "eg-test-ecs-alb-service-task-"+randId, taskDefinitionFamily)
+	assert.Equal(t, basename, taskDefinitionFamily)
 
 	// Run `terraform output` to get the value of an output variable
 	taskExecRoleName := terraform.Output(t, terraformOptions, "task_exec_role_name")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "eg-test-ecs-alb-service-task-"+randId+"-exec", taskExecRoleName)
+	assert.Equal(t, basename+"-exec", taskExecRoleName)
 
 	// Run `terraform output` to get the value of an output variable
 	taskExecRoleArn := terraform.Output(t, terraformOptions, "task_exec_role_arn")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "arn:aws:iam::126450723953:role/eg-test-ecs-alb-service-task-"+randId+"-exec", taskExecRoleArn)
+	assert.Equal(t, "arn:aws:iam::126450723953:role/"+basename+"-exec", taskExecRoleArn)
 
 	// Run `terraform output` to get the value of an output variable
 	taskRoleName := terraform.Output(t, terraformOptions, "task_role_name")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "eg-test-ecs-alb-service-task-"+randId+"-task", taskRoleName)
+	assert.Equal(t, basename+"-task", taskRoleName)
 
 	// Run `terraform output` to get the value of an output variable
 	taskRoleArn := terraform.Output(t, terraformOptions, "task_role_arn")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "arn:aws:iam::126450723953:role/eg-test-ecs-alb-service-task-"+randId+"-task", taskRoleArn)
+	assert.Equal(t, "arn:aws:iam::126450723953:role/"+basename+"-task", taskRoleArn)
+}
 
-	// Run `terraform output` to get the value of an output variable
-	securityGroupName := terraform.Output(t, terraformOptions, "service_security_group_name")
-	expectedSecurityGroupName := "eg-test-ecs-alb-service-task-" + randId + "-service"
-	// Verify we're getting back the outputs we expect
-	assert.Equal(t, expectedSecurityGroupName, securityGroupName)
+func TestExamplesCompleteDisabled(t *testing.T) {
+	t.Parallel()
+	randID := strings.ToLower(random.UniqueId())
+	attributes := []string{randID}
 
-	// Run `terraform output` to get the value of an output variable
-	securityGroupID := terraform.Output(t, terraformOptions, "service_security_group_id")
-	// Verify we're getting back the outputs we expect
-	assert.Contains(t, securityGroupID, "sg-", "SG ID should contains substring 'sg-'")
+	rootFolder := "../../"
+	terraformFolderRelativeToRoot := "examples/complete"
+	varFiles := []string{"fixtures.us-east-2.tfvars"}
 
-	// Run `terraform output` to get the value of an output variable
-	securityGroupARN := terraform.Output(t, terraformOptions, "service_security_group_arn")
-	// Verify we're getting back the outputs we expect
-	assert.Contains(t, securityGroupARN, "arn:aws:ec2", "SG ID should contains substring 'arn:aws:ec2'")
+	tempTestFolder := testStructure.CopyTerraformFolderToTemp(t, rootFolder, terraformFolderRelativeToRoot)
+
+	terraformOptions := &terraform.Options{
+		// The path to where our Terraform code is located
+		TerraformDir: tempTestFolder,
+		Upgrade:      true,
+		// Variables to pass to our Terraform code using -var-file options
+		VarFiles: varFiles,
+		Vars: map[string]interface{}{
+			"attributes": attributes,
+			"enabled":    "false",
+		},
+	}
+
+	// At the end of the test, run `terraform destroy` to clean up any resources that were created
+	defer cleanup(t, terraformOptions, tempTestFolder)
+
+	// This will run `terraform init` and `terraform apply` and fail the test if there are any errors
+	results := terraform.InitAndApply(t, terraformOptions)
+
+	// Should complete successfully without creating or changing any resources.
+	// Extract the "Resources:" section of the output to make the error message more readable.
+	re := regexp.MustCompile(`Resources: [^.]+\.`)
+	match := re.FindString(results)
+	assert.Equal(t, "Resources: 0 added, 0 changed, 0 destroyed.", match, "Re-applying the same configuration should not change any resources")
 }

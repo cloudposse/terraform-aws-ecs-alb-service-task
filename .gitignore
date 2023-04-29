@@ -9,3 +9,7 @@
 
 .build-harness
 build-harness
+
+# Test output
+test.log
+.terraform.lock.hcl

@@ -1,11 +1,15 @@
 output "ecs_exec_role_policy_id" {
   description = "The ECS service role policy ID, in the form of `role_name:role_policy_name`"
-  value       = join("", aws_iam_role_policy.ecs_exec.*.id)
+  value = join("", [
+    for k, v in aws_iam_role_policy.ecs_exec : v.id
+  ])
 }
 
 output "ecs_exec_role_policy_name" {
   description = "ECS service role name"
-  value       = join("", aws_iam_role_policy.ecs_exec.*.name)
+  value = join("", [
+    for k, v in aws_iam_role_policy.ecs_exec : v.name
+  ])
 }
 
 output "service_name" {
@@ -42,7 +46,12 @@ output "task_exec_role_name" {
 
 output "task_exec_role_arn" {
   description = "ECS Task exec role ARN"
-  value       = length(var.task_exec_role_arn) > 0 ? var.task_exec_role_arn : join("", aws_iam_role.ecs_exec.*.arn)
+  value       = length(local.task_exec_role_arn) > 0 ? local.task_exec_role_arn : join("", aws_iam_role.ecs_exec.*.arn)
+}
+
+output "task_exec_role_id" {
+  description = "ECS Task exec role id"
+  value       = join("", aws_iam_role.ecs_exec.*.unique_id)
 }
 
 output "task_role_name" {
@@ -52,7 +61,7 @@ output "task_role_name" {
 
 output "task_role_arn" {
   description = "ECS Task role ARN"
-  value       = length(var.task_role_arn) > 0 ? var.task_role_arn : join("", aws_iam_role.ecs_task.*.arn)
+  value       = length(local.task_role_arn) > 0 ? local.task_role_arn : join("", aws_iam_role.ecs_task.*.arn)
 }
 
 output "task_role_id" {
@@ -60,19 +69,9 @@ output "task_role_id" {
   value       = join("", aws_iam_role.ecs_task.*.unique_id)
 }
 
-output "security_group_id" {
-  value       = module.security_group.id
+output "service_security_group_id" {
   description = "Security Group ID of the ECS task"
-}
-
-output "security_group_arn" {
-  value       = module.security_group.arn
-  description = "Security Group ARN of the ECS task"
-}
-
-output "security_group_name" {
-  value       = module.security_group.name
-  description = "Security Group name of the ECS task"
+  value       = join("", aws_security_group.ecs_service.*.id)
 }
 
 output "task_definition_family" {
@@ -88,4 +87,9 @@ output "task_definition_revision" {
 output "aws_ecs_service_obj" {
   description = "Parameters to create the service"
   value       = local.ecs_service_attrs
+}
+
+output "task_definition_arn" {
+  description = "ECS task definition ARN"
+  value       = join("", aws_ecs_task_definition.default.*.arn)
 }

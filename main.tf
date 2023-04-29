@@ -1,33 +1,45 @@
 locals {
   enabled                 = module.this.enabled
-  enable_ecs_service_role = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) <= 1
-  security_group_enabled  = module.this.enabled && var.security_group_enabled && var.network_mode == "awsvpc"
+  ecs_service_enabled     = local.enabled && var.ecs_service_enabled
+  task_role_arn           = try(var.task_role_arn[0], tostring(var.task_role_arn), "")
+  create_task_role        = local.enabled && length(var.task_role_arn) == 0
+  task_exec_role_arn      = try(var.task_exec_role_arn[0], tostring(var.task_exec_role_arn), "")
+  create_exec_role        = local.enabled && length(var.task_exec_role_arn) == 0
+  enable_ecs_service_role = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) >= 1
+  create_security_group   = local.enabled && var.network_mode == "awsvpc" && var.security_group_enabled
+
+  volumes = concat(var.docker_volumes, var.efs_volumes, var.fsx_volumes, var.bind_mount_volumes)
+
+  redeployment_trigger = var.force_new_deployment && var.redeploy_on_apply ? {
+    redeployment = timestamp()
+  } : {}
+
+  task_policy_arns_map = merge({ for i, a in var.task_policy_arns : format("_#%v_", i) => a }, var.task_policy_arns_map)
+
+  task_exec_policy_arns_map = merge({ for i, a in var.task_exec_policy_arns : format("_#%v_", i) => a }, var.task_exec_policy_arns_map)
 }
 
 module "task_label" {
-  source  = "cloudposse/label/null"
-  version = "0.24.1"
-  enabled = local.enabled && length(var.task_role_arn) == 0
-
+  source     = "cloudposse/label/null"
+  version    = "0.25.0"
+  enabled    = local.create_task_role
   attributes = ["task"]
 
   context = module.this.context
 }
 
 module "service_label" {
-  source  = "cloudposse/label/null"
-  version = "0.24.1"
-
+  source     = "cloudposse/label/null"
+  version    = "0.25.0"
   attributes = ["service"]
 
   context = module.this.context
 }
 
 module "exec_label" {
-  source  = "cloudposse/label/null"
-  version = "0.24.1"
-  enabled = local.enabled && length(var.task_exec_role_arn) == 0
-
+  source     = "cloudposse/label/null"
+  version    = "0.25.0"
+  enabled    = local.create_exec_role
   attributes = ["exec"]
 
   context = module.this.context
@@ -41,8 +53,8 @@ resource "aws_ecs_task_definition" "default" {
   network_mode             = var.network_mode
   cpu                      = var.task_cpu
   memory                   = var.task_memory
-  execution_role_arn       = length(var.task_exec_role_arn) > 0 ? var.task_exec_role_arn : join("", aws_iam_role.ecs_exec.*.arn)
-  task_role_arn            = length(var.task_role_arn) > 0 ? var.task_role_arn : join("", aws_iam_role.ecs_task.*.arn)
+  execution_role_arn       = length(local.task_exec_role_arn) > 0 ? local.task_exec_role_arn : join("", aws_iam_role.ecs_exec.*.arn)
+  task_role_arn            = length(local.task_role_arn) > 0 ? local.task_role_arn : join("", aws_iam_role.ecs_task.*.arn)
 
   dynamic "proxy_configuration" {
     for_each = var.proxy_configuration == null ? [] : [var.proxy_configuration]
@@ -50,6 +62,13 @@ resource "aws_ecs_task_definition" "default" {
       type           = lookup(proxy_configuration.value, "type", "APPMESH")
       container_name = proxy_configuration.value.container_name
       properties     = proxy_configuration.value.properties
+    }
+  }
+
+  dynamic "ephemeral_storage" {
+    for_each = var.ephemeral_storage_size == 0 ? [] : [var.ephemeral_storage_size]
+    content {
+      size_in_gib = var.ephemeral_storage_size
     }
   }
 
@@ -61,8 +80,16 @@ resource "aws_ecs_task_definition" "default" {
     }
   }
 
+  dynamic "runtime_platform" {
+    for_each = var.runtime_platform
+    content {
+      operating_system_family = lookup(runtime_platform.value, "operating_system_family", null)
+      cpu_architecture        = lookup(runtime_platform.value, "cpu_architecture", null)
+    }
+  }
+
   dynamic "volume" {
-    for_each = var.volumes
+    for_each = local.volumes
     content {
       host_path = lookup(volume.value, "host_path", null)
       name      = volume.value.name
@@ -94,6 +121,21 @@ resource "aws_ecs_task_definition" "default" {
           }
         }
       }
+
+      dynamic "fsx_windows_file_server_volume_configuration" {
+        for_each = lookup(volume.value, "fsx_windows_file_server_volume_configuration", [])
+        content {
+          file_system_id = lookup(fsx_windows_file_server_volume_configuration.value, "file_system_id", null)
+          root_directory = lookup(fsx_windows_file_server_volume_configuration.value, "root_directory", null)
+          dynamic "authorization_config" {
+            for_each = lookup(fsx_windows_file_server_volume_configuration.value, "authorization_config", [])
+            content {
+              credentials_parameter = lookup(authorization_config.value, "credentials_parameter", null)
+              domain                = lookup(authorization_config.value, "domain", null)
+            }
+          }
+        }
+      }
     }
   }
 
@@ -102,7 +144,7 @@ resource "aws_ecs_task_definition" "default" {
 
 # IAM
 data "aws_iam_policy_document" "ecs_task" {
-  count = local.enabled && length(var.task_role_arn) == 0 ? 1 : 0
+  count = local.create_task_role ? 1 : 0
 
   statement {
     effect  = "Allow"
@@ -116,17 +158,17 @@ data "aws_iam_policy_document" "ecs_task" {
 }
 
 resource "aws_iam_role" "ecs_task" {
-  count = local.enabled && length(var.task_role_arn) == 0 ? 1 : 0
+  count = local.create_task_role ? 1 : 0
 
   name                 = module.task_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
-  tags                 = module.task_label.tags
+  tags                 = var.role_tags_enabled ? module.task_label.tags : null
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task" {
-  count      = local.enabled && length(var.task_role_arn) == 0 ? length(var.task_policy_arns) : 0
-  policy_arn = var.task_policy_arns[count.index]
+  for_each   = local.create_task_role ? local.task_policy_arns_map : {}
+  policy_arn = each.value
   role       = join("", aws_iam_role.ecs_task.*.id)
 }
 
@@ -150,7 +192,7 @@ resource "aws_iam_role" "ecs_service" {
   name                 = module.service_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_service.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
-  tags                 = module.service_label.tags
+  tags                 = var.role_tags_enabled ? module.service_label.tags : null
 }
 
 data "aws_iam_policy_document" "ecs_service_policy" {
@@ -180,7 +222,7 @@ resource "aws_iam_role_policy" "ecs_service" {
 }
 
 data "aws_iam_policy_document" "ecs_ssm_exec" {
-  count = local.enabled && var.exec_enabled ? 1 : 0
+  count = local.create_task_role && var.exec_enabled ? 1 : 0
 
   statement {
     effect    = "Allow"
@@ -196,7 +238,7 @@ data "aws_iam_policy_document" "ecs_ssm_exec" {
 }
 
 resource "aws_iam_role_policy" "ecs_ssm_exec" {
-  count  = local.enabled && var.exec_enabled ? 1 : 0
+  count  = local.create_task_role && var.exec_enabled ? 1 : 0
   name   = module.task_label.id
   policy = join("", data.aws_iam_policy_document.ecs_ssm_exec.*.json)
   role   = join("", aws_iam_role.ecs_task.*.id)
@@ -204,7 +246,7 @@ resource "aws_iam_role_policy" "ecs_ssm_exec" {
 
 # IAM role that the Amazon ECS container agent and the Docker daemon can assume
 data "aws_iam_policy_document" "ecs_task_exec" {
-  count = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
+  count = local.create_exec_role ? 1 : 0
 
   statement {
     actions = ["sts:AssumeRole"]
@@ -217,15 +259,15 @@ data "aws_iam_policy_document" "ecs_task_exec" {
 }
 
 resource "aws_iam_role" "ecs_exec" {
-  count                = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
+  count                = local.create_exec_role ? 1 : 0
   name                 = module.exec_label.id
   assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task_exec.*.json)
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
-  tags                 = module.exec_label.tags
+  tags                 = var.role_tags_enabled ? module.exec_label.tags : null
 }
 
 data "aws_iam_policy_document" "ecs_exec" {
-  count = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
+  count = local.create_exec_role ? 1 : 0
 
   statement {
     effect    = "Allow"
@@ -245,31 +287,74 @@ data "aws_iam_policy_document" "ecs_exec" {
 }
 
 resource "aws_iam_role_policy" "ecs_exec" {
-  count  = local.enabled && length(var.task_exec_role_arn) == 0 ? 1 : 0
-  name   = module.exec_label.id
-  policy = join("", data.aws_iam_policy_document.ecs_exec.*.json)
-  role   = join("", aws_iam_role.ecs_exec.*.id)
+  for_each = local.create_exec_role ? toset(["true"]) : toset([])
+  name     = module.exec_label.id
+  policy   = join("", data.aws_iam_policy_document.ecs_exec.*.json)
+  role     = join("", aws_iam_role.ecs_exec.*.id)
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_exec" {
-  count      = local.enabled && length(var.task_exec_role_arn) == 0 ? length(var.task_exec_policy_arns) : 0
-  policy_arn = var.task_exec_policy_arns[count.index]
+  for_each   = local.create_exec_role ? local.task_exec_policy_arns_map : {}
+  policy_arn = each.value
   role       = join("", aws_iam_role.ecs_exec.*.id)
 }
 
 # Service
 ## Security Groups
-module "security_group" {
-  source  = "cloudposse/security-group/aws"
-  version = "0.3.1"
+resource "aws_security_group" "ecs_service" {
+  count       = local.create_security_group ? 1 : 0
+  vpc_id      = var.vpc_id
+  name        = module.service_label.id
+  description = var.security_group_description
+  tags        = module.service_label.tags
 
-  use_name_prefix = var.security_group_use_name_prefix
-  rules           = var.security_group_rules
-  description     = var.security_group_description
-  vpc_id          = var.vpc_id
+  lifecycle {
+    create_before_destroy = true
+  }
+}
 
-  enabled = local.security_group_enabled
-  context = module.service_label.context
+resource "aws_security_group_rule" "allow_all_egress" {
+  count             = local.create_security_group && var.enable_all_egress_rule ? 1 : 0
+  description       = "Allow all outbound traffic to any IPv4 address"
+  type              = "egress"
+  from_port         = 0
+  to_port           = 0
+  protocol          = "-1"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = join("", aws_security_group.ecs_service.*.id)
+}
+
+resource "aws_security_group_rule" "allow_icmp_ingress" {
+  count             = local.create_security_group && var.enable_icmp_rule ? 1 : 0
+  description       = "Allow ping command from anywhere, see https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/security-group-rules-reference.html#sg-rules-ping"
+  type              = "ingress"
+  from_port         = 8
+  to_port           = 0
+  protocol          = "icmp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = join("", aws_security_group.ecs_service.*.id)
+}
+
+resource "aws_security_group_rule" "alb" {
+  count                    = local.create_security_group && var.use_alb_security_group ? 1 : 0
+  description              = "Allow inbound traffic from ALB"
+  type                     = "ingress"
+  from_port                = var.container_port
+  to_port                  = var.container_port
+  protocol                 = "tcp"
+  source_security_group_id = var.alb_security_group
+  security_group_id        = join("", aws_security_group.ecs_service.*.id)
+}
+
+resource "aws_security_group_rule" "nlb" {
+  count             = local.create_security_group && var.use_nlb_cidr_blocks ? 1 : 0
+  description       = "Allow inbound traffic from NLB"
+  type              = "ingress"
+  from_port         = var.nlb_container_port
+  to_port           = var.nlb_container_port
+  protocol          = "tcp"
+  cidr_blocks       = var.nlb_cidr_blocks
+  security_group_id = join("", aws_security_group.ecs_service.*.id)
 }
 
 locals {
@@ -306,7 +391,7 @@ locals {
     ecs_load_balancers            = var.ecs_load_balancers
 
     network_mode     = var.network_mode
-    security_groups  = compact(concat(module.security_group.*.id, var.security_groups))
+    security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
     subnets          = var.subnet_ids
     assign_public_ip = var.assign_public_ip
 
@@ -316,7 +401,7 @@ locals {
 }
 
 resource "aws_ecs_service" "ignore_changes_task_definition" {
-  count                              = local.enabled && var.service_created && var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.ecs_service_enabled && var.ignore_changes_task_definition && !var.ignore_changes_desired_count ? 1 : 0
   name                               = local.ecs_service_attrs["name"]
   task_definition                    = local.ecs_service_attrs["task_definition"]
   desired_count                      = local.ecs_service_attrs["desired_count"]
@@ -395,18 +480,27 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
     }
   }
 
-  deployment_circuit_breaker {
-    enable   = local.ecs_service_attrs["deployment_circuit_breaker_enable"]
-    rollback = local.ecs_service_attrs["deployment_circuit_breaker_rollback"]
+  dynamic "deployment_circuit_breaker" {
+    for_each = var.deployment_controller_type == "ECS" ? ["true"] : []
+    content {
+      enable   = local.ecs_service_attrs["deployment_circuit_breaker_enable"]
+      rollback = local.ecs_service_attrs["deployment_circuit_breaker_rollback"]
+    }
   }
+
+  triggers = local.redeployment_trigger
 
   lifecycle {
     ignore_changes = [task_definition]
   }
+
+  # Avoid race condition on destroy.
+  # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
 }
 
 resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
-  count                              = local.enabled && var.service_created && var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.ecs_service_enabled && var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
   name                               = local.ecs_service_attrs["name"]
   task_definition                    = local.ecs_service_attrs["task_definition"]
   desired_count                      = local.ecs_service_attrs["desired_count"]
@@ -485,18 +579,27 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
     }
   }
 
-  deployment_circuit_breaker {
-    enable   = local.ecs_service_attrs["deployment_circuit_breaker_enable"]
-    rollback = local.ecs_service_attrs["deployment_circuit_breaker_rollback"]
+  dynamic "deployment_circuit_breaker" {
+    for_each = var.deployment_controller_type == "ECS" ? ["true"] : []
+    content {
+      enable   = local.ecs_service_attrs["deployment_circuit_breaker_enable"]
+      rollback = local.ecs_service_attrs["deployment_circuit_breaker_rollback"]
+    }
   }
+
+  triggers = local.redeployment_trigger
 
   lifecycle {
     ignore_changes = [task_definition, desired_count]
   }
+
+  # Avoid race condition on destroy.
+  # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
 }
 
 resource "aws_ecs_service" "ignore_changes_desired_count" {
-  count                              = local.enabled && var.service_created && ! var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.ecs_service_enabled && !var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
   name                               = local.ecs_service_attrs["name"]
   task_definition                    = local.ecs_service_attrs["task_definition"]
   desired_count                      = local.ecs_service_attrs["desired_count"]
@@ -575,18 +678,28 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
     }
   }
 
-  deployment_circuit_breaker {
-    enable   = local.ecs_service_attrs["deployment_circuit_breaker_enable"]
-    rollback = local.ecs_service_attrs["deployment_circuit_breaker_rollback"]
+
+  dynamic "deployment_circuit_breaker" {
+    for_each = var.deployment_controller_type == "ECS" ? ["true"] : []
+    content {
+      enable   = local.ecs_service_attrs["deployment_circuit_breaker_enable"]
+      rollback = local.ecs_service_attrs["deployment_circuit_breaker_rollback"]
+    }
   }
+
+  triggers = local.redeployment_trigger
 
   lifecycle {
     ignore_changes = [desired_count]
   }
+
+  # Avoid race condition on destroy.
+  # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
 }
 
 resource "aws_ecs_service" "default" {
-  count                              = local.enabled && var.service_created && ! var.ignore_changes_task_definition && ! var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.ecs_service_enabled && !var.ignore_changes_task_definition && !var.ignore_changes_desired_count ? 1 : 0
   name                               = local.ecs_service_attrs["name"]
   task_definition                    = local.ecs_service_attrs["task_definition"]
   desired_count                      = local.ecs_service_attrs["desired_count"]
@@ -665,8 +778,18 @@ resource "aws_ecs_service" "default" {
     }
   }
 
-  deployment_circuit_breaker {
-    enable   = local.ecs_service_attrs["deployment_circuit_breaker_enable"]
-    rollback = local.ecs_service_attrs["deployment_circuit_breaker_rollback"]
+  dynamic "deployment_circuit_breaker" {
+    for_each = var.deployment_controller_type == "ECS" ? ["true"] : []
+    content {
+      enable   = local.ecs_service_attrs["deployment_circuit_breaker_enable"]
+      rollback = local.ecs_service_attrs["deployment_circuit_breaker_rollback"]
+    }
   }
+
+  triggers = local.redeployment_trigger
+
+  # Avoid race condition on destroy.
+  # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
+
 }

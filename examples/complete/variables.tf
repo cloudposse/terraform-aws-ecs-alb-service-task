@@ -120,3 +120,21 @@ variable "propagate_tags" {
   type        = string
   description = "Specifies whether to propagate the tags from the task definition or the service to the tasks. The valid values are SERVICE and TASK_DEFINITION"
 }
+
+variable "ecs_service_enabled" {
+  type        = bool
+  description = "Whether or not to create the aws_ecs_service resource"
+  default     = true
+}
+
+variable "force_new_deployment" {
+  type        = bool
+  description = "Enable to force a new task deployment of the service."
+  default     = false
+}
+
+variable "redeploy_on_apply" {
+  type        = bool
+  description = "Updates the service to the latest task definition on each apply"
+  default     = false
+}

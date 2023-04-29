@@ -14,22 +14,22 @@ output "vpc_cidr" {
 }
 
 output "container_definition_json" {
-  value       = module.container_definition.json_map_encoded_list
+  value       = one(module.container_definition.*.json_map_encoded_list)
   description = "JSON encoded list of container definitions for use with other terraform resources such as aws_ecs_task_definition"
 }
 
 output "container_definition_json_map" {
-  value       = module.container_definition.json_map_encoded
+  value       = one(module.container_definition.*.json_map_encoded)
   description = "JSON encoded container definitions for use with other terraform resources such as aws_ecs_task_definition"
 }
 
 output "ecs_cluster_id" {
-  value       = aws_ecs_cluster.default.id
+  value       = one(aws_ecs_cluster.default.*.id)
   description = "ECS cluster ID"
 }
 
 output "ecs_cluster_arn" {
-  value       = aws_ecs_cluster.default.arn
+  value       = one(aws_ecs_cluster.default.*.arn)
   description = "ECS cluster ARN"
 }
 
@@ -79,18 +79,8 @@ output "task_role_id" {
 }
 
 output "service_security_group_id" {
-  value       = module.ecs_alb_service_task.security_group_id
   description = "Security Group ID of the ECS task"
-}
-
-output "service_security_group_arn" {
-  value       = module.ecs_alb_service_task.security_group_arn
-  description = "Security Group ARN of the ECS task"
-}
-
-output "service_security_group_name" {
-  value       = module.ecs_alb_service_task.security_group_name
-  description = "Security Group name of the ECS task"
+  value       = module.ecs_alb_service_task.service_security_group_id
 }
 
 output "task_definition_family" {
