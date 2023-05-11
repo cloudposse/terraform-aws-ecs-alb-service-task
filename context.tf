@@ -1,14 +1,14 @@
 #
-# ONLY EDIT THIS FILE IN github.com/cloudposse/terraform-null-label
+# ONLY EDIT THIS FILE IN github.com/justtrackio/terraform-null-label
 # All other instances of this file should be a copy of that one
 #
 #
-# Copy this file from https://github.com/cloudposse/terraform-null-label/blob/master/exports/context.tf
+# Copy this file from https://github.com/justtrackio/terraform-null-label/blob/main/exports/context.tf
 # and then place it in your Terraform module to automatically get
-# Cloud Posse's standard configuration inputs suitable for passing
-# to Cloud Posse modules.
+# justtrack's standard configuration inputs suitable for passing
+# to justtrack modules.
 #
-# curl -sL https://raw.githubusercontent.com/cloudposse/terraform-null-label/master/exports/context.tf -o context.tf
+# curl -sL https://raw.githubusercontent.com/justtrackio/terraform-null-label/main/exports/context.tf -o context.tf
 #
 # Modules should access the whole context as `module.this.context`
 # to get the input variables with nulls for defaults,
@@ -21,8 +21,8 @@
 #
 
 module "this" {
-  source  = "cloudposse/label/null"
-  version = "0.25.0" # requires Terraform >= 0.13.0
+  source  = "justtrackio/label/null"
+  version = "0.26.0" # requires Terraform >= 0.13.0
 
   enabled             = var.enabled
   namespace           = var.namespace
@@ -45,7 +45,7 @@ module "this" {
   context = var.context
 }
 
-# Copy contents of cloudposse/terraform-null-label/variables.tf here
+# Copy contents of justtrackio/terraform-null-label/variables.tf here
 
 variable "context" { # tflint-ignore: terraform_standard_module_structure
   type = any
@@ -276,4 +276,22 @@ variable "descriptor_formats" { # tflint-ignore: terraform_standard_module_struc
     EOT
 }
 
-#### End of copy of cloudposse/terraform-null-label/variables.tf
+variable "aws_account_id" { # tflint-ignore: terraform_standard_module_structure
+  type        = string
+  description = "AWS account id"
+  default     = null
+}
+
+variable "aws_region" { # tflint-ignore: terraform_standard_module_structure
+  type        = string
+  description = "AWS region"
+  default     = null
+}
+
+variable "organizational_unit" { # tflint-ignore: terraform_standard_module_structure
+  type        = string
+  description = "Usually used to indicate the AWS organizational unit, e.g. 'prod', 'sdlc'"
+  default     = null
+}
+
+#### End of copy of justtrackio/terraform-null-label/variables.tf
