@@ -4,13 +4,13 @@
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.3.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 3.69 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.40 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 3.69 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.40 |
 
 ## Modules
 
@@ -108,6 +108,7 @@
 | <a name="input_platform_version"></a> [platform\_version](#input\_platform\_version) | The platform version on which to run your service. Only applicable for `launch_type` set to `FARGATE`.<br>More information about Fargate platform versions can be found in the AWS ECS User Guide. | `string` | `"LATEST"` | no |
 | <a name="input_propagate_tags"></a> [propagate\_tags](#input\_propagate\_tags) | Specifies whether to propagate the tags from the task definition or the service to the tasks. The valid values are SERVICE and TASK\_DEFINITION | `string` | `null` | no |
 | <a name="input_proxy_configuration"></a> [proxy\_configuration](#input\_proxy\_configuration) | The proxy configuration details for the App Mesh proxy. See `proxy_configuration` docs https://www.terraform.io/docs/providers/aws/r/ecs_task_definition.html#proxy-configuration-arguments | <pre>object({<br>    type           = string<br>    container_name = string<br>    properties     = map(string)<br>  })</pre> | `null` | no |
+| <a name="input_redeploy_on_apply"></a> [redeploy\_on\_apply](#input\_redeploy\_on\_apply) | Updates the service to the latest task definition on each apply | `bool` | `false` | no |
 | <a name="input_regex_replace_chars"></a> [regex\_replace\_chars](#input\_regex\_replace\_chars) | Terraform regular expression (regex) string.<br>Characters matching the regex will be removed from the ID elements.<br>If not set, `"/[^a-zA-Z0-9-]/"` is used to remove all characters other than hyphens, letters and digits. | `string` | `null` | no |
 | <a name="input_role_tags_enabled"></a> [role\_tags\_enabled](#input\_role\_tags\_enabled) | Whether or not to create tags on ECS roles | `bool` | `true` | no |
 | <a name="input_runtime_platform"></a> [runtime\_platform](#input\_runtime\_platform) | Zero or one runtime platform configurations that containers in your task may use.<br>Map of strings with optional keys `operating_system_family` and `cpu_architecture`.<br>See `runtime_platform` docs https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition#runtime_platform | `list(map(string))` | `[]` | no |
@@ -123,11 +124,13 @@
 | <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
 | <a name="input_task_cpu"></a> [task\_cpu](#input\_task\_cpu) | The number of CPU units used by the task. If using `FARGATE` launch type `task_cpu` must match [supported memory values](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | `number` | `256` | no |
 | <a name="input_task_definition"></a> [task\_definition](#input\_task\_definition) | Reuse an existing task definition family and revision for the ecs service instead of creating one | `string` | `null` | no |
-| <a name="input_task_exec_policy_arns"></a> [task\_exec\_policy\_arns](#input\_task\_exec\_policy\_arns) | A list of IAM Policy ARNs to attach to the generated task execution role. | `list(string)` | `[]` | no |
+| <a name="input_task_exec_policy_arns"></a> [task\_exec\_policy\_arns](#input\_task\_exec\_policy\_arns) | A list of IAM Policy ARNs to attach to the generated task execution role.<br>Changes to the list will have ripple effects, so use `task_exec_policy_arns_map` if possible. | `list(string)` | `[]` | no |
+| <a name="input_task_exec_policy_arns_map"></a> [task\_exec\_policy\_arns\_map](#input\_task\_exec\_policy\_arns\_map) | A map of name to IAM Policy ARNs to attach to the generated task execution role.<br>The names are arbitrary, but must be known at plan time. The purpose of the name<br>is so that changes to one ARN do not cause a ripple effect on the other ARNs.<br>If you cannot provide unique names known at plan time, use `task_exec_policy_arns` instead. | `map(string)` | `{}` | no |
 | <a name="input_task_exec_role_arn"></a> [task\_exec\_role\_arn](#input\_task\_exec\_role\_arn) | A `list(string)` of zero or one ARNs of IAM roles that allows the<br>ECS/Fargate agent to make calls to the ECS API on your behalf.<br>If the list is empty, a role will be created for you.<br>DEPRECATED: you can also pass a `string` with the ARN, but that<br>string must be known a "plan" time. | `any` | `[]` | no |
 | <a name="input_task_memory"></a> [task\_memory](#input\_task\_memory) | The amount of memory (in MiB) used by the task. If using Fargate launch type `task_memory` must match [supported cpu value](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task_definition_parameters.html#task_size) | `number` | `512` | no |
 | <a name="input_task_placement_constraints"></a> [task\_placement\_constraints](#input\_task\_placement\_constraints) | A set of placement constraints rules that are taken into consideration during task placement.<br>Maximum number of placement\_constraints is 10. See [`placement_constraints`](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition#placement-constraints-arguments) | <pre>list(object({<br>    type       = string<br>    expression = string<br>  }))</pre> | `[]` | no |
-| <a name="input_task_policy_arns"></a> [task\_policy\_arns](#input\_task\_policy\_arns) | A list of IAM Policy ARNs to attach to the generated task role. | `list(string)` | `[]` | no |
+| <a name="input_task_policy_arns"></a> [task\_policy\_arns](#input\_task\_policy\_arns) | A list of IAM Policy ARNs to attach to the generated task role.<br>Changes to the list will have ripple effects, so use `task_policy_arns_map` if possible. | `list(string)` | `[]` | no |
+| <a name="input_task_policy_arns_map"></a> [task\_policy\_arns\_map](#input\_task\_policy\_arns\_map) | A map of name to IAM Policy ARNs to attach to the generated task role.<br>The names are arbitrary, but must be known at plan time. The purpose of the name<br>is so that changes to one ARN do not cause a ripple effect on the other ARNs.<br>If you cannot provide unique names known at plan time, use `task_policy_arns` instead. | `map(string)` | `{}` | no |
 | <a name="input_task_role_arn"></a> [task\_role\_arn](#input\_task\_role\_arn) | A `list(string)` of zero or one ARNs of IAM roles that allows<br>your Amazon ECS container task to make calls to other AWS services.<br>If the list is empty, a role will be created for you.<br>DEPRECATED: you can also pass a `string` with the ARN, but that<br>string must be known a "plan" time. | `any` | `[]` | no |
 | <a name="input_tenant"></a> [tenant](#input\_tenant) | ID element \_(Rarely used, not included by default)\_. A customer identifier, indicating who this instance of a resource is for | `string` | `null` | no |
 | <a name="input_use_alb_security_group"></a> [use\_alb\_security\_group](#input\_use\_alb\_security\_group) | A flag to enable/disable allowing traffic from the ALB security group to the service security group | `bool` | `false` | no |

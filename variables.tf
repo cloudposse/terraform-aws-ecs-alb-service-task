@@ -195,8 +195,22 @@ variable "task_exec_role_arn" {
 
 variable "task_exec_policy_arns" {
   type        = list(string)
-  description = "A list of IAM Policy ARNs to attach to the generated task execution role."
+  description = <<-EOT
+    A list of IAM Policy ARNs to attach to the generated task execution role.
+    Changes to the list will have ripple effects, so use `task_exec_policy_arns_map` if possible.
+    EOT
   default     = []
+}
+
+variable "task_exec_policy_arns_map" {
+  type        = map(string)
+  description = <<-EOT
+    A map of name to IAM Policy ARNs to attach to the generated task execution role.
+    The names are arbitrary, but must be known at plan time. The purpose of the name
+    is so that changes to one ARN do not cause a ripple effect on the other ARNs.
+    If you cannot provide unique names known at plan time, use `task_exec_policy_arns` instead.
+    EOT
+  default     = {}
 }
 
 variable "task_role_arn" {
@@ -213,8 +227,23 @@ variable "task_role_arn" {
 
 variable "task_policy_arns" {
   type        = list(string)
-  description = "A list of IAM Policy ARNs to attach to the generated task role."
-  default     = []
+  description = <<-EOT
+    A list of IAM Policy ARNs to attach to the generated task role.
+    Changes to the list will have ripple effects, so use `task_policy_arns_map` if possible.
+    EOT
+
+  default = []
+}
+
+variable "task_policy_arns_map" {
+  type        = map(string)
+  description = <<-EOT
+    A map of name to IAM Policy ARNs to attach to the generated task role.
+    The names are arbitrary, but must be known at plan time. The purpose of the name
+    is so that changes to one ARN do not cause a ripple effect on the other ARNs.
+    If you cannot provide unique names known at plan time, use `task_policy_arns` instead.
+    EOT
+  default     = {}
 }
 
 variable "service_role_arn" {
@@ -418,6 +447,12 @@ variable "task_definition" {
 variable "force_new_deployment" {
   type        = bool
   description = "Enable to force a new task deployment of the service."
+  default     = false
+}
+
+variable "redeploy_on_apply" {
+  type        = bool
+  description = "Updates the service to the latest task definition on each apply"
   default     = false
 }
 

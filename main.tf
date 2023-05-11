@@ -9,6 +9,14 @@ locals {
   create_security_group   = local.enabled && var.network_mode == "awsvpc" && var.security_group_enabled
 
   volumes = concat(var.docker_volumes, var.efs_volumes, var.fsx_volumes, var.bind_mount_volumes)
+
+  redeployment_trigger = var.force_new_deployment && var.redeploy_on_apply ? {
+    redeployment = timestamp()
+  } : {}
+
+  task_policy_arns_map = merge({ for i, a in var.task_policy_arns : format("_#%v_", i) => a }, var.task_policy_arns_map)
+
+  task_exec_policy_arns_map = merge({ for i, a in var.task_exec_policy_arns : format("_#%v_", i) => a }, var.task_exec_policy_arns_map)
 }
 
 module "task_label" {
@@ -179,7 +187,7 @@ resource "aws_iam_role" "ecs_task" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_task" {
-  for_each   = local.create_task_role ? toset(var.task_policy_arns) : toset([])
+  for_each   = local.create_task_role ? local.task_policy_arns_map : {}
   policy_arn = each.value
   role       = join("", aws_iam_role.ecs_task[*].id)
 }
@@ -306,7 +314,7 @@ resource "aws_iam_role_policy" "ecs_exec" {
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_exec" {
-  for_each   = local.create_exec_role ? toset(var.task_exec_policy_arns) : toset([])
+  for_each   = local.create_exec_role ? local.task_exec_policy_arns_map : {}
   policy_arn = each.value
   role       = join("", aws_iam_role.ecs_exec[*].id)
 }
@@ -457,9 +465,15 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
     }
   }
 
+  triggers = local.redeployment_trigger
+
   lifecycle {
     ignore_changes = [task_definition]
   }
+
+  # Avoid race condition on destroy.
+  # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
 }
 
 resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
@@ -550,9 +564,15 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
     }
   }
 
+  triggers = local.redeployment_trigger
+
   lifecycle {
     ignore_changes = [task_definition, desired_count]
   }
+
+  # Avoid race condition on destroy.
+  # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
 }
 
 resource "aws_ecs_service" "ignore_changes_desired_count" {
@@ -643,9 +663,15 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
     }
   }
 
+  triggers = local.redeployment_trigger
+
   lifecycle {
     ignore_changes = [desired_count]
   }
+
+  # Avoid race condition on destroy.
+  # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
 }
 
 resource "aws_ecs_service" "default" {
@@ -735,4 +761,11 @@ resource "aws_ecs_service" "default" {
       rollback = var.circuit_breaker_rollback_enabled
     }
   }
+
+  triggers = local.redeployment_trigger
+
+  # Avoid race condition on destroy.
+  # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
+
 }
