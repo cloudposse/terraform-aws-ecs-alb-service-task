@@ -41,6 +41,9 @@ module "this" {
   label_value_case    = var.label_value_case
   descriptor_formats  = var.descriptor_formats
   labels_as_tags      = var.labels_as_tags
+  aws_account_id      = var.aws_account_id
+  aws_region          = var.aws_region
+  organizational_unit = var.organizational_unit
 
   context = var.context
 }
