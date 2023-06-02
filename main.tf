@@ -2,9 +2,9 @@ locals {
   enabled                 = module.this.enabled
   ecs_service_enabled     = local.enabled && var.ecs_service_enabled
   task_role_arn           = try(var.task_role_arn[0], tostring(var.task_role_arn), "")
-  create_task_role        = local.enabled && length(var.task_role_arn) == 0
+  create_task_role        = local.enabled && var.iam_roles_enabled && length(var.task_role_arn) == 0
   task_exec_role_arn      = try(var.task_exec_role_arn[0], tostring(var.task_exec_role_arn), "")
-  create_exec_role        = local.enabled && length(var.task_exec_role_arn) == 0
+  create_exec_role        = local.enabled && var.iam_roles_enabled && length(var.task_exec_role_arn) == 0
   enable_ecs_service_role = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) >= 1
   create_security_group   = local.enabled && var.network_mode == "awsvpc" && var.security_group_enabled
 

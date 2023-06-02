@@ -485,6 +485,12 @@ variable "ephemeral_storage_size" {
   }
 }
 
+variable "iam_roles_enabled" {
+  type        = bool
+  description = "Whether or not to create the task and task execution IAM roles"
+  default     = true
+}
+
 variable "role_tags_enabled" {
   type        = bool
   description = "Whether or not to create tags on ECS roles"
