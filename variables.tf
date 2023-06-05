@@ -30,6 +30,17 @@ variable "container_definition_json" {
     EOT
 }
 
+variable "container_definition_version" {
+  type = string
+  description = <<-EOT
+    An optional string indicating the version of the container definition JSON document.
+    This is by default set to a hash of container_definition_json, but can be set to any string to
+    allow ignoring changes tocontainer_definition_json if (for example) you are using external
+    processes to deploy new versions of the composer defintion without interfering with terraform.
+    EOT
+  default = null
+}
+
 variable "subnet_ids" {
   type        = list(string)
   description = "Subnet IDs used in Service `network_configuration` if `var.network_mode = \"awsvpc\"`"

@@ -7,6 +7,7 @@ locals {
   create_exec_role        = local.enabled && length(var.task_exec_role_arn) == 0
   enable_ecs_service_role = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) >= 1
   create_security_group   = local.enabled && var.network_mode == "awsvpc" && var.security_group_enabled
+  container_definition_version = coalesce(var.container_definition_version, var.container_definition_json)
 
   volumes = concat(var.docker_volumes, var.efs_volumes, var.fsx_volumes, var.bind_mount_volumes)
 }
