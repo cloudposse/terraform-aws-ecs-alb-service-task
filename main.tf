@@ -7,6 +7,7 @@ locals {
   create_exec_role        = local.enabled && length(var.task_exec_role_arn) == 0
   enable_ecs_service_role = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) >= 1
   create_security_group   = local.enabled && var.network_mode == "awsvpc" && var.security_group_enabled
+  create_task_definition  = local.enabled && length(var.task_definition) == 0
 
   volumes = concat(var.docker_volumes, var.efs_volumes, var.fsx_volumes, var.bind_mount_volumes)
 
@@ -46,7 +47,7 @@ module "exec_label" {
 }
 
 resource "aws_ecs_task_definition" "default" {
-  count                    = local.enabled && var.task_definition == null ? 1 : 0
+  count                    = local.create_task_definition ? 1 : 0
   family                   = module.this.id
   container_definitions    = var.container_definition_json
   requires_compatibilities = [var.launch_type]
@@ -358,7 +359,7 @@ resource "aws_security_group_rule" "nlb" {
 }
 
 locals {
-  ecs_service_task_definition     = coalesce(var.task_definition, "${join("", aws_ecs_task_definition.default.*.family)}:${join("", aws_ecs_task_definition.default.*.revision)}")
+  ecs_service_task_definition     = local.create_task_definition ? "${join("", aws_ecs_task_definition.default[*].family)}:${join("", aws_ecs_task_definition.default[*].revision)}" : var.task_definition[0]
   ecs_service_launch_type         = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
   ecs_service_platform_version    = var.launch_type == "FARGATE" ? var.platform_version : null
   ecs_service_scheduling_strategy = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
