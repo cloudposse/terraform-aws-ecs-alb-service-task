@@ -445,9 +445,15 @@ variable "wait_for_steady_state" {
 }
 
 variable "task_definition" {
-  type        = string
-  description = "Reuse an existing task definition family and revision for the ecs service instead of creating one"
-  default     = null
+  type        = any
+  description = <<-EOT
+    A `list(string)` of zero or one ARNs of task definitions, to reuse
+    reuse an existing task definition family and revision for the ecs
+    service instead of creating one
+    DEPRECATED: you can also pass a `string` with the ARN, but that
+    string must be known a "plan" time.
+    EOT
+  default     = []
 }
 
 variable "force_new_deployment" {
