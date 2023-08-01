@@ -520,7 +520,7 @@ variable "ipc_mode" {
     EOT
   default     = null
   validation {
-    condition     = var.ipc_mode == null || contains(["host", "task", "none"], coalesce(var.ipc_mode, ""))
+    condition     = var.ipc_mode == null || contains(["host", "task", "none"], coalesce(var.ipc_mode, "null"))
     error_message = "The ipc_mode value must be one of host, task, or none."
   }
 }
@@ -539,7 +539,7 @@ variable "pid_mode" {
     EOT
   default     = null
   validation {
-    condition     = var.pid_mode == null || contains(["host", "task"], coalesce(var.pid_mode, ""))
+    condition     = var.pid_mode == null || contains(["host", "task"], coalesce(var.pid_mode, "null"))
     error_message = "The pid_mode value must be one of host or task."
   }
 }
