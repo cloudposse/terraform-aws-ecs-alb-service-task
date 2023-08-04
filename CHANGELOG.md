@@ -1,3 +1,10 @@
+## [1.3.0](https://github.com/justtrackio/terraform-aws-ecs-alb-service-task/compare/v1.2.0...v1.3.0) (2023-08-04)
+
+
+### Features
+
+* added secretsmanager:GetSecretValue permission ([#5](https://github.com/justtrackio/terraform-aws-ecs-alb-service-task/issues/5)) ([9906fb1](https://github.com/justtrackio/terraform-aws-ecs-alb-service-task/commit/9906fb1cfe22331d25b9529652faa5fbc1a67f86))
+
 ## [1.2.0](https://github.com/justtrackio/terraform-aws-ecs-alb-service-task/compare/v1.1.0...v1.2.0) (2023-05-11)
 
 
