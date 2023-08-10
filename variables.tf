@@ -543,3 +543,17 @@ variable "pid_mode" {
     error_message = "The pid_mode value must be one of host or task."
   }
 }
+
+variable "service_connect" {
+  type = object({
+    cloud_map_namespace = string
+    discovery_names = map(object({
+      port_name      = string
+      port_number    = number
+      port_override  = optional(number, null)
+      dns_name       = optional(string)
+    }))
+  })
+  description = "The connections to add to the service. See `connection` configuration block: https://www.terraform.io/docs/providers/aws/r/ecs_service.html#connection"
+  default     = null
+}
