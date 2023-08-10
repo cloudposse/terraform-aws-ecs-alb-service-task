@@ -398,9 +398,9 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
 
   service_connect_configuration {
     enabled   = var.service_connect == null ? false : true
-    namespace = var.service_connect.cloud_map_namespace
+    namespace = var.service_connect == null ? "" : var.service_connect.cloud_map_namespace
     dynamic "service" {
-      for_each = var.service_connect.discovery_names
+      for_each = var.service_connect == null ? {} : var.service_connect.discovery_names
       content {
         discovery_name        = service.key
         port_name             = service.value.port_name
@@ -514,9 +514,9 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
 
   service_connect_configuration {
     enabled   = var.service_connect == null ? false : true
-    namespace = var.service_connect.cloud_map_namespace
+    namespace = var.service_connect == null ? "" : var.service_connect.cloud_map_namespace
     dynamic "service" {
-      for_each = var.service_connect.discovery_names
+      for_each = var.service_connect == null ? {} : var.service_connect.discovery_names
       content {
         discovery_name        = service.key
         port_name             = service.value.port_name
@@ -630,9 +630,9 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
 
   service_connect_configuration {
     enabled   = var.service_connect == null ? false : true
-    namespace = var.service_connect.cloud_map_namespace
+    namespace = var.service_connect == null ? "" : var.service_connect.cloud_map_namespace
     dynamic "service" {
-      for_each = var.service_connect.discovery_names
+      for_each = var.service_connect == null ? {} : var.service_connect.discovery_names
       content {
         discovery_name        = service.key
         port_name             = service.value.port_name
@@ -746,9 +746,9 @@ resource "aws_ecs_service" "default" {
 
   service_connect_configuration {
     enabled   = var.service_connect == null ? false : true
-    namespace = var.service_connect.cloud_map_namespace
+    namespace = var.service_connect == null ? "" : var.service_connect.cloud_map_namespace
     dynamic "service" {
-      for_each = var.service_connect.discovery_names
+      for_each = var.service_connect == null ? {} : var.service_connect.discovery_names
       content {
         discovery_name        = service.key
         port_name             = service.value.port_name
