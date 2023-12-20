@@ -503,6 +503,15 @@ variable "ecs_service_enabled" {
   default     = true
 }
 
+variable "ecs_service_name" {
+  type        = string
+  description = <<-EOT
+    If string is not null, use the string as the name of the ECS service.
+    Otherwise a name will be generated.
+    EOT
+  default     = null
+}
+
 variable "ipc_mode" {
   type        = string
   description = <<-EOT
