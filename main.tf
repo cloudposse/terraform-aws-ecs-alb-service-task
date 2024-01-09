@@ -21,27 +21,30 @@ locals {
 }
 
 module "task_label" {
-  source     = "cloudposse/label/null"
-  version    = "0.25.0"
-  enabled    = local.create_task_role
-  attributes = ["task"]
+  source      = "cloudposse/label/null"
+  version     = "0.25.0"
+  enabled     = local.create_task_role
+  attributes  = ["task"]
+  label_order = ["name", "attributes"]
 
   context = module.this.context
 }
 
 module "service_label" {
-  source     = "cloudposse/label/null"
-  version    = "0.25.0"
-  attributes = ["service"]
+  source      = "cloudposse/label/null"
+  version     = "0.25.0"
+  attributes  = ["service"]
+  label_order = ["name", "attributes"]
 
   context = module.this.context
 }
 
 module "exec_label" {
-  source     = "cloudposse/label/null"
-  version    = "0.25.0"
-  enabled    = local.create_exec_role
-  attributes = ["exec"]
+  source      = "cloudposse/label/null"
+  version     = "0.25.0"
+  enabled     = local.create_exec_role
+  attributes  = ["exec"]
+  label_order = ["name", "attributes"]
 
   context = module.this.context
 }
