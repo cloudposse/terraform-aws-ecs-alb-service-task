@@ -552,3 +552,27 @@ variable "pid_mode" {
     error_message = "The pid_mode value must be one of host or task."
   }
 }
+
+variable "autoscaling" {
+  type = object({
+    min_capacity  = number
+    max_capacity  = number
+    desired_count = number
+    target_cpu    = number
+    target_memory = number
+  })
+  description = "Scaling configuration for ECS services."
+  default = {
+    min_capacity  = 1
+    max_capacity  = 10
+    desired_count = 1
+    target_cpu    = 60
+    target_memory = 60
+  }
+}
+
+variable "autoscaling_enabled" {
+  type        = bool
+  description = "Whether to create resources related to deploying autoscaling functionality."
+  default     = false
+}
