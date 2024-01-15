@@ -22,7 +22,7 @@ EOF
 
 resource "aws_iam_role_policy_attachment" "autoscale" {
   count      = var.autoscaling_enabled ? 1 : 0
-  role       = aws_iam_role.autoscale.id
+  role       = aws_iam_role.autoscale[count.index].id
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonEC2ContainerServiceAutoscaleRole"
 }
 
