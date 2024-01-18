@@ -51,7 +51,7 @@ module "exec_label" {
 
 resource "aws_ecs_task_definition" "default" {
   count                    = local.create_task_definition ? 1 : 0
-  family                   = var.ecs_service_name
+  family                   = var.ecs_service_name != null ? var.ecs_service_name : module.service_label.id
   container_definitions    = var.container_definition_json
   requires_compatibilities = [var.launch_type]
   network_mode             = var.network_mode
@@ -145,7 +145,7 @@ resource "aws_ecs_task_definition" "default" {
     }
   }
 
-  tags = var.use_old_arn ? null : module.this.tags
+  tags = var.use_old_arn ? null : module.task_label.tags
 }
 
 # IAM
@@ -427,7 +427,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
 
   cluster        = var.ecs_cluster_arn
   propagate_tags = var.propagate_tags
-  tags           = var.use_old_arn ? null : module.this.tags
+  tags           = var.use_old_arn ? null : module.service_label.tags
 
   deployment_controller {
     type = var.deployment_controller_type
@@ -526,7 +526,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
 
   cluster        = var.ecs_cluster_arn
   propagate_tags = var.propagate_tags
-  tags           = var.use_old_arn ? null : module.this.tags
+  tags           = var.use_old_arn ? null : module.service_label.tags
 
   deployment_controller {
     type = var.deployment_controller_type
@@ -625,7 +625,7 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
 
   cluster        = var.ecs_cluster_arn
   propagate_tags = var.propagate_tags
-  tags           = var.use_old_arn ? null : module.this.tags
+  tags           = var.use_old_arn ? null : module.service_label.tags
 
   deployment_controller {
     type = var.deployment_controller_type
@@ -724,7 +724,7 @@ resource "aws_ecs_service" "default" {
 
   cluster        = var.ecs_cluster_arn
   propagate_tags = var.propagate_tags
-  tags           = var.use_old_arn ? null : module.this.tags
+  tags           = var.use_old_arn ? null : module.service_label.tags
 
   deployment_controller {
     type = var.deployment_controller_type
