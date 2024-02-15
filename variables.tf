@@ -416,8 +416,36 @@ variable "service_registries" {
       `container_name = string`
       `container_port = number`
     EOT
+  default     = []
+}
 
-  default = []
+variable "service_connect_configurations" {
+  type = list(object({
+    enabled   = bool
+    namespace = optional(string, null)
+    log_configuration = optional(object({
+      log_driver = string
+      options    = optional(map(string), null)
+      secret_option = optional(list(object({
+        name       = string
+        value_from = string
+      })), [])
+    }), null)
+    service = optional(list(object({
+      client_alias = list(object({
+        dns_name = string
+        port     = number
+      }))
+      discovery_name        = optional(string, null)
+      ingress_port_override = optional(number, null)
+      port_name             = string
+    })), [])
+  }))
+  description = <<-EOT
+    The list of Service Connect configurations.
+    See `service_connect_configuration` docs https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#service_connect_configuration
+    EOT
+  default     = []
 }
 
 variable "permissions_boundary" {
@@ -439,9 +467,15 @@ variable "wait_for_steady_state" {
 }
 
 variable "task_definition" {
-  type        = string
-  description = "Reuse an existing task definition family and revision for the ecs service instead of creating one"
-  default     = null
+  type        = any
+  description = <<-EOT
+    A `list(string)` of zero or one ARNs of task definitions, to reuse
+    reuse an existing task definition family and revision for the ecs
+    service instead of creating one
+    DEPRECATED: you can also pass a `string` with the ARN, but that
+    string must be known a "plan" time.
+    EOT
+  default     = []
 }
 
 variable "force_new_deployment" {
@@ -495,4 +529,45 @@ variable "ecs_service_enabled" {
   type        = bool
   description = "Whether or not to create the aws_ecs_service resource"
   default     = true
+}
+
+variable "ipc_mode" {
+  type        = string
+  description = <<-EOT
+    The IPC resource namespace to be used for the containers in the task.
+    The valid values are `host`, `task`, and `none`. If `host` is specified,
+    then all containers within the tasks that specified the `host` IPC mode on
+    the same container instance share the same IPC resources with the host
+    Amazon EC2 instance. If `task` is specified, all containers within the
+    specified task share the same IPC resources. If `none` is specified, then
+    IPC resources within the containers of a task are private and not shared
+    with other containers in a task or on the container instance. If no value
+    is specified, then the IPC resource namespace sharing depends on the
+    Docker daemon setting on the container instance. For more information, see
+    IPC settings in the Docker documentation."
+    EOT
+  default     = null
+  validation {
+    condition     = var.ipc_mode == null || contains(["host", "task", "none"], coalesce(var.ipc_mode, "null"))
+    error_message = "The ipc_mode value must be one of host, task, or none."
+  }
+}
+
+variable "pid_mode" {
+  type        = string
+  description = <<-EOT
+    The process namespace to use for the containers in the task. The valid
+    values are `host` and `task`. If `host` is specified, then all containers
+    within the tasks that specified the `host` PID mode on the same container
+    instance share the same process namespace with the host Amazon EC2 instanc
+    . If `task` is specified, all containers within the specified task share
+    the same process namespace. If no value is specified, then the process
+    namespace sharing depends on the Docker daemon setting on the container
+    instance. For more information, see PID settings in the Docker documentation.
+    EOT
+  default     = null
+  validation {
+    condition     = var.pid_mode == null || contains(["host", "task"], coalesce(var.pid_mode, "null"))
+    error_message = "The pid_mode value must be one of host or task."
+  }
 }
