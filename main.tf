@@ -54,8 +54,10 @@ resource "aws_ecs_task_definition" "default" {
   network_mode             = var.network_mode
   cpu                      = var.task_cpu
   memory                   = var.task_memory
-  execution_role_arn       = length(local.task_exec_role_arn) > 0 ? local.task_exec_role_arn : join("", aws_iam_role.ecs_exec.*.arn)
-  task_role_arn            = length(local.task_role_arn) > 0 ? local.task_role_arn : join("", aws_iam_role.ecs_task.*.arn)
+  ipc_mode                 = var.ipc_mode
+  pid_mode                 = var.pid_mode
+  execution_role_arn       = length(local.task_exec_role_arn) > 0 ? local.task_exec_role_arn : one(aws_iam_role.ecs_exec[*]["arn"])
+  task_role_arn            = length(local.task_role_arn) > 0 ? local.task_role_arn : one(aws_iam_role.ecs_task[*]["arn"])
 
   dynamic "proxy_configuration" {
     for_each = var.proxy_configuration == null ? [] : [var.proxy_configuration]
@@ -162,7 +164,7 @@ resource "aws_iam_role" "ecs_task" {
   count = local.create_task_role ? 1 : 0
 
   name                 = module.task_label.id
-  assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task.*.json)
+  assume_role_policy   = one(data.aws_iam_policy_document.ecs_task[*]["json"])
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
   tags                 = var.role_tags_enabled ? module.task_label.tags : null
 }
@@ -170,7 +172,7 @@ resource "aws_iam_role" "ecs_task" {
 resource "aws_iam_role_policy_attachment" "ecs_task" {
   for_each   = local.create_task_role ? local.task_policy_arns_map : {}
   policy_arn = each.value
-  role       = join("", aws_iam_role.ecs_task.*.id)
+  role       = one(aws_iam_role.ecs_task[*]["id"])
 }
 
 
@@ -191,7 +193,7 @@ data "aws_iam_policy_document" "ecs_service" {
 resource "aws_iam_role" "ecs_service" {
   count                = local.enable_ecs_service_role && var.service_role_arn == null ? 1 : 0
   name                 = module.service_label.id
-  assume_role_policy   = join("", data.aws_iam_policy_document.ecs_service.*.json)
+  assume_role_policy   = one(data.aws_iam_policy_document.ecs_service[*]["json"])
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
   tags                 = var.role_tags_enabled ? module.service_label.tags : null
 }
@@ -218,8 +220,8 @@ data "aws_iam_policy_document" "ecs_service_policy" {
 resource "aws_iam_role_policy" "ecs_service" {
   count  = local.enable_ecs_service_role && var.service_role_arn == null ? 1 : 0
   name   = module.service_label.id
-  policy = join("", data.aws_iam_policy_document.ecs_service_policy.*.json)
-  role   = join("", aws_iam_role.ecs_service.*.id)
+  policy = one(data.aws_iam_policy_document.ecs_service_policy[*]["json"])
+  role   = one(aws_iam_role.ecs_service[*]["id"])
 }
 
 data "aws_iam_policy_document" "ecs_ssm_exec" {
@@ -241,8 +243,8 @@ data "aws_iam_policy_document" "ecs_ssm_exec" {
 resource "aws_iam_role_policy" "ecs_ssm_exec" {
   count  = local.create_task_role && var.exec_enabled ? 1 : 0
   name   = module.task_label.id
-  policy = join("", data.aws_iam_policy_document.ecs_ssm_exec.*.json)
-  role   = join("", aws_iam_role.ecs_task.*.id)
+  policy = one(data.aws_iam_policy_document.ecs_ssm_exec[*]["json"])
+  role   = one(aws_iam_role.ecs_task[*]["id"])
 }
 
 # IAM role that the Amazon ECS container agent and the Docker daemon can assume
@@ -262,7 +264,7 @@ data "aws_iam_policy_document" "ecs_task_exec" {
 resource "aws_iam_role" "ecs_exec" {
   count                = local.create_exec_role ? 1 : 0
   name                 = module.exec_label.id
-  assume_role_policy   = join("", data.aws_iam_policy_document.ecs_task_exec.*.json)
+  assume_role_policy   = one(data.aws_iam_policy_document.ecs_task_exec[*]["json"])
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
   tags                 = var.role_tags_enabled ? module.exec_label.tags : null
 }
@@ -290,14 +292,14 @@ data "aws_iam_policy_document" "ecs_exec" {
 resource "aws_iam_role_policy" "ecs_exec" {
   for_each = local.create_exec_role ? toset(["true"]) : toset([])
   name     = module.exec_label.id
-  policy   = join("", data.aws_iam_policy_document.ecs_exec.*.json)
-  role     = join("", aws_iam_role.ecs_exec.*.id)
+  policy   = one(data.aws_iam_policy_document.ecs_exec[*]["json"])
+  role     = one(aws_iam_role.ecs_exec[*]["id"])
 }
 
 resource "aws_iam_role_policy_attachment" "ecs_exec" {
   for_each   = local.create_exec_role ? local.task_exec_policy_arns_map : {}
   policy_arn = each.value
-  role       = join("", aws_iam_role.ecs_exec.*.id)
+  role       = one(aws_iam_role.ecs_exec[*]["id"])
 }
 
 # Service
@@ -322,7 +324,7 @@ resource "aws_security_group_rule" "allow_all_egress" {
   to_port           = 0
   protocol          = "-1"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = join("", aws_security_group.ecs_service.*.id)
+  security_group_id = one(aws_security_group.ecs_service[*]["id"])
 }
 
 resource "aws_security_group_rule" "allow_icmp_ingress" {
@@ -333,7 +335,7 @@ resource "aws_security_group_rule" "allow_icmp_ingress" {
   to_port           = 0
   protocol          = "icmp"
   cidr_blocks       = ["0.0.0.0/0"]
-  security_group_id = join("", aws_security_group.ecs_service.*.id)
+  security_group_id = one(aws_security_group.ecs_service[*]["id"])
 }
 
 resource "aws_security_group_rule" "alb" {
@@ -344,7 +346,7 @@ resource "aws_security_group_rule" "alb" {
   to_port                  = var.container_port
   protocol                 = "tcp"
   source_security_group_id = var.alb_security_group
-  security_group_id        = join("", aws_security_group.ecs_service.*.id)
+  security_group_id        = one(aws_security_group.ecs_service[*]["id"])
 }
 
 resource "aws_security_group_rule" "nlb" {
@@ -355,7 +357,7 @@ resource "aws_security_group_rule" "nlb" {
   to_port           = var.nlb_container_port
   protocol          = "tcp"
   cidr_blocks       = var.nlb_cidr_blocks
-  security_group_id = join("", aws_security_group.ecs_service.*.id)
+  security_group_id = one(aws_security_group.ecs_service[*]["id"])
 }
 
 locals {
@@ -363,7 +365,7 @@ locals {
   ecs_service_launch_type         = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
   ecs_service_platform_version    = var.launch_type == "FARGATE" ? var.platform_version : null
   ecs_service_scheduling_strategy = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
-  ecs_service_iam_role            = local.enable_ecs_service_role ? coalesce(var.service_role_arn, join("", aws_iam_role.ecs_service.*.arn)) : null
+  ecs_service_iam_role            = local.enable_ecs_service_role ? coalesce(var.service_role_arn, one(aws_iam_role.ecs_service[*]["arn"])) : null
 
   ecs_service_attrs = {
     name                               = module.this.id
@@ -392,7 +394,7 @@ locals {
     ecs_load_balancers            = var.ecs_load_balancers
 
     network_mode     = var.network_mode
-    security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service.*.id))
+    security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service[*]["id"]))
     subnets          = var.subnet_ids
     assign_public_ip = var.assign_public_ip
 
@@ -434,6 +436,43 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
       port           = lookup(service_registries.value, "port", null)
       container_name = lookup(service_registries.value, "container_name", null)
       container_port = lookup(service_registries.value, "container_port", null)
+    }
+  }
+
+  dynamic "service_connect_configuration" {
+    for_each = var.service_connect_configurations
+    content {
+      enabled   = service_connect_configuration.value.enabled
+      namespace = service_connect_configuration.value.namespace
+      dynamic "log_configuration" {
+        for_each = try(service_connect_configuration.value.log_configuration, null) == null ? [] : [service_connect_configuration.value.log_configuration]
+        content {
+          log_driver = log_configuration.value.log_driver
+          options    = log_configuration.value.options
+          dynamic "secret_option" {
+            for_each = length(log_configuration.value.secret_option) == 0 ? [] : [log_configuration.value.secret_option]
+            content {
+              name       = secret_option.value.name
+              value_from = secret_option.value.value_from
+            }
+          }
+        }
+      }
+      dynamic "service" {
+        for_each = length(service_connect_configuration.value.service) == 0 ? [] : service_connect_configuration.value.service
+        content {
+          discovery_name        = service.value.discovery_name
+          ingress_port_override = service.value.ingress_port_override
+          port_name             = service.value.port_name
+          dynamic "client_alias" {
+            for_each = service.value.client_alias
+            content {
+              dns_name = client_alias.value.dns_name
+              port     = client_alias.value.port
+            }
+          }
+        }
+      }
     }
   }
 
@@ -536,6 +575,43 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
     }
   }
 
+  dynamic "service_connect_configuration" {
+    for_each = var.service_connect_configurations
+    content {
+      enabled   = service_connect_configuration.value.enabled
+      namespace = service_connect_configuration.value.namespace
+      dynamic "log_configuration" {
+        for_each = try(service_connect_configuration.value.log_configuration, null) == null ? [] : [service_connect_configuration.value.log_configuration]
+        content {
+          log_driver = log_configuration.value.log_driver
+          options    = log_configuration.value.options
+          dynamic "secret_option" {
+            for_each = length(log_configuration.value.secret_option) == 0 ? [] : [log_configuration.value.secret_option]
+            content {
+              name       = secret_option.value.name
+              value_from = secret_option.value.value_from
+            }
+          }
+        }
+      }
+      dynamic "service" {
+        for_each = length(service_connect_configuration.value.service) == 0 ? [] : service_connect_configuration.value.service
+        content {
+          discovery_name        = service.value.discovery_name
+          ingress_port_override = service.value.ingress_port_override
+          port_name             = service.value.port_name
+          dynamic "client_alias" {
+            for_each = service.value.client_alias
+            content {
+              dns_name = client_alias.value.dns_name
+              port     = client_alias.value.port
+            }
+          }
+        }
+      }
+    }
+  }
+
   dynamic "ordered_placement_strategy" {
     for_each = local.ecs_service_attrs["ordered_placement_strategy"]
     content {
@@ -632,6 +708,43 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
       port           = lookup(service_registries.value, "port", null)
       container_name = lookup(service_registries.value, "container_name", null)
       container_port = lookup(service_registries.value, "container_port", null)
+    }
+  }
+
+  dynamic "service_connect_configuration" {
+    for_each = var.service_connect_configurations
+    content {
+      enabled   = service_connect_configuration.value.enabled
+      namespace = service_connect_configuration.value.namespace
+      dynamic "log_configuration" {
+        for_each = try(service_connect_configuration.value.log_configuration, null) == null ? [] : [service_connect_configuration.value.log_configuration]
+        content {
+          log_driver = log_configuration.value.log_driver
+          options    = log_configuration.value.options
+          dynamic "secret_option" {
+            for_each = length(log_configuration.value.secret_option) == 0 ? [] : [log_configuration.value.secret_option]
+            content {
+              name       = secret_option.value.name
+              value_from = secret_option.value.value_from
+            }
+          }
+        }
+      }
+      dynamic "service" {
+        for_each = length(service_connect_configuration.value.service) == 0 ? [] : service_connect_configuration.value.service
+        content {
+          discovery_name        = service.value.discovery_name
+          ingress_port_override = service.value.ingress_port_override
+          port_name             = service.value.port_name
+          dynamic "client_alias" {
+            for_each = service.value.client_alias
+            content {
+              dns_name = client_alias.value.dns_name
+              port     = client_alias.value.port
+            }
+          }
+        }
+      }
     }
   }
 
@@ -732,6 +845,43 @@ resource "aws_ecs_service" "default" {
       port           = lookup(service_registries.value, "port", null)
       container_name = lookup(service_registries.value, "container_name", null)
       container_port = lookup(service_registries.value, "container_port", null)
+    }
+  }
+
+  dynamic "service_connect_configuration" {
+    for_each = var.service_connect_configurations
+    content {
+      enabled   = service_connect_configuration.value.enabled
+      namespace = service_connect_configuration.value.namespace
+      dynamic "log_configuration" {
+        for_each = try(service_connect_configuration.value.log_configuration, null) == null ? [] : [service_connect_configuration.value.log_configuration]
+        content {
+          log_driver = log_configuration.value.log_driver
+          options    = log_configuration.value.options
+          dynamic "secret_option" {
+            for_each = length(log_configuration.value.secret_option) == 0 ? [] : [log_configuration.value.secret_option]
+            content {
+              name       = secret_option.value.name
+              value_from = secret_option.value.value_from
+            }
+          }
+        }
+      }
+      dynamic "service" {
+        for_each = length(service_connect_configuration.value.service) == 0 ? [] : service_connect_configuration.value.service
+        content {
+          discovery_name        = service.value.discovery_name
+          ingress_port_override = service.value.ingress_port_override
+          port_name             = service.value.port_name
+          dynamic "client_alias" {
+            for_each = service.value.client_alias
+            content {
+              dns_name = client_alias.value.dns_name
+              port     = client_alias.value.port
+            }
+          }
+        }
+      }
     }
   }
 
