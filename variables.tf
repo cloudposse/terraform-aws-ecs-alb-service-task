@@ -496,12 +496,6 @@ variable "exec_enabled" {
   default     = false
 }
 
-variable "service_created" {
-  type        = bool
-  description = "Do you want to create a service? Useful for non-standard use cases."
-  default     = true
-}
-
 variable "circuit_breaker_deployment_enabled" {
   type        = bool
   description = "If `true`, enable the deployment circuit breaker logic for the service. If using `CODE_DEPLOY` for `deployment_controller_type`, this value will be ignored"

@@ -1,3 +1,5 @@
+
+
 <!-- markdownlint-disable -->
 # terraform-aws-ecs-alb-service-task <a href="https://cpco.io/homepage?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content="><img align="right" src="https://cloudposse.com/logo-300x69.svg" width="150" /></a>
 <a href="https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/releases/latest"><img src="https://img.shields.io/github/release/cloudposse/terraform-aws-ecs-alb-service-task.svg" alt="Latest Release"/></a><a href="https://slack.cloudposse.com"><img src="https://slack.cloudposse.com/badge.svg" alt="Slack Community"/></a>
@@ -27,40 +29,22 @@
 Terraform module to create an ECS Service for a web app (task), and an ALB target group to route requests.
 
 
----
-> [!NOTE]
-> This project is part of Cloud Posse's comprehensive ["SweetOps"](https://cpco.io/homepage?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=) approach towards DevOps.
-> <details><summary><strong>Learn More</strong></summary>
-> <a href="https://cpco.io/terraform-modules?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=terraform_modules">
->   <picture>
->     <source media="(prefers-color-scheme: dark)" srcset="https://docs.cloudposse.com/images/terraform-open-source-modules-light.svg">
->     <source media="(prefers-color-scheme: light)" srcset="https://docs.cloudposse.com/images/terraform-open-source-modules-dark.svg">
->     <img alt="Terraform Open Source Modules" src="https://docs.cloudposse.com/images/terraform-open-source-modules.svg" align="right">
->   </picture>
-> </a>
+> [!TIP]
+> #### 👽 Use Atmos with Terraform
+> Cloud Posse uses [`atmos`](https://atmos.tools) to easily orchestrate multiple environments using Terraform. <br/>
+> Works with [Github Actions](https://atmos.tools/integrations/github-actions/), [Atlantis](https://atmos.tools/integrations/atlantis), or [Spacelift](https://atmos.tools/integrations/spacelift).
 >
->
-> It's 100% Open Source and licensed under the [APACHE2](LICENSE).
->
-> We literally have [*hundreds of terraform modules*](https://cpco.io/terraform-modules?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=terraform_modules) that are Open Source and well-maintained. Check them out!
-> </details>
+> <details>
+> <summary><strong>Watch demo of using Atmos with Terraform</strong></summary>
+> <img src="https://github.com/cloudposse/atmos/blob/master/docs/demo.gif?raw=true"/><br/>
+> <i>Example of running <a href="https://atmos.tools"><code>atmos</code></a> to manage infrastructure from our <a href="https://atmos.tools/quick-start/">Quick Start</a> tutorial.</i>
+> </detalis>
 
-<a href="https://cloudposse.com/readme/header/link?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=readme_header_link"><img src="https://cloudposse.com/readme/header/img"/></a>
 
 
 
 
 ## Usage
-
-
-
-> [!IMPORTANT]
-> In Cloud Posse's examples, we avoid pinning modules to specific versions to prevent discrepancies between the documentation 
-> and the latest released versions. However, for your own projects, we strongly advise pinning each module to the exact version
-> you're using. This practice ensures the stability of your infrastructure. Additionally, we recommend implementing a systematic 
-> approach for updating versions to avoid unexpected changes.
-
-
 
 
 For a complete example, see [examples/complete](examples/complete).
@@ -301,6 +285,14 @@ resource "aws_ecs_service" "custom_app_service" {
 
 ```
 
+> [!IMPORTANT]
+> In Cloud Posse's examples, we avoid pinning modules to specific versions to prevent discrepancies between the documentation
+> and the latest released versions. However, for your own projects, we strongly advise pinning each module to the exact version
+> you're using. This practice ensures the stability of your infrastructure. Additionally, we recommend implementing a systematic
+> approach for updating versions to avoid unexpected changes.
+
+
+
 
 
 
@@ -434,7 +426,6 @@ Available targets:
 | <a name="input_security_group_enabled"></a> [security\_group\_enabled](#input\_security\_group\_enabled) | Whether to create a security group for the service. | `bool` | `true` | no |
 | <a name="input_security_group_ids"></a> [security\_group\_ids](#input\_security\_group\_ids) | Security group IDs to allow in Service `network_configuration` if `var.network_mode = "awsvpc"` | `list(string)` | `[]` | no |
 | <a name="input_service_connect_configurations"></a> [service\_connect\_configurations](#input\_service\_connect\_configurations) | The list of Service Connect configurations.<br>See `service_connect_configuration` docs https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#service_connect_configuration | <pre>list(object({<br>    enabled   = bool<br>    namespace = optional(string, null)<br>    log_configuration = optional(object({<br>      log_driver = string<br>      options    = optional(map(string), null)<br>      secret_option = optional(list(object({<br>        name       = string<br>        value_from = string<br>      })), [])<br>    }), null)<br>    service = optional(list(object({<br>      client_alias = list(object({<br>        dns_name = string<br>        port     = number<br>      }))<br>      discovery_name        = optional(string, null)<br>      ingress_port_override = optional(number, null)<br>      port_name             = string<br>    })), [])<br>  }))</pre> | `[]` | no |
-| <a name="input_service_created"></a> [service\_created](#input\_service\_created) | Do you want to create a service? Useful for non-standard use cases. | `bool` | `true` | no |
 | <a name="input_service_placement_constraints"></a> [service\_placement\_constraints](#input\_service\_placement\_constraints) | The rules that are taken into consideration during task placement. Maximum number of placement\_constraints is 10. See [`placement_constraints`](https://www.terraform.io/docs/providers/aws/r/ecs_service.html#placement_constraints-1) docs | <pre>list(object({<br>    type       = string<br>    expression = string<br>  }))</pre> | `[]` | no |
 | <a name="input_service_registries"></a> [service\_registries](#input\_service\_registries) | Zero or one service discovery registries for the service.<br>The currently supported service registry is Amazon Route 53 Auto Naming Service - `aws_service_discovery_service`;<br>see `service_registries` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html#service_registries-1"<br>Service registry is object with required key `registry_arn = string` and optional keys<br>  `port           = number`<br>  `container_name = string`<br>  `container_port = number` | `list(any)` | `[]` | no |
 | <a name="input_service_role_arn"></a> [service\_role\_arn](#input\_service\_role\_arn) | ARN of the IAM role that allows Amazon ECS to make calls to your load balancer on your behalf. This parameter is required if you are using a load balancer with your service, but only if your task definition does not use the awsvpc network mode. If using awsvpc network mode, do not specify this role. If your account has already created the Amazon ECS service-linked role, that role is used by default for your service unless you specify a role here. | `string` | `null` | no |
@@ -496,23 +487,60 @@ Check out these related projects.
 - [terraform-aws-ecs-container-definition](https://github.com/cloudposse/terraform-aws-ecs-container-definition) - Terraform module to generate well-formed JSON documents that are passed to the aws_ecs_task_definition Terraform resource
 - [terraform-aws-lb-s3-bucket](https://github.com/cloudposse/terraform-aws-lb-s3-bucket) - Terraform module to provision an S3 bucket with built in IAM policy to allow AWS Load Balancers to ship access logs.
 
+
+> [!TIP]
+> #### Use Terraform Reference Architectures for AWS
+>
+> Use Cloud Posse's ready-to-go [terraform architecture blueprints](https://cloudposse.com/reference-architecture/) for AWS to get up and running quickly.
+>
+> ✅ We build it with you.<br/>
+> ✅ You own everything.<br/>
+> ✅ Your team wins.<br/>
+>
+> <a href="https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=commercial_support"><img alt="Request Quote" src="https://img.shields.io/badge/request%20quote-success.svg?style=for-the-badge"/></a>
+> <details><summary>📚 <strong>Learn More</strong></summary>
+>
+> <br/>
+>
+> Cloud Posse is the leading [**DevOps Accelerator**](https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=commercial_support) for funded startups and enterprises.
+>
+> *Your team can operate like a pro today.*
+>
+> Ensure that your team succeeds by using Cloud Posse's proven process and turnkey blueprints. Plus, we stick around until you succeed.
+> #### Day-0:  Your Foundation for Success
+> - **Reference Architecture.** You'll get everything you need from the ground up built using 100% infrastructure as code.
+> - **Deployment Strategy.** Adopt a proven deployment strategy with GitHub Actions, enabling automated, repeatable, and reliable software releases.
+> - **Site Reliability Engineering.** Gain total visibility into your applications and services with Datadog, ensuring high availability and performance.
+> - **Security Baseline.** Establish a secure environment from the start, with built-in governance, accountability, and comprehensive audit logs, safeguarding your operations.
+> - **GitOps.** Empower your team to manage infrastructure changes confidently and efficiently through Pull Requests, leveraging the full power of GitHub Actions.
+>
+> <a href="https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=commercial_support"><img alt="Request Quote" src="https://img.shields.io/badge/request%20quote-success.svg?style=for-the-badge"/></a>
+>
+> #### Day-2: Your Operational Mastery
+> - **Training.** Equip your team with the knowledge and skills to confidently manage the infrastructure, ensuring long-term success and self-sufficiency.
+> - **Support.** Benefit from a seamless communication over Slack with our experts, ensuring you have the support you need, whenever you need it.
+> - **Troubleshooting.** Access expert assistance to quickly resolve any operational challenges, minimizing downtime and maintaining business continuity.
+> - **Code Reviews.** Enhance your team’s code quality with our expert feedback, fostering continuous improvement and collaboration.
+> - **Bug Fixes.** Rely on our team to troubleshoot and resolve any issues, ensuring your systems run smoothly.
+> - **Migration Assistance.** Accelerate your migration process with our dedicated support, minimizing disruption and speeding up time-to-value.
+> - **Customer Workshops.** Engage with our team in weekly workshops, gaining insights and strategies to continuously improve and innovate.
+>
+> <a href="https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=commercial_support"><img alt="Request Quote" src="https://img.shields.io/badge/request%20quote-success.svg?style=for-the-badge"/></a>
+> </details>
+
 ## ✨ Contributing
 
 This project is under active development, and we encourage contributions from our community.
+
+
+
 Many thanks to our outstanding contributors:
 
 <a href="https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/graphs/contributors">
   <img src="https://contrib.rocks/image?repo=cloudposse/terraform-aws-ecs-alb-service-task&max=24" />
 </a>
 
-### 🐛 Bug Reports & Feature Requests
-
-Please use the [issue tracker](https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/issues) to report any bugs or file feature requests.
-
-### 💻 Developing
-
-If you are interested in being a contributor and want to get involved in developing this project or help out with Cloud Posse's other projects, we would love to hear from you! 
-Hit us up in [Slack](https://cpco.io/slack?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=slack), in the `#cloudposse` channel.
+For 🐛 bug reports & feature requests, please use the [issue tracker](https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/issues).
 
 In general, PRs are welcome. We follow the typical "fork-and-pull" Git workflow.
  1. Review our [Code of Conduct](https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/?tab=coc-ov-file#code-of-conduct) and [Contributor Guidelines](https://github.com/cloudposse/.github/blob/main/CONTRIBUTING.md).
@@ -537,38 +565,6 @@ Dropped straight into your Inbox every week — and usually a 5-minute read.
 
 [Join us every Wednesday via Zoom](https://cloudposse.com/office-hours?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=office_hours) for your weekly dose of insider DevOps trends, AWS news and Terraform insights, all sourced from our SweetOps community, plus a _live Q&A_ that you can’t find anywhere else.
 It's **FREE** for everyone!
-
-## About
-
-This project is maintained by <a href="https://cpco.io/homepage?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=">Cloud Posse, LLC</a>.
-<a href="https://cpco.io/homepage?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content="><img src="https://cloudposse.com/logo-300x69.svg" align="right" /></a>
-
-We are a [**DevOps Accelerator**](https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=commercial_support) for funded startups and enterprises.
-Use our ready-to-go terraform architecture blueprints for AWS to get up and running quickly.
-We build it with you. You own everything. Your team wins. Plus, we stick around until you succeed.
-
-<a href="https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=commercial_support"><img alt="Learn More" src="https://img.shields.io/badge/learn%20more-success.svg?style=for-the-badge"/></a>
-
-*Your team can operate like a pro today.*
-
-Ensure that your team succeeds by using our proven process and turnkey blueprints. Plus, we stick around until you succeed.
-
-<details>
-  <summary>📚 <strong>See What's Included</strong></summary>
-
-- **Reference Architecture.** You'll get everything you need from the ground up built using 100% infrastructure as code.
-- **Deployment Strategy.** You'll have a battle-tested deployment strategy using GitHub Actions that's automated and repeatable.
-- **Site Reliability Engineering.** You'll have total visibility into your apps and microservices.
-- **Security Baseline.** You'll have built-in governance with accountability and audit logs for all changes.
-- **GitOps.** You'll be able to operate your infrastructure via Pull Requests.
-- **Training.** You'll receive hands-on training so your team can operate what we build.
-- **Questions.** You'll have a direct line of communication between our teams via a Shared Slack channel.
-- **Troubleshooting.** You'll get help to triage when things aren't working.
-- **Code Reviews.** You'll receive constructive feedback on Pull Requests.
-- **Bug Fixes.** We'll rapidly work with you to fix any bugs in our projects.
-</details>
-
-<a href="https://cloudposse.com/readme/commercial-support/link?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=readme_commercial_support_link"><img src="https://cloudposse.com/readme/commercial-support/img"/></a>
 ## License
 
 <a href="https://opensource.org/licenses/Apache-2.0"><img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge" alt="License"></a>
@@ -603,6 +599,8 @@ under the License.
 ## Trademarks
 
 All other trademarks referenced herein are the property of their respective owners.
+
+
 ---
 Copyright © 2017-2024 [Cloud Posse, LLC](https://cpco.io/copyright)
 
