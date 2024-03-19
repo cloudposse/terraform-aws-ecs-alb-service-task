@@ -559,10 +559,6 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
   # Avoid race condition on destroy.
   # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
   depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
-
-  lifecycle {
-    ignore_changes = [task_definition, desired_count, load_balancer]
-  }
 }
 
 resource "aws_ecs_service" "ignore_changes_desired_count" {
