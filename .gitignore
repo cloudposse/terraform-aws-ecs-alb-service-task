@@ -130,3 +130,6 @@ fabric.properties
 
 # Add idea folder in general
 .idea/
+
+# Ignore all terragrunt cache folders
+.terragrunt-cache
