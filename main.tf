@@ -361,7 +361,7 @@ resource "aws_security_group_rule" "nlb" {
 }
 
 locals {
-  ecs_service_task_definition     = local.create_task_definition ? "${join("", aws_ecs_task_definition.default[*].family)}:${join("", aws_ecs_task_definition.default[*].revision)}" : var.task_definition[0]
+  ecs_service_task_definition     = local.create_task_definition ? "${join("", aws_ecs_task_definition.default[*].family)}:${join("", aws_ecs_task_definition.default[*].revision)}" : one(var.task_definition)
   ecs_service_launch_type         = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
   ecs_service_platform_version    = var.launch_type == "FARGATE" ? var.platform_version : null
   ecs_service_scheduling_strategy = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
