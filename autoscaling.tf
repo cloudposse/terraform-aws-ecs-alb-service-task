@@ -30,7 +30,7 @@ resource "aws_appautoscaling_target" "ecs_target" {
   count              = var.autoscaling_enabled ? 1 : 0
   max_capacity       = var.autoscaling.max_capacity
   min_capacity       = var.autoscaling.min_capacity
-  resource_id        = "service/${local.cluster_name}/${aws_ecs_service.default[0].name}"
+  resource_id        = "service/${local.cluster_name}/${try(aws_ecs_service.default[0].name, aws_ecs_service.ignore_changes_task_definition[0].name, aws_ecs_service.ignore_changes_desired_count[0].name, aws_ecs_service.ignore_changes_task_definition_and_desired_count[0].name, "")}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
 }
