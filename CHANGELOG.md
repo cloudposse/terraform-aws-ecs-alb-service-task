@@ -1,3 +1,10 @@
+## [1.4.0](https://github.com/justtrackio/terraform-aws-ecs-alb-service-task/compare/v1.3.0...v1.4.0) (2024-05-13)
+
+
+### Features
+
+* index policy attachments by arn if supplied as list ([#8](https://github.com/justtrackio/terraform-aws-ecs-alb-service-task/issues/8)) ([f70b52f](https://github.com/justtrackio/terraform-aws-ecs-alb-service-task/commit/f70b52f947926a367a950fc14a3f223cf71cf6c2))
+
 ## [1.3.0](https://github.com/justtrackio/terraform-aws-ecs-alb-service-task/compare/v1.2.0...v1.3.0) (2023-08-04)
 
 
