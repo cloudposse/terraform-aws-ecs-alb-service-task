@@ -466,6 +466,13 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
               port     = client_alias.value.port
             }
           }
+          dynamic "timeout" {
+            for_each = length(service.value.timeout) == 0 ? [] : service.value.timeout
+            content {
+              idle_timeout_seconds        = timeout.value.idle_timeout_seconds
+              per_request_timeout_seconds = timeout.value.per_request_timeout_seconds
+            }
+          }
           dynamic "tls" {
             for_each = length(service.value.tls) == 0 ? [] : service.value.tls
             content {
@@ -610,6 +617,13 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
             content {
               dns_name = client_alias.value.dns_name
               port     = client_alias.value.port
+            }
+          }
+          dynamic "timeout" {
+            for_each = length(service.value.timeout) == 0 ? [] : service.value.timeout
+            content {
+              idle_timeout_seconds        = timeout.value.idle_timeout_seconds
+              per_request_timeout_seconds = timeout.value.per_request_timeout_seconds
             }
           }
           dynamic "tls" {
@@ -758,6 +772,13 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
               port     = client_alias.value.port
             }
           }
+          dynamic "timeout" {
+            for_each = length(service.value.timeout) == 0 ? [] : service.value.timeout
+            content {
+              idle_timeout_seconds        = timeout.value.idle_timeout_seconds
+              per_request_timeout_seconds = timeout.value.per_request_timeout_seconds
+            }
+          }
           dynamic "tls" {
             for_each = length(service.value.tls) == 0 ? [] : service.value.tls
             content {
@@ -902,6 +923,13 @@ resource "aws_ecs_service" "default" {
             content {
               dns_name = client_alias.value.dns_name
               port     = client_alias.value.port
+            }
+          }
+          dynamic "timeout" {
+            for_each = length(service.value.timeout) == 0 ? [] : service.value.timeout
+            content {
+              idle_timeout_seconds        = timeout.value.idle_timeout_seconds
+              per_request_timeout_seconds = timeout.value.per_request_timeout_seconds
             }
           }
           dynamic "tls" {
