@@ -321,7 +321,7 @@ data "aws_iam_policy_document" "ecs_service_connect_tls" {
 
     principals {
       type        = "Service"
-      identifiers = ["ecs-tasks.amazonaws.com"]
+      identifiers = ["ecs.amazonaws.com"]
     }
   }
 }
@@ -338,6 +338,19 @@ resource "aws_iam_role_policy_attachment" "ecs_service_connect_tls" {
   count      = local.create_service_connect_tls_role ? 1 : 0
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSInfrastructureRolePolicyForServiceConnectTransportLayerSecurity"
   role       = one(aws_iam_role.ecs_service_connect_tls[*]["id"])
+}
+
+# Required because IAM resource creation is eventually consistent, so creating
+# the service immediately after role creation has surfaced a bug where ECS
+# does not retry service creation and the ECS service becomes invisible in
+# AWS Console and the API.
+#
+# If this sleep is not here, it will create orphaned Cloud Map services and the
+# ECS service will fail to create.
+resource "time_sleep" "ecs_service_connect_tls" {
+  count           = local.create_service_connect_tls_role ? 1 : 0
+  depends_on      = [aws_iam_role_policy_attachment.ecs_service_connect_tls]
+  create_duration = "30s"
 }
 
 # Service
@@ -548,7 +561,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
 
   # Avoid race condition on destroy.
   # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
-  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service, time_sleep.ecs_service_connect_tls]
 }
 
 resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
@@ -701,7 +714,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
 
   # Avoid race condition on destroy.
   # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
-  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service, time_sleep.ecs_service_connect_tls]
 }
 
 resource "aws_ecs_service" "ignore_changes_desired_count" {
@@ -854,7 +867,7 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
 
   # Avoid race condition on destroy.
   # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
-  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service, time_sleep.ecs_service_connect_tls]
 }
 
 resource "aws_ecs_service" "default" {
@@ -1003,6 +1016,6 @@ resource "aws_ecs_service" "default" {
 
   # Avoid race condition on destroy.
   # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
-  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
+  depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service, time_sleep.ecs_service_connect_tls]
 
 }
