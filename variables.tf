@@ -436,6 +436,17 @@ variable "service_connect_configurations" {
         dns_name = string
         port     = number
       }))
+      timeout = optional(list(object({
+        idle_timeout_seconds        = optional(number, null)
+        per_request_timeout_seconds = optional(number, null)
+      })), [])
+      tls = optional(list(object({
+        kms_key  = optional(string, null)
+        role_arn = optional(string, null)
+        issuer_cert_authority = object({
+          aws_pca_authority_arn = string
+        })
+      })), [])
       discovery_name        = optional(string, null)
       ingress_port_override = optional(number, null)
       port_name             = string
