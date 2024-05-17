@@ -67,11 +67,13 @@ container_environment = [
 
 container_port_mappings = [
   {
+    name          = "http"
     containerPort = 80
     hostPort      = 80
     protocol      = "tcp"
   },
   {
+    name          = "https"
     containerPort = 443
     hostPort      = 443
     protocol      = "udp"
@@ -80,3 +82,5 @@ container_port_mappings = [
 
 force_new_deployment = true
 redeploy_on_apply    = true
+
+service_connect_enabled = true

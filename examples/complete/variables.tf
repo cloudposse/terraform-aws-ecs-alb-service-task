@@ -43,6 +43,8 @@ variable "container_port_mappings" {
     containerPort = number
     hostPort      = number
     protocol      = string
+    name          = optional(string)
+    appProtocol   = optional(string)
   }))
 
   description = "The port mappings to configure for the container. This is a list of maps. Each map should contain \"containerPort\", \"hostPort\", and \"protocol\", where \"protocol\" is one of \"tcp\" or \"udp\". If using containers in a task with the awsvpc or host network mode, the hostPort can either be left blank or set to the same value as the containerPort"
@@ -136,5 +138,14 @@ variable "force_new_deployment" {
 variable "redeploy_on_apply" {
   type        = bool
   description = "Updates the service to the latest task definition on each apply"
+  default     = false
+}
+
+variable "service_connect_enabled" {
+  type        = bool
+  description = <<EOT
+    Enable ECS Service Connect, which allows this service to discover and connect to services,
+    and be discovered by, and connected from, other services within a namespace.
+  EOT
   default     = false
 }
