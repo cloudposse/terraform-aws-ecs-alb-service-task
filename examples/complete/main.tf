@@ -118,8 +118,7 @@ module "ecs_alb_service_task" {
           }
         ]
         timeout = [{
-          idle_timeout_seconds        = 60
-          per_request_timeout_seconds = 30
+          idle_timeout_seconds        = 3600
           }
         ]
         discovery_name = module.this.name
