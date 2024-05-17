@@ -40,7 +40,7 @@ module "container_definition" {
   count = local.enabled ? 1 : 0
 
   source  = "cloudposse/ecs-container-definition/aws"
-  version = "0.58.2"
+  version = "0.61.1"
 
   container_name               = var.container_name
   container_image              = var.container_image
