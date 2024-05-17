@@ -117,10 +117,6 @@ module "ecs_alb_service_task" {
           port     = 80
           }
         ]
-        timeout = [{
-          idle_timeout_seconds        = 3600
-          }
-        ]
         discovery_name = module.this.name
         port_name      = var.container_port_mappings[0].name
         }
