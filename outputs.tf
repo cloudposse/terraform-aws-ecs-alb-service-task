@@ -76,3 +76,8 @@ output "task_definition_arn" {
   description = "ECS task definition ARN"
   value       = one(aws_ecs_task_definition.default[*]["arn"])
 }
+
+output "task_definition_arn_without_revision" {
+  description = "ECS task definition ARN without revision"
+  value       = one(aws_ecs_task_definition.default[*]["arn_without_revision"])
+}

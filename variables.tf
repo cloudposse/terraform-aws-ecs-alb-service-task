@@ -12,7 +12,7 @@ variable "ecs_load_balancers" {
   type = list(object({
     container_name   = string
     container_port   = number
-    elb_name         = string
+    elb_name         = optional(string)
     target_group_arn = string
   }))
   description = "A list of load balancer config objects for the ECS service; see [ecs_service#load_balancer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#load_balancer) docs"
@@ -442,6 +442,17 @@ variable "service_connect_configurations" {
         dns_name = string
         port     = number
       }))
+      timeout = optional(list(object({
+        idle_timeout_seconds        = optional(number, null)
+        per_request_timeout_seconds = optional(number, null)
+      })), [])
+      tls = optional(list(object({
+        kms_key  = optional(string, null)
+        role_arn = optional(string, null)
+        issuer_cert_authority = object({
+          aws_pca_authority_arn = string
+        })
+      })), [])
       discovery_name        = optional(string, null)
       ingress_port_override = optional(number, null)
       port_name             = string

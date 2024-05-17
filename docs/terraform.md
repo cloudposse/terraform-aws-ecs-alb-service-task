@@ -4,19 +4,20 @@
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.40 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.59 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.40 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.59 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
 | <a name="module_exec_label"></a> [exec\_label](#module\_exec\_label) | cloudposse/label/null | 0.25.0 |
+| <a name="module_service_connect_label"></a> [service\_connect\_label](#module\_service\_connect\_label) | cloudposse/label/null | 0.25.0 |
 | <a name="module_service_label"></a> [service\_label](#module\_service\_label) | cloudposse/label/null | 0.25.0 |
 | <a name="module_task_label"></a> [task\_label](#module\_task\_label) | cloudposse/label/null | 0.25.0 |
 | <a name="module_this"></a> [this](#module\_this) | cloudposse/label/null | 0.25.0 |
@@ -34,11 +35,13 @@
 | [aws_ecs_task_definition.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_task_definition) | resource |
 | [aws_iam_role.ecs_exec](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role.ecs_service](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role.ecs_service_connect_tls](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role.ecs_task](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role_policy.ecs_exec](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy.ecs_service](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy.ecs_ssm_exec](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy) | resource |
 | [aws_iam_role_policy_attachment.ecs_exec](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+| [aws_iam_role_policy_attachment.ecs_service_connect_tls](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_iam_role_policy_attachment.ecs_task](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_security_group.ecs_service](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_security_group_rule.alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
@@ -47,6 +50,7 @@
 | [aws_security_group_rule.nlb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
 | [aws_iam_policy_document.ecs_exec](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.ecs_service](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
+| [aws_iam_policy_document.ecs_service_connect_tls](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.ecs_service_policy](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.ecs_ssm_exec](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
 | [aws_iam_policy_document.ecs_task](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/iam_policy_document) | data source |
@@ -75,7 +79,7 @@
 | <a name="input_desired_count"></a> [desired\_count](#input\_desired\_count) | The number of instances of the task definition to place and keep running | `number` | `1` | no |
 | <a name="input_docker_volumes"></a> [docker\_volumes](#input\_docker\_volumes) | Task docker volume definitions as list of configuration objects. You can define multiple Docker volumes on the same task definition, but a single volume can only have one `docker_volume_configuration`. | <pre>list(object({<br>    host_path = string<br>    name      = string<br>    docker_volume_configuration = list(object({<br>      autoprovision = bool<br>      driver        = string<br>      driver_opts   = map(string)<br>      labels        = map(string)<br>      scope         = string<br>    }))<br>  }))</pre> | `[]` | no |
 | <a name="input_ecs_cluster_arn"></a> [ecs\_cluster\_arn](#input\_ecs\_cluster\_arn) | The ARN of the ECS cluster where service will be provisioned | `string` | n/a | yes |
-| <a name="input_ecs_load_balancers"></a> [ecs\_load\_balancers](#input\_ecs\_load\_balancers) | A list of load balancer config objects for the ECS service; see [ecs\_service#load\_balancer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#load_balancer) docs | <pre>list(object({<br>    container_name   = string<br>    container_port   = number<br>    elb_name         = string<br>    target_group_arn = string<br>  }))</pre> | `[]` | no |
+| <a name="input_ecs_load_balancers"></a> [ecs\_load\_balancers](#input\_ecs\_load\_balancers) | A list of load balancer config objects for the ECS service; see [ecs\_service#load\_balancer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#load_balancer) docs | <pre>list(object({<br>    container_name   = string<br>    container_port   = number<br>    elb_name         = optional(string)<br>    target_group_arn = string<br>  }))</pre> | `[]` | no |
 | <a name="input_ecs_service_enabled"></a> [ecs\_service\_enabled](#input\_ecs\_service\_enabled) | Whether or not to create the aws\_ecs\_service resource | `bool` | `true` | no |
 | <a name="input_efs_volumes"></a> [efs\_volumes](#input\_efs\_volumes) | Task EFS volume definitions as list of configuration objects. You can define multiple EFS volumes on the same task definition, but a single volume can only have one `efs_volume_configuration`. | <pre>list(object({<br>    host_path = string<br>    name      = string<br>    efs_volume_configuration = list(object({<br>      file_system_id          = string<br>      root_directory          = string<br>      transit_encryption      = string<br>      transit_encryption_port = string<br>      authorization_config = list(object({<br>        access_point_id = string<br>        iam             = string<br>      }))<br>    }))<br>  }))</pre> | `[]` | no |
 | <a name="input_enable_all_egress_rule"></a> [enable\_all\_egress\_rule](#input\_enable\_all\_egress\_rule) | A flag to enable/disable adding the all ports egress rule to the service security group | `bool` | `true` | no |
@@ -117,7 +121,7 @@
 | <a name="input_security_group_description"></a> [security\_group\_description](#input\_security\_group\_description) | The description to assign to the service security group.<br>Warning: Changing the description causes the security group to be replaced. | `string` | `"Allow ALL egress from ECS service"` | no |
 | <a name="input_security_group_enabled"></a> [security\_group\_enabled](#input\_security\_group\_enabled) | Whether to create a security group for the service. | `bool` | `true` | no |
 | <a name="input_security_group_ids"></a> [security\_group\_ids](#input\_security\_group\_ids) | Security group IDs to allow in Service `network_configuration` if `var.network_mode = "awsvpc"` | `list(string)` | `[]` | no |
-| <a name="input_service_connect_configurations"></a> [service\_connect\_configurations](#input\_service\_connect\_configurations) | The list of Service Connect configurations.<br>See `service_connect_configuration` docs https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#service_connect_configuration | <pre>list(object({<br>    enabled   = bool<br>    namespace = optional(string, null)<br>    log_configuration = optional(object({<br>      log_driver = string<br>      options    = optional(map(string), null)<br>      secret_option = optional(list(object({<br>        name       = string<br>        value_from = string<br>      })), [])<br>    }), null)<br>    service = optional(list(object({<br>      client_alias = list(object({<br>        dns_name = string<br>        port     = number<br>      }))<br>      discovery_name        = optional(string, null)<br>      ingress_port_override = optional(number, null)<br>      port_name             = string<br>    })), [])<br>  }))</pre> | `[]` | no |
+| <a name="input_service_connect_configurations"></a> [service\_connect\_configurations](#input\_service\_connect\_configurations) | The list of Service Connect configurations.<br>See `service_connect_configuration` docs https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#service_connect_configuration | <pre>list(object({<br>    enabled   = bool<br>    namespace = optional(string, null)<br>    log_configuration = optional(object({<br>      log_driver = string<br>      options    = optional(map(string), null)<br>      secret_option = optional(list(object({<br>        name       = string<br>        value_from = string<br>      })), [])<br>    }), null)<br>    service = optional(list(object({<br>      client_alias = list(object({<br>        dns_name = string<br>        port     = number<br>      }))<br>      timeout = optional(list(object({<br>        idle_timeout_seconds        = optional(number, null)<br>        per_request_timeout_seconds = optional(number, null)<br>      })), [])<br>      tls = optional(list(object({<br>        kms_key  = optional(string, null)<br>        role_arn = optional(string, null)<br>        issuer_cert_authority = object({<br>          aws_pca_authority_arn = string<br>        })<br>      })), [])<br>      discovery_name        = optional(string, null)<br>      ingress_port_override = optional(number, null)<br>      port_name             = string<br>    })), [])<br>  }))</pre> | `[]` | no |
 | <a name="input_service_placement_constraints"></a> [service\_placement\_constraints](#input\_service\_placement\_constraints) | The rules that are taken into consideration during task placement. Maximum number of placement\_constraints is 10. See [`placement_constraints`](https://www.terraform.io/docs/providers/aws/r/ecs_service.html#placement_constraints-1) docs | <pre>list(object({<br>    type       = string<br>    expression = string<br>  }))</pre> | `[]` | no |
 | <a name="input_service_registries"></a> [service\_registries](#input\_service\_registries) | Zero or one service discovery registries for the service.<br>The currently supported service registry is Amazon Route 53 Auto Naming Service - `aws_service_discovery_service`;<br>see `service_registries` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html#service_registries-1"<br>Service registry is object with required key `registry_arn = string` and optional keys<br>  `port           = number`<br>  `container_name = string`<br>  `container_port = number` | `list(any)` | `[]` | no |
 | <a name="input_service_role_arn"></a> [service\_role\_arn](#input\_service\_role\_arn) | ARN of the IAM role that allows Amazon ECS to make calls to your load balancer on your behalf. This parameter is required if you are using a load balancer with your service, but only if your task definition does not use the awsvpc network mode. If using awsvpc network mode, do not specify this role. If your account has already created the Amazon ECS service-linked role, that role is used by default for your service unless you specify a role here. | `string` | `null` | no |
@@ -152,6 +156,7 @@
 | <a name="output_service_role_arn"></a> [service\_role\_arn](#output\_service\_role\_arn) | ECS Service role ARN |
 | <a name="output_service_security_group_id"></a> [service\_security\_group\_id](#output\_service\_security\_group\_id) | Security Group ID of the ECS task |
 | <a name="output_task_definition_arn"></a> [task\_definition\_arn](#output\_task\_definition\_arn) | ECS task definition ARN |
+| <a name="output_task_definition_arn_without_revision"></a> [task\_definition\_arn\_without\_revision](#output\_task\_definition\_arn\_without\_revision) | ECS task definition ARN without revision |
 | <a name="output_task_definition_family"></a> [task\_definition\_family](#output\_task\_definition\_family) | ECS task definition family |
 | <a name="output_task_definition_revision"></a> [task\_definition\_revision](#output\_task\_definition\_revision) | ECS task definition revision |
 | <a name="output_task_exec_role_arn"></a> [task\_exec\_role\_arn](#output\_task\_exec\_role\_arn) | ECS Task exec role ARN |

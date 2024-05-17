@@ -2,47 +2,46 @@ name: terraform-aws-ecs-alb-service-task
 license: APACHE2
 github_repo: cloudposse/terraform-aws-ecs-alb-service-task
 badges:
-- name: Latest Release
-  image: https://img.shields.io/github/release/cloudposse/terraform-aws-ecs-alb-service-task.svg
-  url: https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/releases/latest
-- name: Slack Community
-  image: https://slack.cloudposse.com/badge.svg
-  url: https://slack.cloudposse.com
+  - name: Latest Release
+    image: https://img.shields.io/github/release/cloudposse/terraform-aws-ecs-alb-service-task.svg?style=for-the-badge
+    url: https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/releases/latest
+  - name: Last Updated
+    image: https://img.shields.io/github/last-commit/cloudposse/terraform-aws-ecs-alb-service-task.svg?style=for-the-badge
+    url: https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/commits
+  - name: Slack Community
+    image: https://slack.cloudposse.com/for-the-badge.svg
+    url: https://slack.cloudposse.com
+
+# List any related terraform modules that this module may be used with or that this module depends on.
 related:
-- name: terraform-aws-alb
-  description: Terraform module to provision a standard ALB for HTTP/HTTP traffic
-  url: https://github.com/cloudposse/terraform-aws-alb
-- name: terraform-aws-alb-ingress
-  description: Terraform module to provision an HTTP style ingress rule based on hostname
-    and path for an ALB
-  url: https://github.com/cloudposse/terraform-aws-alb-ingress
-- name: terraform-aws-codebuild
-  description: Terraform Module to easily leverage AWS CodeBuild for Continuous Integration
-  url: https://github.com/cloudposse/terraform-aws-codebuild
-- name: terraform-aws-ecr
-  description: Terraform Module to manage Docker Container Registries on AWS ECR
-  url: https://github.com/cloudposse/terraform-aws-ecr
-- name: terraform-aws-ecs-web-app
-  description: Terraform module that implements a web app on ECS and supporting AWS
-    resources
-  url: https://github.com/cloudposse/terraform-aws-ecs-web-app
-- name: terraform-aws-ecs-codepipeline
-  description: Terraform Module for CI/CD with AWS Code Pipeline and Code Build for
-    ECS
-  url: https://github.com/cloudposse/terraform-aws-ecs-codepipeline
-- name: terraform-aws-ecs-cloudwatch-sns-alarms
-  description: Terraform module to create CloudWatch Alarms on ECS Service level metrics
-  url: https://github.com/cloudposse/terraform-aws-ecs-cloudwatch-sns-alarms
-- name: terraform-aws-ecs-container-definition
-  description: Terraform module to generate well-formed JSON documents that are passed
-    to the aws_ecs_task_definition Terraform resource
-  url: https://github.com/cloudposse/terraform-aws-ecs-container-definition
-- name: terraform-aws-lb-s3-bucket
-  description: Terraform module to provision an S3 bucket with built in IAM policy
-    to allow AWS Load Balancers to ship access logs.
-  url: https://github.com/cloudposse/terraform-aws-lb-s3-bucket
-description: Terraform module to create an ECS Service for a web app (task), and an
-  ALB target group to route requests.
+  - name: terraform-aws-alb
+    description: Terraform module to provision a standard ALB for HTTP/HTTP traffic
+    url: https://github.com/cloudposse/terraform-aws-alb
+  - name: terraform-aws-alb-ingress
+    description: Terraform module to provision an HTTP style ingress rule based on hostname and path for an ALB
+    url: https://github.com/cloudposse/terraform-aws-alb-ingress
+  - name: terraform-aws-codebuild
+    description: Terraform Module to easily leverage AWS CodeBuild for Continuous Integration
+    url: https://github.com/cloudposse/terraform-aws-codebuild
+  - name: terraform-aws-ecr
+    description: Terraform Module to manage Docker Container Registries on AWS ECR
+    url: https://github.com/cloudposse/terraform-aws-ecr
+  - name: terraform-aws-ecs-web-app
+    description: Terraform module that implements a web app on ECS and supporting AWS resources
+    url: https://github.com/cloudposse/terraform-aws-ecs-web-app
+  - name: terraform-aws-ecs-codepipeline
+    description: Terraform Module for CI/CD with AWS Code Pipeline and Code Build for ECS
+    url: https://github.com/cloudposse/terraform-aws-ecs-codepipeline
+  - name: terraform-aws-ecs-cloudwatch-sns-alarms
+    description: Terraform module to create CloudWatch Alarms on ECS Service level metrics
+    url: https://github.com/cloudposse/terraform-aws-ecs-cloudwatch-sns-alarms
+  - name: terraform-aws-ecs-container-definition
+    description: Terraform module to generate well-formed JSON documents that are passed to the aws_ecs_task_definition Terraform resource
+    url: https://github.com/cloudposse/terraform-aws-ecs-container-definition
+  - name: terraform-aws-lb-s3-bucket
+    description: Terraform module to provision an S3 bucket with built in IAM policy to allow AWS Load Balancers to ship access logs.
+    url: https://github.com/cloudposse/terraform-aws-lb-s3-bucket
+description: Terraform module to create an ECS Service for a web app (task), and an ALB target group to route requests.
 usage: |2-
 
   For a complete example, see [examples/complete](examples/complete).
@@ -142,7 +141,7 @@ usage: |2-
   ```
 
   The `container_image` in the `container_definition` module is the Docker image used to start a container.
-  
+
   The `container_definition` is a string of JSON-encoded container definitions. Normally, you would place only one container definition here as the example
   above demonstrates. However, there might be situations where more than one container per task is more appropriate such as optionally in
   [Fargate](https://docs.aws.amazon.com/AmazonECS/latest/developerguide/application_architecture.html#application_architecture_fargate) or in other cases
@@ -180,20 +179,6 @@ usage: |2-
 
   For more info, see [Container Definition](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html).
 include:
-- docs/targets.md
-- docs/terraform.md
-contributors:
-- name: Erik Osterman
-  github: osterman
-- name: Igor Rodionov
-  github: goruha
-- name: Andriy Knysh
-  github: aknysh
-- name: Sarkis Varozian
-  github: sarkis
-- name: Chris Weyl
-  github: rsrchboy
-- name: RB
-  github: nitrocode
-- name: Maxim Mironenko
-  github: maximmi
+  - docs/targets.md
+  - docs/terraform.md
+contributors: []
