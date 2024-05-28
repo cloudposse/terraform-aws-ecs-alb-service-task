@@ -383,6 +383,12 @@ variable "ignore_changes_desired_count" {
   default     = false
 }
 
+variable "ignore_all_service_changes" {
+  type = bool
+  description = "Whether to ignore all service dependencies' changes after it is created"
+  default = false
+}
+
 variable "assign_public_ip" {
   type        = bool
   description = "Assign a public IP address to the ENI (Fargate launch type only). Valid values are `true` or `false`. Default `false`"

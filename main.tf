@@ -805,7 +805,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
 }
 
 resource "aws_ecs_service" "ignore_all_service_changes" {
-  count                              = local.ecs_service_enabled && var.ignore_changes_task_definition && var.ignore_changes_load_balancer && var.ignore_changes_desired_count ? 1 : 0
+  count                              = local.ecs_service_enabled && var.ignore_all_service_changes ? 1 : 0
   name                               = module.this.id
   task_definition                    = local.create_task_definition ? "${join("", aws_ecs_task_definition.default[*].family)}:${join("", aws_ecs_task_definition.default[*].revision)}" : var.task_definition[0]
   desired_count                      = var.desired_count
