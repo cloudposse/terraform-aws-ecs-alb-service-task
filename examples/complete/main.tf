@@ -40,7 +40,7 @@ module "container_definition" {
   count = local.enabled ? 1 : 0
 
   source  = "cloudposse/ecs-container-definition/aws"
-  version = "0.58.2"
+  version = "0.61.1"
 
   container_name               = var.container_name
   container_image              = var.container_image
@@ -76,6 +76,12 @@ module "test_policy" {
   context = module.this.context
 }
 
+resource "aws_service_discovery_http_namespace" "default" {
+  count = local.enabled && var.service_connect_enabled ? 1 : 0
+  name  = module.this.id
+  tags  = module.this.tags
+}
+
 module "ecs_alb_service_task" {
   source                             = "../.."
   alb_security_group                 = module.vpc.vpc_default_security_group_id
@@ -100,6 +106,23 @@ module "ecs_alb_service_task" {
   redeploy_on_apply                  = var.redeploy_on_apply
   task_policy_arns                   = [module.test_policy.policy_arn]
   task_exec_policy_arns_map          = { test = module.test_policy.policy_arn }
+
+  service_connect_configurations = [
+    {
+      enabled   = local.enabled && var.service_connect_enabled
+      namespace = join("", aws_service_discovery_http_namespace.default[*].arn)
+      service = [{
+        client_alias = [{
+          dns_name = module.this.name
+          port     = 80
+          }
+        ]
+        discovery_name = module.this.name
+        port_name      = var.container_port_mappings[0].name
+        }
+      ]
+    }
+  ]
 
   context = module.this.context
 }
