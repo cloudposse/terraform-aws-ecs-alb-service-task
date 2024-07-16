@@ -6,3 +6,4 @@ repository:
   homepage: https://cloudposse.com/accelerate
   topics: terraform, terraform-module, ecs, alb, service, task, container, docker, fargate, hcl2, terratest
 
+
