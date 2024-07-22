@@ -582,3 +582,9 @@ variable "pid_mode" {
     error_message = "The pid_mode value must be one of host or task."
   }
 }
+
+variable "track_latest" {
+  type        = bool
+  description = "Whether should track latest task definition or the one created with the resource."
+  default     = false
+}
