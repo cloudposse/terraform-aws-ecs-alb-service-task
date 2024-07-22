@@ -4,13 +4,13 @@
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.59 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.37 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.59 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.37 |
 
 ## Modules
 
@@ -136,6 +136,7 @@
 | <a name="input_task_policy_arns_map"></a> [task\_policy\_arns\_map](#input\_task\_policy\_arns\_map) | A map of name to IAM Policy ARNs to attach to the generated task role.<br>The names are arbitrary, but must be known at plan time. The purpose of the name<br>is so that changes to one ARN do not cause a ripple effect on the other ARNs.<br>If you cannot provide unique names known at plan time, use `task_policy_arns` instead. | `map(string)` | `{}` | no |
 | <a name="input_task_role_arn"></a> [task\_role\_arn](#input\_task\_role\_arn) | A `list(string)` of zero or one ARNs of IAM roles that allows<br>your Amazon ECS container task to make calls to other AWS services.<br>If the list is empty, a role will be created for you.<br>DEPRECATED: you can also pass a `string` with the ARN, but that<br>string must be known a "plan" time. | `any` | `[]` | no |
 | <a name="input_tenant"></a> [tenant](#input\_tenant) | ID element \_(Rarely used, not included by default)\_. A customer identifier, indicating who this instance of a resource is for | `string` | `null` | no |
+| <a name="input_track_latest"></a> [track\_latest](#input\_track\_latest) | Whether should track latest task definition or the one created with the resource. | `bool` | `false` | no |
 | <a name="input_use_alb_security_group"></a> [use\_alb\_security\_group](#input\_use\_alb\_security\_group) | A flag to enable/disable allowing traffic from the ALB security group to the service security group | `bool` | `false` | no |
 | <a name="input_use_nlb_cidr_blocks"></a> [use\_nlb\_cidr\_blocks](#input\_use\_nlb\_cidr\_blocks) | A flag to enable/disable adding the NLB ingress rule to the service security group | `bool` | `false` | no |
 | <a name="input_use_old_arn"></a> [use\_old\_arn](#input\_use\_old\_arn) | A flag to enable/disable tagging the ecs resources that require the new arn format | `bool` | `false` | no |
