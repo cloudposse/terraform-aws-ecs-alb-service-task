@@ -183,6 +183,109 @@ Images in other online repositories are qualified further by a domain name (for 
 
 For more info, see [Container Definition](https://docs.aws.amazon.com/AmazonECS/latest/APIReference/API_ContainerDefinition.html).
 
+### Special case
+
+Sometimes there is a need to add ignore_changes to service. The current approach is to copy the entire block. I propose to output the necessary variables to the output, and then add the appropriate block that will create the service with your code.
+
+```hcl
+module "ecs_alb_service_task" {
+  source = "cloudposse/ecs-alb-service-task/aws"
+  # Cloud Posse recommends pinning every module to a specific version
+  # version = "x.x.x"
+  ...
+  service_created = false
+}
+
+
+resource "aws_ecs_service" "custom_app_service" {
+  name                               = module.ecs_alb_service_task.aws_ecs_service_obj["name"]
+  task_definition                    = module.ecs_alb_service_task.aws_ecs_service_obj["task_definition"]
+  desired_count                      = module.ecs_alb_service_task.aws_ecs_service_obj["desired_count"]
+  deployment_maximum_percent         = module.ecs_alb_service_task.aws_ecs_service_obj["deployment_maximum_percent"]
+  deployment_minimum_healthy_percent = module.ecs_alb_service_task.aws_ecs_service_obj["deployment_minimum_healthy_percent"]
+  health_check_grace_period_seconds  = module.ecs_alb_service_task.aws_ecs_service_obj["health_check_grace_period_seconds"]
+  launch_type                        = module.ecs_alb_service_task.aws_ecs_service_obj["launch_type"]
+  platform_version                   = module.ecs_alb_service_task.aws_ecs_service_obj["platform_version"]
+  scheduling_strategy                = module.ecs_alb_service_task.aws_ecs_service_obj["scheduling_strategy"]
+  enable_ecs_managed_tags            = module.ecs_alb_service_task.aws_ecs_service_obj["enable_ecs_managed_tags"]
+  iam_role                           = module.ecs_alb_service_task.aws_ecs_service_obj["iam_role"]
+  wait_for_steady_state              = module.ecs_alb_service_task.aws_ecs_service_obj["wait_for_steady_state"]
+  force_new_deployment               = module.ecs_alb_service_task.aws_ecs_service_obj["force_new_deployment"]
+  enable_execute_command             = module.ecs_alb_service_task.aws_ecs_service_obj["enable_execute_command"]
+
+  dynamic "capacity_provider_strategy" {
+    for_each = module.ecs_alb_service_task.aws_ecs_service_obj["capacity_provider_strategies"]
+    content {
+      capacity_provider = capacity_provider_strategy.value.capacity_provider
+      weight            = capacity_provider_strategy.value.weight
+      base              = lookup(capacity_provider_strategy.value, "base", null)
+    }
+  }
+
+  dynamic "service_registries" {
+    for_each = module.ecs_alb_service_task.aws_ecs_service_obj["service_registries"]
+    content {
+      registry_arn   = service_registries.value.registry_arn
+      port           = lookup(service_registries.value, "port", null)
+      container_name = lookup(service_registries.value, "container_name", null)
+      container_port = lookup(service_registries.value, "container_port", null)
+    }
+  }
+
+  dynamic "ordered_placement_strategy" {
+    for_each = module.ecs_alb_service_task.aws_ecs_service_obj["ordered_placement_strategy"]
+    content {
+      type  = ordered_placement_strategy.value.type
+      field = lookup(ordered_placement_strategy.value, "field", null)
+    }
+  }
+
+  dynamic "placement_constraints" {
+    for_each = module.ecs_alb_service_task.aws_ecs_service_obj["service_placement_constraints"]
+    content {
+      type       = placement_constraints.value.type
+      expression = lookup(placement_constraints.value, "expression", null)
+    }
+  }
+
+  dynamic "load_balancer" {
+    for_each = module.ecs_alb_service_task.aws_ecs_service_obj["ecs_load_balancers"]
+    content {
+      container_name   = load_balancer.value.container_name
+      container_port   = load_balancer.value.container_port
+      elb_name         = lookup(load_balancer.value, "elb_name", null)
+      target_group_arn = lookup(load_balancer.value, "target_group_arn", null)
+    }
+  }
+
+  cluster        = module.ecs_alb_service_task.aws_ecs_service_obj["cluster"]
+  propagate_tags = module.ecs_alb_service_task.aws_ecs_service_obj["propagate_tags"]
+  tags           = module.ecs_alb_service_task.aws_ecs_service_obj["tags"]
+
+  deployment_controller {
+    type = module.ecs_alb_service_task.aws_ecs_service_obj["deployment_controller_type"]
+  }
+
+  dynamic "network_configuration" {
+    for_each = module.ecs_alb_service_task.aws_ecs_service_obj["network_mode"] == "awsvpc" ? ["true"] : []
+    content {
+      security_groups  = module.app_service.aws_ecs_service_obj["security_groups"]
+      subnets          = module.app_service.aws_ecs_service_obj["subnets"]
+      assign_public_ip = module.app_service.aws_ecs_service_obj["assign_public_ip"]
+    }
+  }
+
+  lifecycle {
+    ignore_changes = [ #example ignore changes, who required in CodeDeploy
+      task_definition,
+      load_balancer,
+      network_configuration
+    ]
+  }
+}
+
+```
+
 > [!IMPORTANT]
 > In Cloud Posse's examples, we avoid pinning modules to specific versions to prevent discrepancies between the documentation
 > and the latest released versions. However, for your own projects, we strongly advise pinning each module to the exact version
@@ -356,6 +459,7 @@ Available targets:
 
 | Name | Description |
 |------|-------------|
+| <a name="output_aws_ecs_service_obj"></a> [aws\_ecs\_service\_obj](#output\_aws\_ecs\_service\_obj) | Parameters to create the service |
 | <a name="output_ecs_exec_role_policy_id"></a> [ecs\_exec\_role\_policy\_id](#output\_ecs\_exec\_role\_policy\_id) | The ECS service role policy ID, in the form of `role_name:role_policy_name` |
 | <a name="output_ecs_exec_role_policy_name"></a> [ecs\_exec\_role\_policy\_name](#output\_ecs\_exec\_role\_policy\_name) | ECS service role name |
 | <a name="output_service_arn"></a> [service\_arn](#output\_service\_arn) | ECS Service ARN |

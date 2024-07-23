@@ -399,25 +399,68 @@ resource "aws_security_group_rule" "nlb" {
   security_group_id = one(aws_security_group.ecs_service[*]["id"])
 }
 
+locals {
+  ecs_service_task_definition     = local.create_task_definition ? "${join("", aws_ecs_task_definition.default[*].family)}:${join("", aws_ecs_task_definition.default[*].revision)}" : one(var.task_definition)
+  ecs_service_launch_type         = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
+  ecs_service_platform_version    = var.launch_type == "FARGATE" ? var.platform_version : null
+  ecs_service_scheduling_strategy = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
+  ecs_service_iam_role            = local.enable_ecs_service_role ? coalesce(var.service_role_arn, one(aws_iam_role.ecs_service[*]["arn"])) : null
+
+  ecs_service_attrs = {
+    name                               = module.this.id
+    task_definition                    = local.ecs_service_task_definition
+    desired_count                      = var.desired_count
+    deployment_maximum_percent         = var.deployment_maximum_percent
+    deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
+    health_check_grace_period_seconds  = var.health_check_grace_period_seconds
+    launch_type                        = local.ecs_service_launch_type
+    platform_version                   = local.ecs_service_platform_version
+    scheduling_strategy                = local.ecs_service_scheduling_strategy
+    enable_ecs_managed_tags            = var.enable_ecs_managed_tags
+    iam_role                           = local.ecs_service_iam_role
+    wait_for_steady_state              = var.wait_for_steady_state
+    force_new_deployment               = var.force_new_deployment
+    enable_execute_command             = var.exec_enabled
+    cluster                            = var.ecs_cluster_arn
+    propagate_tags                     = var.propagate_tags
+    tags                               = var.use_old_arn ? null : module.this.tags
+    deployment_controller_type         = var.deployment_controller_type
+
+    capacity_provider_strategies  = var.capacity_provider_strategies
+    service_registries            = var.service_registries
+    ordered_placement_strategy    = var.ordered_placement_strategy
+    service_placement_constraints = var.service_placement_constraints
+    ecs_load_balancers            = var.ecs_load_balancers
+
+    network_mode     = var.network_mode
+    security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service[*]["id"]))
+    subnets          = var.subnet_ids
+    assign_public_ip = var.assign_public_ip
+
+    deployment_circuit_breaker_enable   = var.circuit_breaker_deployment_enabled
+    deployment_circuit_breaker_rollback = var.circuit_breaker_rollback_enabled
+  }
+}
+
 resource "aws_ecs_service" "ignore_changes_task_definition" {
   count                              = local.ecs_service_enabled && var.ignore_changes_task_definition && !var.ignore_changes_desired_count ? 1 : 0
-  name                               = module.this.id
-  task_definition                    = local.create_task_definition ? "${join("", aws_ecs_task_definition.default[*].family)}:${join("", aws_ecs_task_definition.default[*].revision)}" : var.task_definition[0]
-  desired_count                      = var.desired_count
-  deployment_maximum_percent         = var.deployment_maximum_percent
-  deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
-  health_check_grace_period_seconds  = var.health_check_grace_period_seconds
-  launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
-  platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
-  scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
-  enable_ecs_managed_tags            = var.enable_ecs_managed_tags
-  iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, one(aws_iam_role.ecs_service[*]["arn"])) : null
-  wait_for_steady_state              = var.wait_for_steady_state
-  force_new_deployment               = var.force_new_deployment
-  enable_execute_command             = var.exec_enabled
+  name                               = local.ecs_service_attrs["name"]
+  task_definition                    = local.ecs_service_attrs["task_definition"]
+  desired_count                      = local.ecs_service_attrs["desired_count"]
+  deployment_maximum_percent         = local.ecs_service_attrs["deployment_maximum_percent"]
+  deployment_minimum_healthy_percent = local.ecs_service_attrs["deployment_minimum_healthy_percent"]
+  health_check_grace_period_seconds  = local.ecs_service_attrs["health_check_grace_period_seconds"]
+  launch_type                        = local.ecs_service_attrs["launch_type"]
+  platform_version                   = local.ecs_service_attrs["platform_version"]
+  scheduling_strategy                = local.ecs_service_attrs["scheduling_strategy"]
+  enable_ecs_managed_tags            = local.ecs_service_attrs["enable_ecs_managed_tags"]
+  iam_role                           = local.ecs_service_attrs["iam_role"]
+  wait_for_steady_state              = local.ecs_service_attrs["wait_for_steady_state"]
+  force_new_deployment               = local.ecs_service_attrs["force_new_deployment"]
+  enable_execute_command             = local.ecs_service_attrs["enable_execute_command"]
 
   dynamic "capacity_provider_strategy" {
-    for_each = var.capacity_provider_strategies
+    for_each = local.ecs_service_attrs["capacity_provider_strategies"]
     content {
       capacity_provider = capacity_provider_strategy.value.capacity_provider
       weight            = capacity_provider_strategy.value.weight
@@ -426,7 +469,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   }
 
   dynamic "service_registries" {
-    for_each = var.service_registries
+    for_each = local.ecs_service_attrs["service_registries"]
     content {
       registry_arn   = service_registries.value.registry_arn
       port           = lookup(service_registries.value, "port", null)
@@ -490,7 +533,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   }
 
   dynamic "ordered_placement_strategy" {
-    for_each = var.ordered_placement_strategy
+    for_each = local.ecs_service_attrs["ordered_placement_strategy"]
     content {
       type  = ordered_placement_strategy.value.type
       field = lookup(ordered_placement_strategy.value, "field", null)
@@ -498,7 +541,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   }
 
   dynamic "placement_constraints" {
-    for_each = var.service_placement_constraints
+    for_each = local.ecs_service_attrs["service_placement_constraints"]
     content {
       type       = placement_constraints.value.type
       expression = lookup(placement_constraints.value, "expression", null)
@@ -506,7 +549,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
   }
 
   dynamic "load_balancer" {
-    for_each = var.ecs_load_balancers
+    for_each = local.ecs_service_attrs["ecs_load_balancers"]
     content {
       container_name   = load_balancer.value.container_name
       container_port   = load_balancer.value.container_port
@@ -515,29 +558,29 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
     }
   }
 
-  cluster        = var.ecs_cluster_arn
-  propagate_tags = var.propagate_tags
-  tags           = var.use_old_arn ? null : module.this.tags
+  cluster        = local.ecs_service_attrs["cluster"]
+  propagate_tags = local.ecs_service_attrs["propagate_tags"]
+  tags           = local.ecs_service_attrs["tags"]
 
   deployment_controller {
-    type = var.deployment_controller_type
+    type = local.ecs_service_attrs["deployment_controller_type"]
   }
 
   # https://www.terraform.io/docs/providers/aws/r/ecs_service.html#network_configuration
   dynamic "network_configuration" {
-    for_each = var.network_mode == "awsvpc" ? ["true"] : []
+    for_each = local.ecs_service_attrs["network_mode"] == "awsvpc" ? ["true"] : []
     content {
-      security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service[*]["id"]))
-      subnets          = var.subnet_ids
-      assign_public_ip = var.assign_public_ip
+      security_groups  = local.ecs_service_attrs["security_groups"]
+      subnets          = local.ecs_service_attrs["subnets"]
+      assign_public_ip = local.ecs_service_attrs["assign_public_ip"]
     }
   }
 
   dynamic "deployment_circuit_breaker" {
     for_each = var.deployment_controller_type == "ECS" ? ["true"] : []
     content {
-      enable   = var.circuit_breaker_deployment_enabled
-      rollback = var.circuit_breaker_rollback_enabled
+      enable   = local.ecs_service_attrs["deployment_circuit_breaker_enable"]
+      rollback = local.ecs_service_attrs["deployment_circuit_breaker_rollback"]
     }
   }
 
@@ -554,23 +597,23 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
 
 resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
   count                              = local.ecs_service_enabled && var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
-  name                               = module.this.id
-  task_definition                    = local.create_task_definition ? "${join("", aws_ecs_task_definition.default[*].family)}:${join("", aws_ecs_task_definition.default[*].revision)}" : var.task_definition[0]
-  desired_count                      = var.desired_count
-  deployment_maximum_percent         = var.deployment_maximum_percent
-  deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
-  health_check_grace_period_seconds  = var.health_check_grace_period_seconds
-  launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
-  platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
-  scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
-  enable_ecs_managed_tags            = var.enable_ecs_managed_tags
-  iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, one(aws_iam_role.ecs_service[*]["arn"])) : null
-  wait_for_steady_state              = var.wait_for_steady_state
-  force_new_deployment               = var.force_new_deployment
-  enable_execute_command             = var.exec_enabled
+  name                               = local.ecs_service_attrs["name"]
+  task_definition                    = local.ecs_service_attrs["task_definition"]
+  desired_count                      = local.ecs_service_attrs["desired_count"]
+  deployment_maximum_percent         = local.ecs_service_attrs["deployment_maximum_percent"]
+  deployment_minimum_healthy_percent = local.ecs_service_attrs["deployment_minimum_healthy_percent"]
+  health_check_grace_period_seconds  = local.ecs_service_attrs["health_check_grace_period_seconds"]
+  launch_type                        = local.ecs_service_attrs["launch_type"]
+  platform_version                   = local.ecs_service_attrs["platform_version"]
+  scheduling_strategy                = local.ecs_service_attrs["scheduling_strategy"]
+  enable_ecs_managed_tags            = local.ecs_service_attrs["enable_ecs_managed_tags"]
+  iam_role                           = local.ecs_service_attrs["iam_role"]
+  wait_for_steady_state              = local.ecs_service_attrs["wait_for_steady_state"]
+  force_new_deployment               = local.ecs_service_attrs["force_new_deployment"]
+  enable_execute_command             = local.ecs_service_attrs["enable_execute_command"]
 
   dynamic "capacity_provider_strategy" {
-    for_each = var.capacity_provider_strategies
+    for_each = local.ecs_service_attrs["capacity_provider_strategies"]
     content {
       capacity_provider = capacity_provider_strategy.value.capacity_provider
       weight            = capacity_provider_strategy.value.weight
@@ -579,7 +622,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
   }
 
   dynamic "service_registries" {
-    for_each = var.service_registries
+    for_each = local.ecs_service_attrs["service_registries"]
     content {
       registry_arn   = service_registries.value.registry_arn
       port           = lookup(service_registries.value, "port", null)
@@ -643,7 +686,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
   }
 
   dynamic "ordered_placement_strategy" {
-    for_each = var.ordered_placement_strategy
+    for_each = local.ecs_service_attrs["ordered_placement_strategy"]
     content {
       type  = ordered_placement_strategy.value.type
       field = lookup(ordered_placement_strategy.value, "field", null)
@@ -651,7 +694,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
   }
 
   dynamic "placement_constraints" {
-    for_each = var.service_placement_constraints
+    for_each = local.ecs_service_attrs["service_placement_constraints"]
     content {
       type       = placement_constraints.value.type
       expression = lookup(placement_constraints.value, "expression", null)
@@ -659,7 +702,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
   }
 
   dynamic "load_balancer" {
-    for_each = var.ecs_load_balancers
+    for_each = local.ecs_service_attrs["ecs_load_balancers"]
     content {
       container_name   = load_balancer.value.container_name
       container_port   = load_balancer.value.container_port
@@ -668,29 +711,29 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
     }
   }
 
-  cluster        = var.ecs_cluster_arn
-  propagate_tags = var.propagate_tags
-  tags           = var.use_old_arn ? null : module.this.tags
+  cluster        = local.ecs_service_attrs["cluster"]
+  propagate_tags = local.ecs_service_attrs["propagate_tags"]
+  tags           = local.ecs_service_attrs["tags"]
 
   deployment_controller {
-    type = var.deployment_controller_type
+    type = local.ecs_service_attrs["deployment_controller_type"]
   }
 
   # https://www.terraform.io/docs/providers/aws/r/ecs_service.html#network_configuration
   dynamic "network_configuration" {
-    for_each = var.network_mode == "awsvpc" ? ["true"] : []
+    for_each = local.ecs_service_attrs["network_mode"] == "awsvpc" ? ["true"] : []
     content {
-      security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service[*]["id"]))
-      subnets          = var.subnet_ids
-      assign_public_ip = var.assign_public_ip
+      security_groups  = local.ecs_service_attrs["security_groups"]
+      subnets          = local.ecs_service_attrs["subnets"]
+      assign_public_ip = local.ecs_service_attrs["assign_public_ip"]
     }
   }
 
   dynamic "deployment_circuit_breaker" {
     for_each = var.deployment_controller_type == "ECS" ? ["true"] : []
     content {
-      enable   = var.circuit_breaker_deployment_enabled
-      rollback = var.circuit_breaker_rollback_enabled
+      enable   = local.ecs_service_attrs["deployment_circuit_breaker_enable"]
+      rollback = local.ecs_service_attrs["deployment_circuit_breaker_rollback"]
     }
   }
 
@@ -707,23 +750,23 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
 
 resource "aws_ecs_service" "ignore_changes_desired_count" {
   count                              = local.ecs_service_enabled && !var.ignore_changes_task_definition && var.ignore_changes_desired_count ? 1 : 0
-  name                               = module.this.id
-  task_definition                    = local.create_task_definition ? "${join("", aws_ecs_task_definition.default[*].family)}:${join("", aws_ecs_task_definition.default[*].revision)}" : var.task_definition[0]
-  desired_count                      = var.desired_count
-  deployment_maximum_percent         = var.deployment_maximum_percent
-  deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
-  health_check_grace_period_seconds  = var.health_check_grace_period_seconds
-  launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
-  platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
-  scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
-  enable_ecs_managed_tags            = var.enable_ecs_managed_tags
-  iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, one(aws_iam_role.ecs_service[*]["arn"])) : null
-  wait_for_steady_state              = var.wait_for_steady_state
-  force_new_deployment               = var.force_new_deployment
-  enable_execute_command             = var.exec_enabled
+  name                               = local.ecs_service_attrs["name"]
+  task_definition                    = local.ecs_service_attrs["task_definition"]
+  desired_count                      = local.ecs_service_attrs["desired_count"]
+  deployment_maximum_percent         = local.ecs_service_attrs["deployment_maximum_percent"]
+  deployment_minimum_healthy_percent = local.ecs_service_attrs["deployment_minimum_healthy_percent"]
+  health_check_grace_period_seconds  = local.ecs_service_attrs["health_check_grace_period_seconds"]
+  launch_type                        = local.ecs_service_attrs["launch_type"]
+  platform_version                   = local.ecs_service_attrs["platform_version"]
+  scheduling_strategy                = local.ecs_service_attrs["scheduling_strategy"]
+  enable_ecs_managed_tags            = local.ecs_service_attrs["enable_ecs_managed_tags"]
+  iam_role                           = local.ecs_service_attrs["iam_role"]
+  wait_for_steady_state              = local.ecs_service_attrs["wait_for_steady_state"]
+  force_new_deployment               = local.ecs_service_attrs["force_new_deployment"]
+  enable_execute_command             = local.ecs_service_attrs["enable_execute_command"]
 
   dynamic "capacity_provider_strategy" {
-    for_each = var.capacity_provider_strategies
+    for_each = local.ecs_service_attrs["capacity_provider_strategies"]
     content {
       capacity_provider = capacity_provider_strategy.value.capacity_provider
       weight            = capacity_provider_strategy.value.weight
@@ -732,7 +775,7 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
   }
 
   dynamic "service_registries" {
-    for_each = var.service_registries
+    for_each = local.ecs_service_attrs["service_registries"]
     content {
       registry_arn   = service_registries.value.registry_arn
       port           = lookup(service_registries.value, "port", null)
@@ -796,7 +839,7 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
   }
 
   dynamic "ordered_placement_strategy" {
-    for_each = var.ordered_placement_strategy
+    for_each = local.ecs_service_attrs["ordered_placement_strategy"]
     content {
       type  = ordered_placement_strategy.value.type
       field = lookup(ordered_placement_strategy.value, "field", null)
@@ -804,7 +847,7 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
   }
 
   dynamic "placement_constraints" {
-    for_each = var.service_placement_constraints
+    for_each = local.ecs_service_attrs["service_placement_constraints"]
     content {
       type       = placement_constraints.value.type
       expression = lookup(placement_constraints.value, "expression", null)
@@ -812,7 +855,7 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
   }
 
   dynamic "load_balancer" {
-    for_each = var.ecs_load_balancers
+    for_each = local.ecs_service_attrs["ecs_load_balancers"]
     content {
       container_name   = load_balancer.value.container_name
       container_port   = load_balancer.value.container_port
@@ -821,29 +864,30 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
     }
   }
 
-  cluster        = var.ecs_cluster_arn
-  propagate_tags = var.propagate_tags
-  tags           = var.use_old_arn ? null : module.this.tags
+  cluster        = local.ecs_service_attrs["cluster"]
+  propagate_tags = local.ecs_service_attrs["propagate_tags"]
+  tags           = local.ecs_service_attrs["tags"]
 
   deployment_controller {
-    type = var.deployment_controller_type
+    type = local.ecs_service_attrs["deployment_controller_type"]
   }
 
   # https://www.terraform.io/docs/providers/aws/r/ecs_service.html#network_configuration
   dynamic "network_configuration" {
-    for_each = var.network_mode == "awsvpc" ? ["true"] : []
+    for_each = local.ecs_service_attrs["network_mode"] == "awsvpc" ? ["true"] : []
     content {
-      security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service[*]["id"]))
-      subnets          = var.subnet_ids
-      assign_public_ip = var.assign_public_ip
+      security_groups  = local.ecs_service_attrs["security_groups"]
+      subnets          = local.ecs_service_attrs["subnets"]
+      assign_public_ip = local.ecs_service_attrs["assign_public_ip"]
     }
   }
+
 
   dynamic "deployment_circuit_breaker" {
     for_each = var.deployment_controller_type == "ECS" ? ["true"] : []
     content {
-      enable   = var.circuit_breaker_deployment_enabled
-      rollback = var.circuit_breaker_rollback_enabled
+      enable   = local.ecs_service_attrs["deployment_circuit_breaker_enable"]
+      rollback = local.ecs_service_attrs["deployment_circuit_breaker_rollback"]
     }
   }
 
@@ -860,23 +904,23 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
 
 resource "aws_ecs_service" "default" {
   count                              = local.ecs_service_enabled && !var.ignore_changes_task_definition && !var.ignore_changes_desired_count ? 1 : 0
-  name                               = module.this.id
-  task_definition                    = local.create_task_definition ? "${join("", aws_ecs_task_definition.default[*].family)}:${join("", aws_ecs_task_definition.default[*].revision)}" : var.task_definition[0]
-  desired_count                      = var.desired_count
-  deployment_maximum_percent         = var.deployment_maximum_percent
-  deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
-  health_check_grace_period_seconds  = var.health_check_grace_period_seconds
-  launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
-  platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
-  scheduling_strategy                = var.launch_type == "FARGATE" ? "REPLICA" : var.scheduling_strategy
-  enable_ecs_managed_tags            = var.enable_ecs_managed_tags
-  iam_role                           = local.enable_ecs_service_role ? coalesce(var.service_role_arn, one(aws_iam_role.ecs_service[*]["arn"])) : null
-  wait_for_steady_state              = var.wait_for_steady_state
-  force_new_deployment               = var.force_new_deployment
-  enable_execute_command             = var.exec_enabled
+  name                               = local.ecs_service_attrs["name"]
+  task_definition                    = local.ecs_service_attrs["task_definition"]
+  desired_count                      = local.ecs_service_attrs["desired_count"]
+  deployment_maximum_percent         = local.ecs_service_attrs["deployment_maximum_percent"]
+  deployment_minimum_healthy_percent = local.ecs_service_attrs["deployment_minimum_healthy_percent"]
+  health_check_grace_period_seconds  = local.ecs_service_attrs["health_check_grace_period_seconds"]
+  launch_type                        = local.ecs_service_attrs["launch_type"]
+  platform_version                   = local.ecs_service_attrs["platform_version"]
+  scheduling_strategy                = local.ecs_service_attrs["scheduling_strategy"]
+  enable_ecs_managed_tags            = local.ecs_service_attrs["enable_ecs_managed_tags"]
+  iam_role                           = local.ecs_service_attrs["iam_role"]
+  wait_for_steady_state              = local.ecs_service_attrs["wait_for_steady_state"]
+  force_new_deployment               = local.ecs_service_attrs["force_new_deployment"]
+  enable_execute_command             = local.ecs_service_attrs["enable_execute_command"]
 
   dynamic "capacity_provider_strategy" {
-    for_each = var.capacity_provider_strategies
+    for_each = local.ecs_service_attrs["capacity_provider_strategies"]
     content {
       capacity_provider = capacity_provider_strategy.value.capacity_provider
       weight            = capacity_provider_strategy.value.weight
@@ -885,7 +929,7 @@ resource "aws_ecs_service" "default" {
   }
 
   dynamic "service_registries" {
-    for_each = var.service_registries
+    for_each = local.ecs_service_attrs["service_registries"]
     content {
       registry_arn   = service_registries.value.registry_arn
       port           = lookup(service_registries.value, "port", null)
@@ -949,7 +993,7 @@ resource "aws_ecs_service" "default" {
   }
 
   dynamic "ordered_placement_strategy" {
-    for_each = var.ordered_placement_strategy
+    for_each = local.ecs_service_attrs["ordered_placement_strategy"]
     content {
       type  = ordered_placement_strategy.value.type
       field = lookup(ordered_placement_strategy.value, "field", null)
@@ -957,7 +1001,7 @@ resource "aws_ecs_service" "default" {
   }
 
   dynamic "placement_constraints" {
-    for_each = var.service_placement_constraints
+    for_each = local.ecs_service_attrs["service_placement_constraints"]
     content {
       type       = placement_constraints.value.type
       expression = lookup(placement_constraints.value, "expression", null)
@@ -965,7 +1009,7 @@ resource "aws_ecs_service" "default" {
   }
 
   dynamic "load_balancer" {
-    for_each = var.ecs_load_balancers
+    for_each = local.ecs_service_attrs["ecs_load_balancers"]
     content {
       container_name   = load_balancer.value.container_name
       container_port   = load_balancer.value.container_port
@@ -974,29 +1018,29 @@ resource "aws_ecs_service" "default" {
     }
   }
 
-  cluster        = var.ecs_cluster_arn
-  propagate_tags = var.propagate_tags
-  tags           = var.use_old_arn ? null : module.this.tags
+  cluster        = local.ecs_service_attrs["cluster"]
+  propagate_tags = local.ecs_service_attrs["propagate_tags"]
+  tags           = local.ecs_service_attrs["tags"]
 
   deployment_controller {
-    type = var.deployment_controller_type
+    type = local.ecs_service_attrs["deployment_controller_type"]
   }
 
   # https://www.terraform.io/docs/providers/aws/r/ecs_service.html#network_configuration
   dynamic "network_configuration" {
-    for_each = var.network_mode == "awsvpc" ? ["true"] : []
+    for_each = local.ecs_service_attrs["network_mode"] == "awsvpc" ? ["true"] : []
     content {
-      security_groups  = compact(concat(var.security_group_ids, aws_security_group.ecs_service[*]["id"]))
-      subnets          = var.subnet_ids
-      assign_public_ip = var.assign_public_ip
+      security_groups  = local.ecs_service_attrs["security_groups"]
+      subnets          = local.ecs_service_attrs["subnets"]
+      assign_public_ip = local.ecs_service_attrs["assign_public_ip"]
     }
   }
 
   dynamic "deployment_circuit_breaker" {
     for_each = var.deployment_controller_type == "ECS" ? ["true"] : []
     content {
-      enable   = var.circuit_breaker_deployment_enabled
-      rollback = var.circuit_breaker_rollback_enabled
+      enable   = local.ecs_service_attrs["deployment_circuit_breaker_enable"]
+      rollback = local.ecs_service_attrs["deployment_circuit_breaker_rollback"]
     }
   }
 

@@ -147,6 +147,7 @@
 
 | Name | Description |
 |------|-------------|
+| <a name="output_aws_ecs_service_obj"></a> [aws\_ecs\_service\_obj](#output\_aws\_ecs\_service\_obj) | Parameters to create the service |
 | <a name="output_ecs_exec_role_policy_id"></a> [ecs\_exec\_role\_policy\_id](#output\_ecs\_exec\_role\_policy\_id) | The ECS service role policy ID, in the form of `role_name:role_policy_name` |
 | <a name="output_ecs_exec_role_policy_name"></a> [ecs\_exec\_role\_policy\_name](#output\_ecs\_exec\_role\_policy\_name) | ECS service role name |
 | <a name="output_service_arn"></a> [service\_arn](#output\_service\_arn) | ECS Service ARN |
