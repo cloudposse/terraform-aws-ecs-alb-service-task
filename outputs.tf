@@ -14,12 +14,12 @@ output "ecs_exec_role_policy_name" {
 
 output "service_name" {
   description = "ECS Service name"
-  value       = try(aws_ecs_service.default[0].name, aws_ecs_service.ignore_changes_task_definition[0].name, aws_ecs_service.ignore_changes_desired_count[0].name, aws_ecs_service.ignore_changes_task_definition_and_desired_count[0].name, "")
+  value       = try(aws_ecs_service.default[0].name, aws_ecs_service.ignore_changes_task_definition[0].name, aws_ecs_service.ignore_changes_desired_count[0].name, aws_ecs_service.ignore_changes_task_definition_and_desired_count[0].name, aws_ecs_service.ignore_changes_task_definition_and_load_balancer[0].name, aws_ecs_service.ignore_changes_task_definition_and_desired_count_and_load_balancer[0].name, "")
 }
 
 output "service_arn" {
   description = "ECS Service ARN"
-  value       = try(aws_ecs_service.default[0].id, aws_ecs_service.ignore_changes_task_definition[0].id, aws_ecs_service.ignore_changes_desired_count[0].id, aws_ecs_service.ignore_changes_task_definition_and_desired_count[0].id, "")
+  value       = try(aws_ecs_service.default[0].id, aws_ecs_service.ignore_changes_task_definition[0].id, aws_ecs_service.ignore_changes_desired_count[0].id, aws_ecs_service.ignore_changes_task_definition_and_desired_count[0].id, aws_ecs_service.ignore_changes_task_definition_and_load_balancer[0].id, aws_ecs_service.ignore_changes_task_definition_and_desired_count_and_load_balancer[0].id, "")
 }
 
 output "service_role_arn" {
