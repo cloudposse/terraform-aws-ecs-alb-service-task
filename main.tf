@@ -68,6 +68,7 @@ resource "aws_ecs_task_definition" "default" {
   pid_mode                 = var.pid_mode
   execution_role_arn       = length(local.task_exec_role_arn) > 0 ? local.task_exec_role_arn : one(aws_iam_role.ecs_exec[*]["arn"])
   task_role_arn            = length(local.task_role_arn) > 0 ? local.task_role_arn : one(aws_iam_role.ecs_task[*]["arn"])
+  track_latest             = var.track_latest
 
   dynamic "proxy_configuration" {
     for_each = var.proxy_configuration == null ? [] : [var.proxy_configuration]
