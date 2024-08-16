@@ -1,7 +1,7 @@
 
 
 <!-- markdownlint-disable -->
-<a href="https://cpco.io/homepage"><img src=".github/banner.png?raw=true" alt="Project Banner"/></a><br/>
+<a href="https://cpco.io/homepage"><img src="https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/blob/main/.github/banner.png?raw=true" alt="Project Banner"/></a><br/>
     <p align="right">
 <a href="https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/releases/latest"><img src="https://img.shields.io/github/release/cloudposse/terraform-aws-ecs-alb-service-task.svg?style=for-the-badge" alt="Latest Release"/></a><a href="https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/commits"><img src="https://img.shields.io/github/last-commit/cloudposse/terraform-aws-ecs-alb-service-task.svg?style=for-the-badge" alt="Last Updated"/></a><a href="https://slack.cloudposse.com"><img src="https://slack.cloudposse.com/for-the-badge.svg" alt="Slack Community"/></a></p>
 <!-- markdownlint-restore -->
@@ -213,13 +213,13 @@ Available targets:
 | Name | Version |
 |------|---------|
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 4.59 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.37 |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 4.59 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.37 |
 
 ## Modules
 
@@ -348,6 +348,7 @@ Available targets:
 | <a name="input_task_policy_arns_map"></a> [task\_policy\_arns\_map](#input\_task\_policy\_arns\_map) | A map of name to IAM Policy ARNs to attach to the generated task role.<br>The names are arbitrary, but must be known at plan time. The purpose of the name<br>is so that changes to one ARN do not cause a ripple effect on the other ARNs.<br>If you cannot provide unique names known at plan time, use `task_policy_arns` instead. | `map(string)` | `{}` | no |
 | <a name="input_task_role_arn"></a> [task\_role\_arn](#input\_task\_role\_arn) | A `list(string)` of zero or one ARNs of IAM roles that allows<br>your Amazon ECS container task to make calls to other AWS services.<br>If the list is empty, a role will be created for you.<br>DEPRECATED: you can also pass a `string` with the ARN, but that<br>string must be known a "plan" time. | `any` | `[]` | no |
 | <a name="input_tenant"></a> [tenant](#input\_tenant) | ID element \_(Rarely used, not included by default)\_. A customer identifier, indicating who this instance of a resource is for | `string` | `null` | no |
+| <a name="input_track_latest"></a> [track\_latest](#input\_track\_latest) | Whether should track latest task definition or the one created with the resource. | `bool` | `false` | no |
 | <a name="input_use_alb_security_group"></a> [use\_alb\_security\_group](#input\_use\_alb\_security\_group) | A flag to enable/disable allowing traffic from the ALB security group to the service security group | `bool` | `false` | no |
 | <a name="input_use_nlb_cidr_blocks"></a> [use\_nlb\_cidr\_blocks](#input\_use\_nlb\_cidr\_blocks) | A flag to enable/disable adding the NLB ingress rule to the service security group | `bool` | `false` | no |
 | <a name="input_use_old_arn"></a> [use\_old\_arn](#input\_use\_old\_arn) | A flag to enable/disable tagging the ecs resources that require the new arn format | `bool` | `false` | no |
@@ -397,9 +398,9 @@ Check out these related projects.
 >
 > Use Cloud Posse's ready-to-go [terraform architecture blueprints](https://cloudposse.com/reference-architecture/) for AWS to get up and running quickly.
 >
-> ✅ We build it with you.<br/>
-> ✅ You own everything.<br/>
-> ✅ Your team wins.<br/>
+> ✅ We build it together with your team.<br/>
+> ✅ Your team owns everything.<br/>
+> ✅ 100% Open Source and backed by fanatical support.<br/>
 >
 > <a href="https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=commercial_support"><img alt="Request Quote" src="https://img.shields.io/badge/request%20quote-success.svg?style=for-the-badge"/></a>
 > <details><summary>📚 <strong>Learn More</strong></summary>
