@@ -37,4 +37,4 @@ jobs:
               'main'
             ]
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_SEMANTIC_RELEASE_TOKEN_2023 }}
+          GITHUB_TOKEN: ${{ secrets.GH_SEMANTIC_RELEASE_TOKEN_2024 }}
