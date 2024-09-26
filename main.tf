@@ -13,7 +13,7 @@ locals {
   volumes = concat(var.docker_volumes, var.efs_volumes, var.fsx_volumes, var.bind_mount_volumes)
 
   redeployment_trigger = var.force_new_deployment && var.redeploy_on_apply ? {
-    redeployment = timestamp()
+    redeployment = plantimestamp()
   } : {}
 
   task_policy_arns_map = merge({ for i, a in var.task_policy_arns : format("_#%v_", i) => a }, var.task_policy_arns_map)
