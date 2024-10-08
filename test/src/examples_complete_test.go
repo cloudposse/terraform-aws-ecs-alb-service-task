@@ -81,12 +81,12 @@ func TestExamplesComplete(t *testing.T) {
 	// Run `terraform output` to get the value of an output variable
 	ecsClusterId := terraform.Output(t, terraformOptions, "ecs_cluster_id")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "arn:aws:ecs:us-east-2:126450723953:cluster/"+basename, ecsClusterId)
+	assert.Equal(t, "arn:aws:ecs:us-east-2:799847381734:cluster/"+basename, ecsClusterId)
 
 	// Run `terraform output` to get the value of an output variable
 	ecsClusterArn := terraform.Output(t, terraformOptions, "ecs_cluster_arn")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "arn:aws:ecs:us-east-2:126450723953:cluster/"+basename, ecsClusterArn)
+	assert.Equal(t, "arn:aws:ecs:us-east-2:799847381734:cluster/"+basename, ecsClusterArn)
 
 	// Run `terraform output` to get the value of an output variable
 	ecsExecRolePolicyName := terraform.Output(t, terraformOptions, "ecs_exec_role_policy_name")
@@ -111,7 +111,7 @@ func TestExamplesComplete(t *testing.T) {
 	// Run `terraform output` to get the value of an output variable
 	taskExecRoleArn := terraform.Output(t, terraformOptions, "task_exec_role_arn")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "arn:aws:iam::126450723953:role/"+basename+"-exec", taskExecRoleArn)
+	assert.Equal(t, "arn:aws:iam::799847381734:role/"+basename+"-exec", taskExecRoleArn)
 
 	// Run `terraform output` to get the value of an output variable
 	taskRoleName := terraform.Output(t, terraformOptions, "task_role_name")
@@ -121,7 +121,7 @@ func TestExamplesComplete(t *testing.T) {
 	// Run `terraform output` to get the value of an output variable
 	taskRoleArn := terraform.Output(t, terraformOptions, "task_role_arn")
 	// Verify we're getting back the outputs we expect
-	assert.Equal(t, "arn:aws:iam::126450723953:role/"+basename+"-task", taskRoleArn)
+	assert.Equal(t, "arn:aws:iam::799847381734:role/"+basename+"-task", taskRoleArn)
 }
 
 func TestExamplesCompleteDisabled(t *testing.T) {
