@@ -21,32 +21,32 @@ locals {
 }
 
 module "task_label" {
-  source      = "cloudposse/label/null"
-  version     = "0.25.0"
+  source  = "cloudposse/label/null"
+  version = "0.25.0"
+  context = module.this.context
+
   enabled     = local.create_task_role
   attributes  = ["task"]
   label_order = ["name", "attributes"]
-
-  context = module.this.context
 }
 
 module "service_label" {
-  source      = "cloudposse/label/null"
-  version     = "0.25.0"
-  attributes  = ["service"]
-  label_order = ["name", "attributes"]
-
+  source  = "cloudposse/label/null"
+  version = "0.25.0"
   context = module.this.context
+
+  label_order = ["name", "attributes"]
 }
 
 module "exec_label" {
-  source      = "cloudposse/label/null"
-  version     = "0.25.0"
+  source  = "cloudposse/label/null"
+  version = "0.25.0"
+  context = module.this.context
+
   enabled     = local.create_exec_role
   attributes  = ["exec"]
   label_order = ["name", "attributes"]
 
-  context = module.this.context
 }
 
 resource "aws_ecs_task_definition" "default" {
