@@ -363,6 +363,21 @@ resource "aws_security_group_rule" "nlb" {
   security_group_id = one(aws_security_group.ecs_service[*]["id"])
 }
 
+data "aws_security_group" "traefik" {
+  count = local.create_security_group && var.use_traefik_security_group ? 1 : 0
+  name  = "traefik-service"
+}
+resource "aws_security_group_rule" "traefik" {
+  count                    = local.create_security_group && var.use_traefik_security_group ? 1 : 0
+  description              = "Allow inbound traffic from ALB"
+  type                     = "ingress"
+  from_port                = var.container_port
+  to_port                  = var.container_port
+  protocol                 = "tcp"
+  source_security_group_id = data.aws_security_group.traefik[0].id
+  security_group_id        = one(aws_security_group.ecs_service[*]["id"])
+}
+
 resource "aws_ecs_service" "ignore_changes_task_definition" {
   count                              = local.ecs_service_enabled && var.ignore_changes_task_definition && !var.ignore_changes_desired_count ? 1 : 0
   name                               = var.ecs_service_name != null ? var.ecs_service_name : module.this.id

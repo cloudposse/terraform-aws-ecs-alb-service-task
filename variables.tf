@@ -582,3 +582,9 @@ variable "sg_name" {
   description = "Name of security group that the service should use."
   default     = null
 }
+
+variable "use_traefik_security_group" {
+  type        = bool
+  description = "A flag to enable/disable adding the traefik service security group"
+  default     = false
+}
