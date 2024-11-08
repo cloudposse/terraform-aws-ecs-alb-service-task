@@ -310,7 +310,7 @@ resource "aws_iam_role_policy_attachment" "ecs_exec" {
 resource "aws_security_group" "ecs_service" {
   count       = local.create_security_group ? 1 : 0
   vpc_id      = var.vpc_id
-  name        = var.sg_name != "" ? var.sg_name : module.service_label.id
+  name        = var.sg_name != null ? var.sg_name : module.service_label.id
   description = var.security_group_description
   tags        = module.service_label.tags
 
