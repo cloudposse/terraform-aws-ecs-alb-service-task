@@ -576,3 +576,9 @@ variable "autoscaling_enabled" {
   description = "Whether to create resources related to deploying autoscaling functionality."
   default     = false
 }
+
+variable "sg_name" {
+  type        = string
+  description = "Name of security group that the service should use."
+  default     = null
+}
