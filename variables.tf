@@ -6,6 +6,10 @@ variable "vpc_id" {
 variable "ecs_cluster_arn" {
   type        = string
   description = "The ARN of the ECS cluster where service will be provisioned"
+  validation {
+    condition     = var.ecs_cluster_arn != ""
+    error_message = "The ecs_cluster_arn must not be empty."
+  }
 }
 
 variable "ecs_load_balancers" {
@@ -15,8 +19,19 @@ variable "ecs_load_balancers" {
     elb_name         = string
     target_group_arn = string
   }))
+  validation {
+    condition     = length(var.ecs_load_balancers) > 0 && alltrue(flatten([
+      for lb in var.ecs_load_balancers :
+      [
+        length(lb.container_name) > 0,
+        lb.container_port != null,
+        (lb.elb_name != null ? length(lb.elb_name) > 0 : true),
+        (lb.target_group_arn != null ? length(lb.target_group_arn) > 0 : true)
+      ]
+    ]))
+    error_message = "All entries in ecs_load_balancers must be defined with non-empty values, and the list must not be empty."
+  }
   description = "A list of load balancer config objects for the ECS service; see [ecs_service#load_balancer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#load_balancer) docs"
-  default     = []
 }
 
 variable "container_definition_json" {
@@ -262,6 +277,10 @@ variable "deployment_controller_type" {
   type        = string
   description = "Type of deployment controller. Valid values are `CODE_DEPLOY` and `ECS`"
   default     = "ECS"
+  validation {
+    condition     = contains(["CODE_DEPLOY", "ECS"], var.deployment_controller_type)
+    error_message = "The deployment_controller_type must be either CODE_DEPLOY or ECS."
+  }
 }
 
 variable "deployment_maximum_percent" {
