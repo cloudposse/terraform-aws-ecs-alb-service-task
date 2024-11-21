@@ -2,7 +2,7 @@ data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
 locals {
-  appspec_content = "{\"version\": 1,\"Resources\": [{\"TargetService\": {\"Type\": \"AWS::ECS::Service\",\"Properties\": {\"TaskDefinition\": \"${aws_ecs_task_definition.default.[*].arn}\",\"LoadBalancerInfo\": {\"ContainerName\": \"${var.ecs_load_balancers[0].container_name}\",\"ContainerPort\": ${var.ecs_load_balancers[0].container_port}}}}]}"
+  appspec_content = "{\"version\": 1,\"Resources\": [{\"TargetService\": {\"Type\": \"AWS::ECS::Service\",\"Properties\": {\"TaskDefinition\": \"${aws_ecs_task_definition.default[*].arn}\",\"LoadBalancerInfo\": {\"ContainerName\": \"${var.ecs_load_balancers[0].container_name}\",\"ContainerPort\": ${var.ecs_load_balancers[0].container_port}}}}]}"
   appspec_sha256 = sha256(local.appspec_content)
 }
 
