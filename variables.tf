@@ -25,8 +25,8 @@ variable "ecs_load_balancers" {
       [
         length(lb.container_name) > 0,
         lb.container_port != null,
-        length(lb.elb_name) > 0,
-        length(lb.target_group_arn) > 0
+        (lb.elb_name != null ? length(lb.elb_name) > 0 : true),
+        (lb.target_group_arn != null ? length(lb.target_group_arn) > 0 : true)
       ]
     ]))
     error_message = "All entries in ecs_load_balancers must be defined with non-empty values, and the list must not be empty."
