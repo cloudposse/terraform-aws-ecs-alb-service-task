@@ -42,6 +42,8 @@ resource "aws_iam_role_policy" "event_bridge_codedeploy" {
       }
     ]
   })
+
+  depends_on = [aws_iam_role.event_bridge_codedeploy]
 }
 
 ## Event Rule
@@ -88,4 +90,9 @@ resource "aws_cloudwatch_event_target" "trigger_codedeploy_deployment" {
 }
 EOF
   }
+
+  depends_on = [
+    aws_cloudwatch_event_rule.ecs_task_state_change,
+    aws_iam_role.event_bridge_codedeploy
+  ]
 }
