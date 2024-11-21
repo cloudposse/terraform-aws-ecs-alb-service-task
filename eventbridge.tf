@@ -68,7 +68,7 @@ resource "aws_cloudwatch_event_rule" "ecs_task_state_change" {
 resource "aws_cloudwatch_event_target" "trigger_codedeploy_deployment" {
   count     = var.deployment_controller_type == "CODE_DEPLOY" ? 1 : 0
 
-  rule      = aws_cloudwatch_event_rule.ecs_task_state_change[*].name
+  rule      = aws_cloudwatch_event_rule.ecs_task_state_change[0].name
   target_id = "TriggerCodeDeploy"
   arn       = "arn:aws:codedeploy:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:deploymentgroup:${var.ecs_load_balancers[0].container_name}/${var.ecs_load_balancers[0].container_name}"
   role_arn  = aws_iam_role.event_bridge_codedeploy[0].arn
