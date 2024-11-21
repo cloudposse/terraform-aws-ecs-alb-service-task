@@ -2,7 +2,7 @@ data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
 locals {
-  appspec_content = "{\"version\": 1,\"Resources\": [{\"TargetService\": {\"Type\": \"AWS::ECS::Service\",\"Properties\": {\"TaskDefinition\": \"${aws_ecs_task_definition.default.[*].arn}\",\"LoadBalancerInfo\": {\"ContainerName\": \"${var.ecs_load_balancers.container_name}\",\"ContainerPort\": ${var.ecs_load_balancers.container_port}}}}]}"
+  appspec_content = "{\"version\": 1,\"Resources\": [{\"TargetService\": {\"Type\": \"AWS::ECS::Service\",\"Properties\": {\"TaskDefinition\": \"${aws_ecs_task_definition.default.[*].arn}\",\"LoadBalancerInfo\": {\"ContainerName\": \"${var.ecs_load_balancers[0].container_name}\",\"ContainerPort\": ${var.ecs_load_balancers[0].container_port}}}}]}"
   appspec_sha256 = sha256(local.appspec_content)
 }
 
@@ -11,7 +11,7 @@ locals {
 resource "aws_iam_role" "event_bridge_codedeploy" {
   count     = var.deployment_controller_type == "CODEDEPLOY" ? 1 : 0
 
-  name = "EventBridgeCodeDeploy-${var.ecs_load_balancers.container_name}"
+  name = "EventBridgeCodeDeploy-${var.ecs_load_balancers[0].container_name}"
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
@@ -29,7 +29,7 @@ resource "aws_iam_role" "event_bridge_codedeploy" {
 resource "aws_iam_role_policy" "event_bridge_codedeploy" {
   count     = var.deployment_controller_type == "CODEDEPLOY" ? 1 : 0
 
-  name = "EventBridgeCodeDeployAccess-${var.ecs_load_balancers.container_name}"
+  name = "EventBridgeCodeDeployAccess-${var.ecs_load_balancers[0].container_name}"
   role = aws_iam_role.event_bridge_codedeploy.id
 
   policy = jsonencode({
@@ -38,7 +38,7 @@ resource "aws_iam_role_policy" "event_bridge_codedeploy" {
       {
         Action   = "codedeploy:CreateDeployment"
         Effect   = "Allow"
-        Resource = "arn:aws:codedeploy:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:deploymentgroup:${var.ecs_load_balancers.container_name}/${var.ecs_load_balancers.container_name}"
+        Resource = "arn:aws:codedeploy:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:deploymentgroup:${var.ecs_load_balancers[0].container_name}/${var.ecs_load_balancers[0].container_name}"
       }
     ]
   })
@@ -58,7 +58,7 @@ resource "aws_cloudwatch_event_rule" "ecs_task_state_change" {
     detail = {
       lastStatus        = ["PENDING", "RUNNING"]
       clusterArn        = var.ecs_cluster_arn
-      taskDefinitionArn = ["arn:aws:ecs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:task-definition/${var.ecs_load_balancers.container_name}:*"]
+      taskDefinitionArn = ["arn:aws:ecs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:task-definition/${var.ecs_load_balancers[0].container_name}:*"]
     }
   })
 }
@@ -70,7 +70,7 @@ resource "aws_cloudwatch_event_target" "trigger_codedeploy_deployment" {
 
   rule      = aws_cloudwatch_event_rule.ecs_task_state_change.name
   target_id = "TriggerCodeDeploy"
-  arn       = "arn:aws:codedeploy:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:deploymentgroup:${var.ecs_load_balancers.container_name}/${var.ecs_load_balancers.container_name}"
+  arn       = "arn:aws:codedeploy:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:deploymentgroup:${var.ecs_load_balancers[0].container_name}/${var.ecs_load_balancers[0].container_name}"
   role_arn  = aws_iam_role.event_bridge_codedeploy.arn
 
   input_transformer {
@@ -84,7 +84,7 @@ resource "aws_cloudwatch_event_target" "trigger_codedeploy_deployment" {
     "content": "${local.appspec_content}",
     "sha256": "${local.appspec_sha256}"
   },
-  "deploymentGroupName": "${var.ecs_load_balancers.container_name}"
+  "deploymentGroupName": "${var.ecs_load_balancers[0].container_name}"
 }
 EOF
   }
