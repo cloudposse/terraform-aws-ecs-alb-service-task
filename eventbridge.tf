@@ -30,7 +30,7 @@ resource "aws_iam_role_policy" "event_bridge_codedeploy" {
   count     = var.deployment_controller_type == "CODE_DEPLOY" ? 1 : 0
 
   name = "EventBridgeCodeDeployAccess-${var.ecs_load_balancers[0].container_name}"
-  role = aws_iam_role.event_bridge_codedeploy[*].id
+  role = aws_iam_role.event_bridge_codedeploy[0].id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -71,7 +71,7 @@ resource "aws_cloudwatch_event_target" "trigger_codedeploy_deployment" {
   rule      = aws_cloudwatch_event_rule.ecs_task_state_change[*].name
   target_id = "TriggerCodeDeploy"
   arn       = "arn:aws:codedeploy:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:deploymentgroup:${var.ecs_load_balancers[0].container_name}/${var.ecs_load_balancers[0].container_name}"
-  role_arn  = aws_iam_role.event_bridge_codedeploy[*].arn
+  role_arn  = aws_iam_role.event_bridge_codedeploy[0].arn
 
   input_transformer {
     input_paths = {
