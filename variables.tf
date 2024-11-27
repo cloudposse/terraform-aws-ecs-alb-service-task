@@ -282,7 +282,7 @@ variable "availability_zone_rebalancing" {
   default     = "DISABLED"
 
   validation {
-    condition     = contains(["ENABLED", "DISABLED"], var.availability_zone_rebalancing.protocol)
+    condition     = contains(["ENABLED", "DISABLED"], var.availability_zone_rebalancing)
     error_message = "The valid values are `ENABLED` and `DISABLED`."
   }
 }
