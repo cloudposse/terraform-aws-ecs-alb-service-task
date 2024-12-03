@@ -279,12 +279,7 @@ variable "deployment_minimum_healthy_percent" {
 variable "availability_zone_rebalancing" {
   type        = string
   description = "ECS automatically redistributes tasks within a service across Availability Zones (AZs) to mitigate the risk of impaired application availability due to underlying infrastructure failures and task lifecycle activities. The valid values are `ENABLED` and `DISABLED`."
-  default     = "DISABLED"
-
-  validation {
-    condition     = contains(["ENABLED", "DISABLED"], var.availability_zone_rebalancing)
-    error_message = "The valid values are `ENABLED` and `DISABLED`."
-  }
+  default     = null
 }
 
 variable "health_check_grace_period_seconds" {
