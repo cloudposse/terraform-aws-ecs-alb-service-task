@@ -560,6 +560,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
   desired_count                      = var.desired_count
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
+  availability_zone_rebalancing      = var.availability_zone_rebalancing
   health_check_grace_period_seconds  = var.health_check_grace_period_seconds
   launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
   platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
@@ -713,6 +714,7 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
   desired_count                      = var.desired_count
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
+  availability_zone_rebalancing      = var.availability_zone_rebalancing
   health_check_grace_period_seconds  = var.health_check_grace_period_seconds
   launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
   platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
@@ -866,6 +868,7 @@ resource "aws_ecs_service" "default" {
   desired_count                      = var.desired_count
   deployment_maximum_percent         = var.deployment_maximum_percent
   deployment_minimum_healthy_percent = var.deployment_minimum_healthy_percent
+  availability_zone_rebalancing      = var.availability_zone_rebalancing
   health_check_grace_period_seconds  = var.health_check_grace_period_seconds
   launch_type                        = length(var.capacity_provider_strategies) > 0 ? null : var.launch_type
   platform_version                   = var.launch_type == "FARGATE" ? var.platform_version : null
