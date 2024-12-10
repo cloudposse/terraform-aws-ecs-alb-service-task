@@ -61,7 +61,7 @@ resource "aws_cloudwatch_event_rule" "ecs_task_state_change" {
     "detail-type" = ["ECS Task State Change"]
     detail = {
       lastStatus        = ["PENDING", "RUNNING"]
-      clusterArn        = var.ecs_cluster_arn
+      clusterArn        = [var.ecs_cluster_arn]
       taskDefinitionArn = ["arn:aws:ecs:${data.aws_region.current.name}:${data.aws_caller_identity.current.account_id}:task-definition/${local.container_name}:*"]
     }
   })
