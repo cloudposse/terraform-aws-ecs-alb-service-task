@@ -21,7 +21,7 @@ resource "aws_iam_role" "event_bridge_codedeploy" {
         Action = "sts:AssumeRole"
         Effect = "Allow"
         Principal = {
-          Service = "events.amazon.com"
+          Service = "events.amazonaws.com"
         }
       }
     ]
