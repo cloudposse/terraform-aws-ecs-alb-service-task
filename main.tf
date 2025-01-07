@@ -18,6 +18,30 @@ locals {
   task_policy_arns_map = merge({ for i, a in var.task_policy_arns : format("_#%v_", i) => a }, var.task_policy_arns_map)
 
   task_exec_policy_arns_map = merge({ for i, a in var.task_exec_policy_arns : format("_#%v_", i) => a }, var.task_exec_policy_arns_map)
+
+  #appspec content for applications that have CodeDeploy enabled
+  container_name  = length(var.ecs_load_balancers) > 0 ? var.ecs_load_balancers[0].container_name : "rift"
+  container_port  = length(var.ecs_load_balancers) > 0 ? var.ecs_load_balancers[0].container_port : "80"
+  timestamp       = timestamp()
+  appspec_content = jsonencode({
+    version = 1
+    Resources = [
+      {
+        TargetService = {
+          Type = "AWS::ECS::Service"
+          Properties = {
+            TaskDefinition = aws_ecs_task_definition.default[0].arn
+            LoadBalancerInfo = {
+              ContainerName = local.container_name
+              ContainerPort = local.container_port
+            }
+          }
+        }
+      }
+    ]
+    timestamp = local.timestamp
+  })
+  appspec_sha256  = sha256(local.appspec_content)
 }
 
 module "task_label" {
