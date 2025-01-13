@@ -35,27 +35,16 @@ resource "aws_s3_bucket_lifecycle_configuration" "appspec_artifacts" {
   bucket = aws_s3_bucket.appspec_artifacts[0].id
 
   rule {
-    id     = "store-old-versions"
+    id     = "manage-old-versions"
     status = "Enabled"
 
     transition {
-      days          = 60
+      days          = 30
       storage_class = "STANDARD_IA"
     }
 
-    transition {
-      days          = 90
-      storage_class = "GLACIER"
-    }
-
-    noncurrent_version_transition {
-      noncurrent_days = 60
-      storage_class   = "STANDARD_IA"
-    }
-
-    noncurrent_version_transition {
-      noncurrent_days = 90
-      storage_class   = "GLACIER"
+    expiration {
+      days = 60
     }
   }
 }
