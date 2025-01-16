@@ -930,6 +930,60 @@ resource "aws_ecs_service" "default" {
       container_port = lookup(service_registries.value, "container_port", null)
     }
   }
+   dynamic "service_connect_configuration" {
+    for_each = var.service_connect_configurations
+    content {
+      enabled   = service_connect_configuration.value.enabled
+      namespace = service_connect_configuration.value.namespace
+      dynamic "log_configuration" {
+        for_each = try(service_connect_configuration.value.log_configuration, null) == null ? [] : [service_connect_configuration.value.log_configuration]
+        content {
+          log_driver = log_configuration.value.log_driver
+          options    = log_configuration.value.options
+          dynamic "secret_option" {
+            for_each = length(log_configuration.value.secret_option) == 0 ? [] : [log_configuration.value.secret_option]
+            content {
+              name       = secret_option.value.name
+              value_from = secret_option.value.value_from
+            }
+          }
+        }
+      }
+      dynamic "service" {
+        for_each = length(service_connect_configuration.value.service) == 0 ? [] : service_connect_configuration.value.service
+        content {
+          discovery_name        = service.value.discovery_name
+          ingress_port_override = service.value.ingress_port_override
+          port_name             = service.value.port_name
+          dynamic "client_alias" {
+            for_each = service.value.client_alias
+            content {
+              dns_name = client_alias.value.dns_name
+              port     = client_alias.value.port
+            }
+          }
+          dynamic "timeout" {
+            for_each = length(service.value.timeout) == 0 ? [] : service.value.timeout
+            content {
+              idle_timeout_seconds        = timeout.value.idle_timeout_seconds
+              per_request_timeout_seconds = timeout.value.per_request_timeout_seconds
+            }
+          }
+          dynamic "tls" {
+            for_each = length(service.value.tls) == 0 ? [] : service.value.tls
+            content {
+              kms_key  = tls.value.kms_key
+              role_arn = tls.value.role_arn != null ? tls.value.role_arn : one(aws_iam_role.ecs_service_connect_tls[*].arn)
+              issuer_cert_authority {
+                aws_pca_authority_arn = tls.value.issuer_cert_authority.aws_pca_authority_arn
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
 
   dynamic "ordered_placement_strategy" {
     for_each = var.ordered_placement_strategy
