@@ -3,7 +3,7 @@
 resource "aws_s3_bucket" "appspec_artifacts" {
   count = var.deployment_controller_type == "CODE_DEPLOY" ? 1 : 0
 
-  bucket = "${module.this.environment}-codedeploy-${local.container_name}-appspec"
+  bucket = "${module.this.stage}-codedeploy-${local.container_name}-appspec"
 
   tags = module.this.tags
 }
