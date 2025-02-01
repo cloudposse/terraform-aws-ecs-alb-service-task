@@ -376,6 +376,12 @@ variable "proxy_configuration" {
   default     = null
 }
 
+variable "ignore_changes_load_balancer" {
+  type        = bool
+  description = "Whether to ignore changes for Load balancer in the ECS service (useful when using CodeDeploy Blue/Green deployments to avoid drifts)"
+  default     = false
+}
+
 variable "ignore_changes_task_definition" {
   type        = bool
   description = "Whether to ignore changes in container definition and task definition in the ECS service"
