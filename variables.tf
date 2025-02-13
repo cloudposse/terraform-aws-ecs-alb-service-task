@@ -599,3 +599,9 @@ variable "track_latest" {
   description = "Whether should track latest task definition or the one created with the resource."
   default     = false
 }
+
+variable "enable_fault_injection" {
+  type        = bool
+  description = "Enables fault injection and allows for fault injection requests to be accepted from the task's containers"
+  default     = false
+}
