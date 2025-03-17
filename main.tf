@@ -1,14 +1,14 @@
 locals {
-  enabled                 = module.this.enabled
-  ecs_service_enabled     = local.enabled && var.ecs_service_enabled
-  task_role_arn           = try(var.task_role_arn[0], tostring(var.task_role_arn), "")
-  create_task_role        = local.enabled && length(var.task_role_arn) == 0
-  task_exec_role_arn      = try(var.task_exec_role_arn[0], tostring(var.task_exec_role_arn), "")
-  create_exec_role        = local.enabled && length(var.task_exec_role_arn) == 0
-  enable_ecs_service_role = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) >= 1
+  enabled                         = module.this.enabled
+  ecs_service_enabled             = local.enabled && var.ecs_service_enabled
+  task_role_arn                   = try(var.task_role_arn[0], tostring(var.task_role_arn), "")
+  create_task_role                = local.enabled && length(var.task_role_arn) == 0
+  task_exec_role_arn              = try(var.task_exec_role_arn[0], tostring(var.task_exec_role_arn), "")
+  create_exec_role                = local.enabled && length(var.task_exec_role_arn) == 0
+  enable_ecs_service_role         = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) >= 1
   create_service_connect_tls_role = local.enabled && length(flatten(flatten(var.service_connect_configurations[*].service[*].tls[*]))) > 0 && length(compact(flatten(flatten(var.service_connect_configurations[*].service[*].tls[*].role_arn)))) == 0
-  create_security_group   = local.enabled && var.network_mode == "awsvpc" && var.security_group_enabled
-  create_task_definition  = local.enabled && length(var.task_definition) == 0
+  create_security_group           = local.enabled && var.network_mode == "awsvpc" && var.security_group_enabled
+  create_task_definition          = local.enabled && length(var.task_definition) == 0
 
   volumes = concat(var.docker_volumes, var.efs_volumes, var.fsx_volumes, var.bind_mount_volumes)
 
@@ -20,28 +20,8 @@ locals {
 
   task_exec_policy_arns_map = merge({ for i, a in var.task_exec_policy_arns : format("_#%v_", i) => a }, var.task_exec_policy_arns_map)
 
-  #appspec content for applications that have CodeDeploy enabled
   container_name = length(var.ecs_load_balancers) > 0 ? var.ecs_load_balancers[0].container_name : "rift"
   container_port = length(var.ecs_load_balancers) > 0 ? var.ecs_load_balancers[0].container_port : "80"
-  timestamp      = timestamp()
-  appspec_content = jsonencode({
-    version = 1
-    Resources = [
-      {
-        TargetService = {
-          Type = "AWS::ECS::Service"
-          Properties = {
-            TaskDefinition = aws_ecs_task_definition.default[0].arn
-            LoadBalancerInfo = {
-              ContainerName = local.container_name
-              ContainerPort = local.container_port
-            }
-          }
-        }
-      }
-    ]
-  })
-  appspec_sha256 = sha256(local.appspec_content)
 }
 
 module "task_label" {
@@ -473,7 +453,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
       container_port = lookup(service_registries.value, "container_port", null)
     }
   }
-   dynamic "service_connect_configuration" {
+  dynamic "service_connect_configuration" {
     for_each = var.service_connect_configurations
     content {
       enabled   = service_connect_configuration.value.enabled
@@ -626,7 +606,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
       container_port = lookup(service_registries.value, "container_port", null)
     }
   }
-   dynamic "service_connect_configuration" {
+  dynamic "service_connect_configuration" {
     for_each = var.service_connect_configurations
     content {
       enabled   = service_connect_configuration.value.enabled
@@ -778,7 +758,7 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
       container_port = lookup(service_registries.value, "container_port", null)
     }
   }
-   dynamic "service_connect_configuration" {
+  dynamic "service_connect_configuration" {
     for_each = var.service_connect_configurations
     content {
       enabled   = service_connect_configuration.value.enabled
@@ -930,7 +910,7 @@ resource "aws_ecs_service" "default" {
       container_port = lookup(service_registries.value, "container_port", null)
     }
   }
-   dynamic "service_connect_configuration" {
+  dynamic "service_connect_configuration" {
     for_each = var.service_connect_configurations
     content {
       enabled   = service_connect_configuration.value.enabled
