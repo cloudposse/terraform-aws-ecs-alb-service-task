@@ -6,7 +6,6 @@ locals {
   task_exec_role_arn              = try(var.task_exec_role_arn[0], tostring(var.task_exec_role_arn), "")
   create_exec_role                = local.enabled && length(var.task_exec_role_arn) == 0
   enable_ecs_service_role         = module.this.enabled && var.network_mode != "awsvpc" && length(var.ecs_load_balancers) >= 1
-  create_service_connect_tls_role = local.enabled && length(flatten(flatten(var.service_connect_configurations[*].service[*].tls[*]))) > 0 && length(compact(flatten(flatten(var.service_connect_configurations[*].service[*].tls[*].role_arn)))) == 0
   create_security_group           = local.enabled && var.network_mode == "awsvpc" && var.security_group_enabled
   create_task_definition          = local.enabled && length(var.task_definition) == 0
 
@@ -42,15 +41,6 @@ module "service_label" {
   label_order = ["name", "attributes"]
 }
 
-module "service_connect_label" {
-  source     = "cloudposse/label/null"
-  version    = "0.25.0"
-  enabled    = local.create_service_connect_tls_role
-  attributes = ["service-connect-tls"]
-
-  context = module.this.context
-}
-
 module "exec_label" {
   source  = "cloudposse/label/null"
   version = "0.25.0"
@@ -59,7 +49,6 @@ module "exec_label" {
   enabled     = local.create_exec_role
   attributes  = ["exec"]
   label_order = ["name", "attributes"]
-
 }
 
 resource "aws_ecs_task_definition" "default" {
@@ -284,33 +273,6 @@ resource "aws_iam_role" "ecs_exec" {
   permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
   tags                 = var.role_tags_enabled ? module.exec_label.tags : null
 }
-# IAM role that Amazon ECS uses to enable TLS on Service Connect
-data "aws_iam_policy_document" "ecs_service_connect_tls" {
-  count = local.create_service_connect_tls_role ? 1 : 0
-
-  statement {
-    actions = ["sts:AssumeRole"]
-
-    principals {
-      type        = "Service"
-      identifiers = ["ecs-tasks.amazonaws.com"]
-    }
-  }
-}
-
-resource "aws_iam_role" "ecs_service_connect_tls" {
-  count                = local.create_service_connect_tls_role ? 1 : 0
-  name                 = module.service_connect_label.id
-  assume_role_policy   = one(data.aws_iam_policy_document.ecs_service_connect_tls[*]["json"])
-  permissions_boundary = var.permissions_boundary == "" ? null : var.permissions_boundary
-  tags                 = var.role_tags_enabled ? module.service_connect_label.tags : null
-}
-
-resource "aws_iam_role_policy_attachment" "ecs_service_connect_tls" {
-  count      = local.create_service_connect_tls_role ? 1 : 0
-  policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSInfrastructureRolePolicyForServiceConnectTransportLayerSecurity"
-  role       = one(aws_iam_role.ecs_service_connect_tls[*]["id"])
-}
 
 data "aws_iam_policy_document" "ecs_exec" {
   count = local.create_exec_role ? 1 : 0
@@ -453,60 +415,6 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
       container_port = lookup(service_registries.value, "container_port", null)
     }
   }
-  dynamic "service_connect_configuration" {
-    for_each = var.service_connect_configurations
-    content {
-      enabled   = service_connect_configuration.value.enabled
-      namespace = service_connect_configuration.value.namespace
-      dynamic "log_configuration" {
-        for_each = try(service_connect_configuration.value.log_configuration, null) == null ? [] : [service_connect_configuration.value.log_configuration]
-        content {
-          log_driver = log_configuration.value.log_driver
-          options    = log_configuration.value.options
-          dynamic "secret_option" {
-            for_each = length(log_configuration.value.secret_option) == 0 ? [] : [log_configuration.value.secret_option]
-            content {
-              name       = secret_option.value.name
-              value_from = secret_option.value.value_from
-            }
-          }
-        }
-      }
-      dynamic "service" {
-        for_each = length(service_connect_configuration.value.service) == 0 ? [] : service_connect_configuration.value.service
-        content {
-          discovery_name        = service.value.discovery_name
-          ingress_port_override = service.value.ingress_port_override
-          port_name             = service.value.port_name
-          dynamic "client_alias" {
-            for_each = service.value.client_alias
-            content {
-              dns_name = client_alias.value.dns_name
-              port     = client_alias.value.port
-            }
-          }
-          dynamic "timeout" {
-            for_each = length(service.value.timeout) == 0 ? [] : service.value.timeout
-            content {
-              idle_timeout_seconds        = timeout.value.idle_timeout_seconds
-              per_request_timeout_seconds = timeout.value.per_request_timeout_seconds
-            }
-          }
-          dynamic "tls" {
-            for_each = length(service.value.tls) == 0 ? [] : service.value.tls
-            content {
-              kms_key  = tls.value.kms_key
-              role_arn = tls.value.role_arn != null ? tls.value.role_arn : one(aws_iam_role.ecs_service_connect_tls[*].arn)
-              issuer_cert_authority {
-                aws_pca_authority_arn = tls.value.issuer_cert_authority.aws_pca_authority_arn
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
 
   dynamic "ordered_placement_strategy" {
     for_each = var.ordered_placement_strategy
@@ -604,59 +512,6 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
       port           = lookup(service_registries.value, "port", null)
       container_name = lookup(service_registries.value, "container_name", null)
       container_port = lookup(service_registries.value, "container_port", null)
-    }
-  }
-  dynamic "service_connect_configuration" {
-    for_each = var.service_connect_configurations
-    content {
-      enabled   = service_connect_configuration.value.enabled
-      namespace = service_connect_configuration.value.namespace
-      dynamic "log_configuration" {
-        for_each = try(service_connect_configuration.value.log_configuration, null) == null ? [] : [service_connect_configuration.value.log_configuration]
-        content {
-          log_driver = log_configuration.value.log_driver
-          options    = log_configuration.value.options
-          dynamic "secret_option" {
-            for_each = length(log_configuration.value.secret_option) == 0 ? [] : [log_configuration.value.secret_option]
-            content {
-              name       = secret_option.value.name
-              value_from = secret_option.value.value_from
-            }
-          }
-        }
-      }
-      dynamic "service" {
-        for_each = length(service_connect_configuration.value.service) == 0 ? [] : service_connect_configuration.value.service
-        content {
-          discovery_name        = service.value.discovery_name
-          ingress_port_override = service.value.ingress_port_override
-          port_name             = service.value.port_name
-          dynamic "client_alias" {
-            for_each = service.value.client_alias
-            content {
-              dns_name = client_alias.value.dns_name
-              port     = client_alias.value.port
-            }
-          }
-          dynamic "timeout" {
-            for_each = length(service.value.timeout) == 0 ? [] : service.value.timeout
-            content {
-              idle_timeout_seconds        = timeout.value.idle_timeout_seconds
-              per_request_timeout_seconds = timeout.value.per_request_timeout_seconds
-            }
-          }
-          dynamic "tls" {
-            for_each = length(service.value.tls) == 0 ? [] : service.value.tls
-            content {
-              kms_key  = tls.value.kms_key
-              role_arn = tls.value.role_arn != null ? tls.value.role_arn : one(aws_iam_role.ecs_service_connect_tls[*].arn)
-              issuer_cert_authority {
-                aws_pca_authority_arn = tls.value.issuer_cert_authority.aws_pca_authority_arn
-              }
-            }
-          }
-        }
-      }
     }
   }
 
@@ -758,59 +613,6 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
       container_port = lookup(service_registries.value, "container_port", null)
     }
   }
-  dynamic "service_connect_configuration" {
-    for_each = var.service_connect_configurations
-    content {
-      enabled   = service_connect_configuration.value.enabled
-      namespace = service_connect_configuration.value.namespace
-      dynamic "log_configuration" {
-        for_each = try(service_connect_configuration.value.log_configuration, null) == null ? [] : [service_connect_configuration.value.log_configuration]
-        content {
-          log_driver = log_configuration.value.log_driver
-          options    = log_configuration.value.options
-          dynamic "secret_option" {
-            for_each = length(log_configuration.value.secret_option) == 0 ? [] : [log_configuration.value.secret_option]
-            content {
-              name       = secret_option.value.name
-              value_from = secret_option.value.value_from
-            }
-          }
-        }
-      }
-      dynamic "service" {
-        for_each = length(service_connect_configuration.value.service) == 0 ? [] : service_connect_configuration.value.service
-        content {
-          discovery_name        = service.value.discovery_name
-          ingress_port_override = service.value.ingress_port_override
-          port_name             = service.value.port_name
-          dynamic "client_alias" {
-            for_each = service.value.client_alias
-            content {
-              dns_name = client_alias.value.dns_name
-              port     = client_alias.value.port
-            }
-          }
-          dynamic "timeout" {
-            for_each = length(service.value.timeout) == 0 ? [] : service.value.timeout
-            content {
-              idle_timeout_seconds        = timeout.value.idle_timeout_seconds
-              per_request_timeout_seconds = timeout.value.per_request_timeout_seconds
-            }
-          }
-          dynamic "tls" {
-            for_each = length(service.value.tls) == 0 ? [] : service.value.tls
-            content {
-              kms_key  = tls.value.kms_key
-              role_arn = tls.value.role_arn != null ? tls.value.role_arn : one(aws_iam_role.ecs_service_connect_tls[*].arn)
-              issuer_cert_authority {
-                aws_pca_authority_arn = tls.value.issuer_cert_authority.aws_pca_authority_arn
-              }
-            }
-          }
-        }
-      }
-    }
-  }
 
   dynamic "ordered_placement_strategy" {
     for_each = var.ordered_placement_strategy
@@ -910,60 +712,6 @@ resource "aws_ecs_service" "default" {
       container_port = lookup(service_registries.value, "container_port", null)
     }
   }
-  dynamic "service_connect_configuration" {
-    for_each = var.service_connect_configurations
-    content {
-      enabled   = service_connect_configuration.value.enabled
-      namespace = service_connect_configuration.value.namespace
-      dynamic "log_configuration" {
-        for_each = try(service_connect_configuration.value.log_configuration, null) == null ? [] : [service_connect_configuration.value.log_configuration]
-        content {
-          log_driver = log_configuration.value.log_driver
-          options    = log_configuration.value.options
-          dynamic "secret_option" {
-            for_each = length(log_configuration.value.secret_option) == 0 ? [] : [log_configuration.value.secret_option]
-            content {
-              name       = secret_option.value.name
-              value_from = secret_option.value.value_from
-            }
-          }
-        }
-      }
-      dynamic "service" {
-        for_each = length(service_connect_configuration.value.service) == 0 ? [] : service_connect_configuration.value.service
-        content {
-          discovery_name        = service.value.discovery_name
-          ingress_port_override = service.value.ingress_port_override
-          port_name             = service.value.port_name
-          dynamic "client_alias" {
-            for_each = service.value.client_alias
-            content {
-              dns_name = client_alias.value.dns_name
-              port     = client_alias.value.port
-            }
-          }
-          dynamic "timeout" {
-            for_each = length(service.value.timeout) == 0 ? [] : service.value.timeout
-            content {
-              idle_timeout_seconds        = timeout.value.idle_timeout_seconds
-              per_request_timeout_seconds = timeout.value.per_request_timeout_seconds
-            }
-          }
-          dynamic "tls" {
-            for_each = length(service.value.tls) == 0 ? [] : service.value.tls
-            content {
-              kms_key  = tls.value.kms_key
-              role_arn = tls.value.role_arn != null ? tls.value.role_arn : one(aws_iam_role.ecs_service_connect_tls[*].arn)
-              issuer_cert_authority {
-                aws_pca_authority_arn = tls.value.issuer_cert_authority.aws_pca_authority_arn
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-
 
   dynamic "ordered_placement_strategy" {
     for_each = var.ordered_placement_strategy
