@@ -1,6 +1,8 @@
 // IAM
 resource "aws_iam_role" "default" {
-  name = "CodePipelineRole"
+  count = var.deployment_controller_type == "CODE_DEPLOY" ? 1 : 0
+
+  name = "${module.this.id}-codepipeline"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
@@ -15,6 +17,8 @@ resource "aws_iam_role" "default" {
 }
 
 resource "aws_iam_role_policy" "default" {
+  count = var.deployment_controller_type == "CODE_DEPLOY" ? 1 : 0
+
   role = aws_iam_role.default.id
 
   policy = jsonencode({
@@ -70,6 +74,8 @@ resource "aws_iam_role_policy" "default" {
 
 // CodePipeline
 resource "aws_codepipeline" "default" {
+  count = var.deployment_controller_type == "CODE_DEPLOY" ? 1 : 0
+
   name     = local.container_name
   role_arn = aws_iam_role.default.arn
 
