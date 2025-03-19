@@ -19,7 +19,7 @@ resource "aws_iam_role" "default" {
 resource "aws_iam_role_policy" "default" {
   count = var.deployment_controller_type == "CODE_DEPLOY" ? 1 : 0
 
-  role = aws_iam_role.default.id
+  role = aws_iam_role.default[0].id
 
   policy = jsonencode({
     Version = "2012-10-17"
@@ -77,7 +77,7 @@ resource "aws_codepipeline" "default" {
   count = var.deployment_controller_type == "CODE_DEPLOY" ? 1 : 0
 
   name     = local.container_name
-  role_arn = aws_iam_role.default.arn
+  role_arn = aws_iam_role.default[0].arn
 
   artifact_store {
     location = aws_s3_bucket.appspec_artifacts[0].bucket
