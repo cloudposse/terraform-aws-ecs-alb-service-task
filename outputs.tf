@@ -28,7 +28,7 @@ output "service_role_arn" {
 }
 
 output "task_exec_role_name" {
-  description = "ECS Task role name"
+  description = "ECS Task exec role name"
   value       = one(aws_iam_role.ecs_exec[*]["name"])
 }
 
