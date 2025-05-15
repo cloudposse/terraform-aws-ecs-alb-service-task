@@ -70,6 +70,7 @@ resource "aws_ecs_task_definition" "default" {
   task_role_arn            = length(local.task_role_arn) > 0 ? local.task_role_arn : one(aws_iam_role.ecs_task[*]["arn"])
   track_latest             = var.track_latest
   enable_fault_injection   = var.enable_fault_injection
+  skip_destroy             = var.skip_destroy
 
   dynamic "proxy_configuration" {
     for_each = var.proxy_configuration == null ? [] : [var.proxy_configuration]
