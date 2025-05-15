@@ -605,3 +605,9 @@ variable "enable_fault_injection" {
   description = "Enables fault injection and allows for fault injection requests to be accepted from the task's containers"
   default     = false
 }
+
+variable "skip_destroy" {
+  type        = bool
+  description = "Whether to retain the old revision when the resource is destroyed or replacement is necessary."
+  default     = false
+}
