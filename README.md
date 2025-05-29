@@ -3,7 +3,7 @@
 <!-- markdownlint-disable -->
 <a href="https://cpco.io/homepage"><img src="https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/blob/main/.github/banner.png?raw=true" alt="Project Banner"/></a><br/>
     <p align="right">
-<a href="https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/releases/latest"><img src="https://img.shields.io/github/release/cloudposse/terraform-aws-ecs-alb-service-task.svg?style=for-the-badge" alt="Latest Release"/></a><a href="https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/commits"><img src="https://img.shields.io/github/last-commit/cloudposse/terraform-aws-ecs-alb-service-task.svg?style=for-the-badge" alt="Last Updated"/></a><a href="https://slack.cloudposse.com"><img src="https://slack.cloudposse.com/for-the-badge.svg" alt="Slack Community"/></a></p>
+<a href="https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/releases/latest"><img src="https://img.shields.io/github/release/cloudposse/terraform-aws-ecs-alb-service-task.svg?style=for-the-badge" alt="Latest Release"/></a><a href="https://github.com/cloudposse/terraform-aws-ecs-alb-service-task/commits"><img src="https://img.shields.io/github/last-commit/cloudposse/terraform-aws-ecs-alb-service-task.svg?style=for-the-badge" alt="Last Updated"/></a><a href="https://cloudposse.com/slack"><img src="https://slack.cloudposse.com/for-the-badge.svg" alt="Slack Community"/></a></p>
 <!-- markdownlint-restore -->
 
 <!--
@@ -46,7 +46,6 @@ Terraform module to create an ECS Service for a web app (task), and an ALB targe
 
 
 ## Usage
-
 
 For a complete example, see [examples/complete](examples/complete).
 
@@ -196,17 +195,6 @@ For more info, see [Container Definition](https://docs.aws.amazon.com/AmazonECS/
 
 
 
-<!-- markdownlint-disable -->
-## Makefile Targets
-```text
-Available targets:
-
-  help                                Help screen
-  help/all                            Display help for all targets
-  help/short                          This help short screen
-
-```
-<!-- markdownlint-restore -->
 <!-- markdownlint-disable -->
 ## Requirements
 
@@ -375,6 +363,11 @@ Available targets:
 | <a name="output_task_role_id"></a> [task\_role\_id](#output\_task\_role\_id) | ECS Task role id |
 | <a name="output_task_role_name"></a> [task\_role\_name](#output\_task\_role\_name) | ECS Task role name |
 <!-- markdownlint-restore -->
+
+
+
+
+
 
 
 ## Related Projects
