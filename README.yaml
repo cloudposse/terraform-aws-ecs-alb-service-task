@@ -54,7 +54,7 @@ usage: |2-
   }
 
   module "label" {
-    source     = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.15.0"
+    source     = "git::https://github.com/cloudposse/terraform-null-label.git?ref=tags/0.25.0"
     namespace  = var.namespace
     name       = var.name
     stage      = var.stage
@@ -64,7 +64,7 @@ usage: |2-
   }
 
   module "vpc" {
-    source     = "git::https://github.com/cloudposse/terraform-aws-vpc.git?ref=tags/0.8.1"
+    source     = "git::https://github.com/cloudposse/terraform-aws-vpc.git?ref=tags/2.1.1"
     namespace  = var.namespace
     stage      = var.stage
     name       = var.name
@@ -75,7 +75,7 @@ usage: |2-
   }
 
   module "subnets" {
-    source               = "git::https://github.com/cloudposse/terraform-aws-dynamic-subnets.git?ref=tags/0.16.1"
+    source               = "git::https://github.com/cloudposse/terraform-aws-dynamic-subnets.git?ref=tags/2.4.2"
     availability_zones   = var.availability_zones
     namespace            = var.namespace
     stage                = var.stage
@@ -96,7 +96,7 @@ usage: |2-
   }
 
   module "container_definition" {
-    source                       = "git::https://github.com/cloudposse/terraform-aws-ecs-container-definition.git?ref=tags/0.21.0"
+    source                       = "git::https://github.com/cloudposse/terraform-aws-ecs-container-definition.git?ref=tags/0.61.0"
     container_name               = var.container_name
     container_image              = var.container_image
     container_memory             = var.container_memory
@@ -119,7 +119,7 @@ usage: |2-
     attributes                         = var.attributes
     delimiter                          = var.delimiter
     alb_security_group                 = module.vpc.vpc_default_security_group_id
-    container_definition_json          = module.container_definition.json
+    container_definition_json          = module.container_definition.json_map_encoded_list
     ecs_cluster_arn                    = aws_ecs_cluster.default.arn
     launch_type                        = var.ecs_launch_type
     vpc_id                             = module.vpc.vpc_id
