@@ -1,6 +1,8 @@
 locals {
   enabled                         = module.this.enabled
   ecs_service_enabled             = local.enabled && var.ecs_service_enabled
+  ecs_cluster_name                = split("/", var.ecs_cluster_arn)[length(split("/", var.ecs_cluster_arn)) - 1]
+  autoscaling_enabled             = local.enabled && var.ecs_service_enabled && var.service_autoscaling_enabled
   task_role_arn                   = try(var.task_role_arn[0], tostring(var.task_role_arn), "")
   create_task_role                = local.enabled && length(var.task_role_arn) == 0
   task_exec_role_arn              = try(var.task_exec_role_arn[0], tostring(var.task_exec_role_arn), "")
@@ -52,6 +54,15 @@ module "service_connect_label" {
   version    = "0.25.0"
   enabled    = local.create_service_connect_tls_role
   attributes = ["service-connect-tls"]
+
+  context = module.this.context
+}
+
+module "service_autoscaling_label" {
+  source     = "cloudposse/label/null"
+  version    = "0.25.0"
+  enabled    = local.autoscaling_enabled
+  attributes = ["service", "autoscaling"]
 
   context = module.this.context
 }
@@ -1011,4 +1022,33 @@ resource "aws_ecs_service" "default" {
   # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
   depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
 
+}
+
+# Autoscaling
+resource "aws_appautoscaling_target" "service" {
+  count              = local.autoscaling_enabled ? 1 : 0
+  min_capacity       = var.service_autoscaling_minimum_capacity
+  max_capacity       = var.service_autoscaling_maximum_capacity
+  resource_id        = "service/${local.ecs_cluster_name}/${module.this.id}"
+  scalable_dimension = "ecs:service:DesiredCount"
+  service_namespace  = "ecs"
+  tags               = module.service_autoscaling_label.tags
+}
+
+resource "aws_appautoscaling_policy" "target" {
+  for_each           = local.autoscaling_enabled ? var.service_autoscaling_target_tracking_policies : map()
+  name               = "${module.service_autoscaling_label.id}-target-${each.key}"
+  policy_type        = "TargetTrackingScaling"
+  resource_id        = aws_appautoscaling_target.service[0].resource_id
+  scalable_dimension = aws_appautoscaling_target.service[0].scalable_dimension
+  service_namespace  = aws_appautoscaling_target.service[0].service_namespace
+  target_tracking_scaling_policy_configuration {
+    predefined_metric_specification {
+      predefined_metric_type = each.value.predefined_metric_type
+      resource_label         = each.value.resource_label
+    }
+    target_value       = each.value.target_value
+    scale_out_cooldown = each.value.scale_out_cooldown
+    scale_in_cooldown  = each.value.scale_in_cooldown
+  }
 }
