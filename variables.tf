@@ -287,10 +287,9 @@ variable "service_autoscaling_target_tracking_policies" {
     scale_in_cooldown      = optional(number)
   }))
   description = <<-EOT
-    A map of target tracking policies to use for ECS service autoscaling.
-    Valid metrics types are `ECSServiceAverageCPUUtilization`, `ECSServiceAverageMemoryUtilization`, and `ALBRequestCountPerTarget`.
-    If `ALBRequestCountPerTarget` is used, the `resource_label` must be specified as the final part of the target group ARN. (`targetgroup/<target-group-name>/<target-group-id>`)
-    See the docs for more details: [Predefined Metric Specification](https://docs.aws.amazon.com/autoscaling/plans/APIReference/API_PredefinedScalingMetricSpecification.html)
+  A map of target tracking policies to use for ECS service autoscaling. Valid metrics types are `ECSServiceAverageCPUUtilization`, `ECSServiceAverageMemoryUtilization`, and `ALBRequestCountPerTarget`.
+  Note: `resource_label` is required for `ALBRequestCountPerTarget` metric type. This will be the last part of the target group ARN: `targetgroup/<target_group_name>/<target_group_id>`.
+  See the [documentation](https://docs.aws.amazon.com/autoscaling/application/APIReference/API_PredefinedMetricSpecification.html) for more details on predefined metrics.
   EOT
   default     = {}
 }
