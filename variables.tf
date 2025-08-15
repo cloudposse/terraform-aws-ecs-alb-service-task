@@ -454,7 +454,7 @@ variable "service_connect_configurations" {
         port     = number
         test_traffic_rules = optional(list(object({
           header = object({
-            name  = string
+            name = string
             value = object({
               exact = string
             })
