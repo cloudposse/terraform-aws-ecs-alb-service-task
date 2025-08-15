@@ -453,12 +453,12 @@ variable "service_connect_configurations" {
         dns_name = string
         port     = number
         test_traffic_rules = optional(list(object({
-          header = optional(object({
+          header = object({
             name  = string
-            value = optional(object({
+            value = object({
               exact = string
-            }), null)
-          }), null)
+            })
+          })
         })), [])
       }))
       timeout = optional(list(object({

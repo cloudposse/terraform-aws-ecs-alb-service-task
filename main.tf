@@ -488,16 +488,10 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
               dynamic "test_traffic_rules" {
                 for_each = try(client_alias.value.test_traffic_rules, [])
                 content {
-                  dynamic "header" {
-                    for_each = try([test_traffic_rules.value.header], [])
-                    content {
-                      name = header.value.name
-                      dynamic "value" {
-                        for_each = try([header.value.value], [])
-                        content {
-                          exact = value.value.exact
-                        }
-                      }
+                  header {
+                    name = test_traffic_rules.value.header.name
+                    value {
+                      exact = test_traffic_rules.value.header.value.exact
                     }
                   }
                 }
@@ -687,16 +681,10 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
               dynamic "test_traffic_rules" {
                 for_each = try(client_alias.value.test_traffic_rules, [])
                 content {
-                  dynamic "header" {
-                    for_each = try([test_traffic_rules.value.header], [])
-                    content {
-                      name = header.value.name
-                      dynamic "value" {
-                        for_each = try([header.value.value], [])
-                        content {
-                          exact = value.value.exact
-                        }
-                      }
+                  header {
+                    name = test_traffic_rules.value.header.name
+                    value {
+                      exact = test_traffic_rules.value.header.value.exact
                     }
                   }
                 }
@@ -886,16 +874,10 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
               dynamic "test_traffic_rules" {
                 for_each = try(client_alias.value.test_traffic_rules, [])
                 content {
-                  dynamic "header" {
-                    for_each = try([test_traffic_rules.value.header], [])
-                    content {
-                      name = header.value.name
-                      dynamic "value" {
-                        for_each = try([header.value.value], [])
-                        content {
-                          exact = value.value.exact
-                        }
-                      }
+                  header {
+                    name = test_traffic_rules.value.header.name
+                    value {
+                      exact = test_traffic_rules.value.header.value.exact
                     }
                   }
                 }
@@ -1085,16 +1067,10 @@ resource "aws_ecs_service" "default" {
               dynamic "test_traffic_rules" {
                 for_each = try(client_alias.value.test_traffic_rules, [])
                 content {
-                  dynamic "header" {
-                    for_each = try([test_traffic_rules.value.header], [])
-                    content {
-                      name = header.value.name
-                      dynamic "value" {
-                        for_each = try([header.value.value], [])
-                        content {
-                          exact = value.value.exact
-                        }
-                      }
+                  header {
+                    name = test_traffic_rules.value.header.name
+                    value {
+                      exact = test_traffic_rules.value.header.value.exact
                     }
                   }
                 }
