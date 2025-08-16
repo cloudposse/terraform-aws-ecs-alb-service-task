@@ -494,7 +494,7 @@ variable "deployment_configuration" {
       lifecycle_stages = list(string)
     })), [])
   })
-  description = "ECS deployment configuration, supports BLUE_GREEN strategy with lifecycle hooks. See aws_ecs_service deployment_configuration (v6.4.0+)."
+  description = "ECS deployment configuration, supports BLUE_GREEN strategy with lifecycle hooks. See aws_ecs_service deployment_configuration at https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#deployment_configuration -- default of null which is the default ROLLING deployment strategy."
   default     = null
 }
 
