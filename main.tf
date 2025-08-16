@@ -545,7 +545,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition" {
       target_group_arn = lookup(load_balancer.value, "target_group_arn", null)
 
       dynamic "advanced_configuration" {
-        for_each = try([load_balancer.value.advanced_configuration], [])
+        for_each = try(load_balancer.value.advanced_configuration, null) == null ? [] : [load_balancer.value.advanced_configuration]
         content {
           alternate_target_group_arn = advanced_configuration.value.alternate_target_group_arn
           production_listener_rule   = advanced_configuration.value.production_listener_rule
@@ -738,7 +738,7 @@ resource "aws_ecs_service" "ignore_changes_task_definition_and_desired_count" {
       target_group_arn = lookup(load_balancer.value, "target_group_arn", null)
 
       dynamic "advanced_configuration" {
-        for_each = try([load_balancer.value.advanced_configuration], [])
+        for_each = try(load_balancer.value.advanced_configuration, null) == null ? [] : [load_balancer.value.advanced_configuration]
         content {
           alternate_target_group_arn = advanced_configuration.value.alternate_target_group_arn
           production_listener_rule   = advanced_configuration.value.production_listener_rule
@@ -931,7 +931,7 @@ resource "aws_ecs_service" "ignore_changes_desired_count" {
       target_group_arn = lookup(load_balancer.value, "target_group_arn", null)
 
       dynamic "advanced_configuration" {
-        for_each = try([load_balancer.value.advanced_configuration], [])
+        for_each = try(load_balancer.value.advanced_configuration, null) == null ? [] : [load_balancer.value.advanced_configuration]
         content {
           alternate_target_group_arn = advanced_configuration.value.alternate_target_group_arn
           production_listener_rule   = advanced_configuration.value.production_listener_rule
@@ -1124,7 +1124,7 @@ resource "aws_ecs_service" "default" {
       target_group_arn = lookup(load_balancer.value, "target_group_arn", null)
 
       dynamic "advanced_configuration" {
-        for_each = try([load_balancer.value.advanced_configuration], [])
+        for_each = try(load_balancer.value.advanced_configuration, null) == null ? [] : [load_balancer.value.advanced_configuration]
         content {
           alternate_target_group_arn = advanced_configuration.value.alternate_target_group_arn
           production_listener_rule   = advanced_configuration.value.production_listener_rule
