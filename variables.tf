@@ -258,6 +258,43 @@ variable "desired_count" {
   default     = 1
 }
 
+variable "service_autoscaling_enabled" {
+  type        = bool
+  description = "Whether to enable autoscaling for the ECS service. This will cause the number of tasks to be adjusted based on the autoscaling policies defined."
+  default     = false
+}
+
+variable "service_autoscaling_minimum_capacity" {
+  type        = number
+  description = "The minimum number of tasks to keep running in the service. This is used for service autoscaling policies."
+  nullable    = true
+  default     = null
+}
+
+variable "service_autoscaling_maximum_capacity" {
+  type        = number
+  description = "The maximum number of tasks to keep running in the service. This is used for service autoscaling policies."
+  nullable    = true
+  default     = null
+}
+
+variable "service_autoscaling_target_tracking_policies" {
+  type = map(object({
+    predefined_metric_type = string
+    resource_label         = optional(string)
+    target_value           = number
+    scale_out_cooldown     = optional(number)
+    scale_in_cooldown      = optional(number)
+  }))
+  description = <<-EOT
+  A map of target tracking policies to use for ECS service autoscaling. Valid metrics types are `ECSServiceAverageCPUUtilization`, `ECSServiceAverageMemoryUtilization`, and `ALBRequestCountPerTarget`.
+  Note: `resource_label` is required for `ALBRequestCountPerTarget` metric type. This will be the last part of the target group ARN: `targetgroup/<target_group_name>/<target_group_id>`.
+  See the [documentation](https://docs.aws.amazon.com/autoscaling/application/APIReference/API_PredefinedMetricSpecification.html) for more details on predefined metrics.
+  EOT
+  default     = {}
+}
+
+
 variable "deployment_controller_type" {
   type        = string
   description = "Type of deployment controller. Valid values are `CODE_DEPLOY` and `ECS`"
