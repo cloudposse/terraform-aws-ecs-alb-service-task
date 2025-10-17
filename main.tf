@@ -240,6 +240,7 @@ data "aws_iam_policy_document" "ecs_ssm_exec" {
   count = local.create_task_role && var.exec_enabled ? 1 : 0
 
   statement {
+    sid       = "AllowSSMForECSExec"
     effect    = "Allow"
     resources = ["*"]
 
