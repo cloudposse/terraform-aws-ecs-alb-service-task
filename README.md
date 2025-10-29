@@ -30,7 +30,7 @@
 
 -->
 
-Terraform module to create an ECS Service for a web app (task), and an ALB target group to route requests.
+Terraform module to create an ECS Service for a web app (task), and registers with an ALB target group to route requests.
 
 
 > [!TIP]
@@ -426,7 +426,7 @@ Check out these related projects.
 > - **Customer Workshops.** Engage with our team in weekly workshops, gaining insights and strategies to continuously improve and innovate.
 >
 > <a href="https://cpco.io/commercial-support?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=commercial_support"><img alt="Request Quote" src="https://img.shields.io/badge/request%20quote-success.svg?style=for-the-badge"/></a>
-> 
+>
 </details>
 
 ## ✨ Contributing
@@ -469,15 +469,15 @@ Setup dependencies:
 
 To run tests:
 
-- Run all tests:  
+- Run all tests:
   ```sh
   atmos test run
   ```
-- Clean up test artifacts:  
+- Clean up test artifacts:
   ```sh
   atmos test clean
   ```
-- Explore additional test options:  
+- Explore additional test options:
   ```sh
   atmos test --help
   ```
