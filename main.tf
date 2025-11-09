@@ -162,6 +162,7 @@ data "aws_iam_policy_document" "ecs_task" {
   count = local.create_task_role ? 1 : 0
 
   statement {
+    sid     = "ECSTaskAssumeRole"
     effect  = "Allow"
     actions = ["sts:AssumeRole"]
 
@@ -192,6 +193,7 @@ data "aws_iam_policy_document" "ecs_service" {
   count = local.enabled ? 1 : 0
 
   statement {
+    sid     = "ECSServiceAssumeRole"
     effect  = "Allow"
     actions = ["sts:AssumeRole"]
 
@@ -265,6 +267,7 @@ data "aws_iam_policy_document" "ecs_task_exec" {
   count = local.create_exec_role ? 1 : 0
 
   statement {
+    sid     = "ECSTaskExecutionAssumeRole"
     actions = ["sts:AssumeRole"]
 
     principals {
@@ -286,6 +289,7 @@ data "aws_iam_policy_document" "ecs_exec" {
   count = local.create_exec_role ? 1 : 0
 
   statement {
+    sid       = "ECSTaskExecutionPermissions"
     effect    = "Allow"
     resources = ["*"]
 
@@ -320,6 +324,7 @@ data "aws_iam_policy_document" "ecs_service_connect_tls" {
   count = local.create_service_connect_tls_role ? 1 : 0
 
   statement {
+    sid     = "ECSServiceConnectTLSAssumeRole"
     actions = ["sts:AssumeRole"]
 
     principals {
