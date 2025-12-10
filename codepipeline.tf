@@ -95,7 +95,7 @@ resource "aws_codepipeline" "default" {
       output_artifacts = ["SourceOutput"]
       configuration = {
         S3Bucket    = aws_s3_bucket.appspec_artifacts[0].bucket
-        S3ObjectKey = "source/appspec.zip"
+        S3ObjectKey = "appspec.zip"
       }
     }
   }
@@ -106,16 +106,12 @@ resource "aws_codepipeline" "default" {
       name            = "CodeDeploy"
       category        = "Deploy"
       owner           = "AWS"
-      provider        = "CodeDeployToECS"
+      provider        = "CodeDeploy"
       version         = "1"
       input_artifacts = ["SourceOutput"]
       configuration = {
         ApplicationName                = local.container_name
         DeploymentGroupName            = local.container_name
-        TaskDefinitionTemplateArtifact = "SourceOutput"
-        TaskDefinitionTemplatePath     = "taskdef.json"
-        AppSpecTemplateArtifact        = "SourceOutput"
-        AppSpecTemplatePath            = "appspec.yml"
       }
     }
   }
