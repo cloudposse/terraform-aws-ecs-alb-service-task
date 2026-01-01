@@ -50,6 +50,7 @@ Terraform module to create an ECS Service for a web app (task), and an ALB targe
 
 ## Usage
 
+
 For a complete example, see [examples/complete](examples/complete).
 
 For automated test of the complete example using `bats` and `Terratest`, see [test](test).
@@ -535,7 +536,7 @@ All other trademarks referenced herein are the property of their respective owne
 
 
 ---
-Copyright © 2017-2025 [Cloud Posse, LLC](https://cpco.io/copyright)
+Copyright © 2017-2026 [Cloud Posse, LLC](https://cpco.io/copyright)
 
 
 <a href="https://cloudposse.com/readme/footer/link?utm_source=github&utm_medium=readme&utm_campaign=cloudposse/terraform-aws-ecs-alb-service-task&utm_content=readme_footer_link"><img alt="README footer" src="https://cloudposse.com/readme/footer/img"/></a>
