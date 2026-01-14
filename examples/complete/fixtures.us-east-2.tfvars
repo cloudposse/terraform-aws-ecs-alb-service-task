@@ -80,3 +80,19 @@ container_port_mappings = [
 
 force_new_deployment = true
 redeploy_on_apply    = true
+
+service_autoscaling_enabled          = true
+service_autoscaling_minimum_capacity = 1
+service_autoscaling_maximum_capacity = 3
+service_autoscaling_target_tracking_policies = {
+  cpu = {
+    predefined_metric_type = "ECSServiceAverageCPUUtilization"
+    target_value           = 50
+    scale_out_cooldown     = 60
+    scale_in_cooldown      = 60
+  },
+  memory = {
+    predefined_metric_type = "ECSServiceAverageMemoryUtilization"
+    target_value           = 80
+  }
+}
