@@ -14,6 +14,12 @@ variable "ecs_load_balancers" {
     container_port   = number
     elb_name         = optional(string)
     target_group_arn = string
+    advanced_configuration = optional(object({
+      alternate_target_group_arn = string
+      production_listener_rule   = string
+      role_arn                   = string
+      test_listener_rule         = optional(string)
+    }), null)
   }))
   description = "A list of load balancer config objects for the ECS service; see [ecs_service#load_balancer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#load_balancer) docs"
   default     = []
@@ -446,6 +452,14 @@ variable "service_connect_configurations" {
       client_alias = list(object({
         dns_name = string
         port     = number
+        test_traffic_rules = optional(list(object({
+          header = object({
+            name = string
+            value = object({
+              exact = string
+            })
+          })
+        })), [])
       }))
       timeout = optional(list(object({
         idle_timeout_seconds        = optional(number, null)
@@ -468,6 +482,20 @@ variable "service_connect_configurations" {
     See `service_connect_configuration` docs https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#service_connect_configuration
     EOT
   default     = []
+}
+
+variable "deployment_configuration" {
+  type = object({
+    strategy             = optional(string)
+    bake_time_in_minutes = optional(number)
+    lifecycle_hooks = optional(list(object({
+      hook_target_arn  = string
+      role_arn         = string
+      lifecycle_stages = list(string)
+    })), [])
+  })
+  description = "ECS deployment configuration, supports blue green deployments (`strategy = 'BLUE_GREEN'`) with lifecycle hooks. See aws_ecs_service deployment_configuration at https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#deployment_configuration - default of null which is the default ROLLING deployment strategy."
+  default     = null
 }
 
 variable "permissions_boundary" {
