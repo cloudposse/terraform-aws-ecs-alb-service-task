@@ -147,6 +147,44 @@ module "ecs_alb_service_task" {
 }
 ```
 
+### Native ECS blue/green deployments
+
+This module supports [Amazon ECS built-in blue/green deployments](https://aws.amazon.com/about-aws/whats-new/2025/07/amazon-ecs-built-in-blue-green-deployments/)
+(requires AWS provider `>= 6.4`). Set `deployment_configuration.strategy = "BLUE_GREEN"` and supply
+`advanced_configuration` on each entry of `ecs_load_balancers`:
+
+```hcl
+module "ecs_alb_service_task" {
+  source = "cloudposse/ecs-alb-service-task/aws"
+  # ... other configuration ...
+
+  deployment_configuration = {
+    strategy             = "BLUE_GREEN"
+    bake_time_in_minutes = 3
+  }
+
+  ecs_load_balancers = [
+    {
+      container_name   = var.container_name
+      container_port   = 80
+      target_group_arn = module.alb.default_target_group_arn # production ("blue") target group
+      advanced_configuration = {
+        alternate_target_group_arn = aws_lb_target_group.alternate.arn      # "green" target group
+        production_listener_rule   = aws_lb_listener_rule.blue_green.arn
+        role_arn                   = aws_iam_role.ecs_blue_green.arn         # AmazonECSInfrastructureRolePolicyForLoadBalancers
+      }
+    }
+  ]
+}
+```
+
+**Prerequisites (owned by you, not this module):** the `production_listener_rule` must already have a
+`forward` action referencing BOTH the primary and alternate target groups (ECS shifts the weights during a
+deployment — start the alternate at weight `0`), and `role_arn` must be an IAM role that ECS can assume
+with the AWS-managed `AmazonECSInfrastructureRolePolicyForLoadBalancers` policy. See
+[examples/blue-green](examples/blue-green) for a full, working setup. Only the `ROLLING` and `BLUE_GREEN`
+strategies are currently supported.
+
 The `container_image` in the `container_definition` module is the Docker image used to start a container.
 
 The `container_definition` is a string of JSON-encoded container definitions. Normally, you would place only one container definition here as the example
@@ -203,20 +241,20 @@ For more info, see [Container Definition](https://docs.aws.amazon.com/AmazonECS/
 ## Requirements
 
 | Name | Version |
-|------|---------|
-| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 0.14.0 |
-| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 5.85 |
+| ---- | ------- |
+| <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9 |
+| <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.4 |
 
 ## Providers
 
 | Name | Version |
-|------|---------|
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 5.85 |
+| ---- | ------- |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.60.0 |
 
 ## Modules
 
 | Name | Source | Version |
-|------|--------|---------|
+| ---- | ------ | ------- |
 | <a name="module_exec_label"></a> [exec\_label](#module\_exec\_label) | cloudposse/label/null | 0.25.0 |
 | <a name="module_service_connect_label"></a> [service\_connect\_label](#module\_service\_connect\_label) | cloudposse/label/null | 0.25.0 |
 | <a name="module_service_label"></a> [service\_label](#module\_service\_label) | cloudposse/label/null | 0.25.0 |
@@ -226,7 +264,7 @@ For more info, see [Container Definition](https://docs.aws.amazon.com/AmazonECS/
 ## Resources
 
 | Name | Type |
-|------|------|
+| ---- | ---- |
 | [aws_ecs_service.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
 | [aws_ecs_service.ignore_changes_desired_count](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
 | [aws_ecs_service.ignore_changes_task_definition](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service) | resource |
@@ -258,7 +296,7 @@ For more info, see [Container Definition](https://docs.aws.amazon.com/AmazonECS/
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ---- | ----------- | ---- | ------- | :------: |
 | <a name="input_additional_tag_map"></a> [additional\_tag\_map](#input\_additional\_tag\_map) | Additional key-value pairs to add to each map in `tags_as_list_of_maps`. Not added to `tags` or `id`.<br/>This is for some rare cases where resources want additional configuration of tags<br/>and therefore take a list of maps with tag key, value, and additional configuration. | `map(string)` | `{}` | no |
 | <a name="input_alb_security_group"></a> [alb\_security\_group](#input\_alb\_security\_group) | Security group of the ALB | `string` | `""` | no |
 | <a name="input_assign_public_ip"></a> [assign\_public\_ip](#input\_assign\_public\_ip) | Assign a public IP address to the ENI (Fargate launch type only). Valid values are `true` or `false`. Default `false` | `bool` | `false` | no |
@@ -272,6 +310,7 @@ For more info, see [Container Definition](https://docs.aws.amazon.com/AmazonECS/
 | <a name="input_container_port"></a> [container\_port](#input\_container\_port) | The port on the container to allow traffic from the ALB security group | `number` | `80` | no |
 | <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "name": null,<br/>  "namespace": null,<br/>  "regex_replace_chars": null,<br/>  "stage": null,<br/>  "tags": {},<br/>  "tenant": null<br/>}</pre> | no |
 | <a name="input_delimiter"></a> [delimiter](#input\_delimiter) | Delimiter to be used between ID elements.<br/>Defaults to `-` (hyphen). Set to `""` to use no delimiter at all. | `string` | `null` | no |
+| <a name="input_deployment_configuration"></a> [deployment\_configuration](#input\_deployment\_configuration) | ECS deployment configuration. Supports native ECS blue/green deployments<br/>(`strategy = "BLUE_GREEN"`) with optional lifecycle hooks. Leave `null` (the default)<br/>for the standard `ROLLING` strategy. When `strategy = "BLUE_GREEN"`, every entry in<br/>`ecs_load_balancers` must set `advanced_configuration`, and the referenced production<br/>listener rule must already forward to BOTH the primary and alternate target groups.<br/>Only `ROLLING` and `BLUE_GREEN` are supported by this module today (the provider's<br/>`LINEAR`/`CANARY` strategies need extra configuration blocks not yet exposed here).<br/>See [ecs\_service#deployment\_configuration](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#deployment_configuration). | <pre>object({<br/>    strategy             = optional(string)<br/>    bake_time_in_minutes = optional(number)<br/>    lifecycle_hook = optional(list(object({<br/>      hook_target_arn  = string<br/>      role_arn         = string<br/>      lifecycle_stages = list(string)<br/>      hook_details     = optional(string)<br/>    })), [])<br/>  })</pre> | `null` | no |
 | <a name="input_deployment_controller_type"></a> [deployment\_controller\_type](#input\_deployment\_controller\_type) | Type of deployment controller. Valid values are `CODE_DEPLOY` and `ECS` | `string` | `"ECS"` | no |
 | <a name="input_deployment_maximum_percent"></a> [deployment\_maximum\_percent](#input\_deployment\_maximum\_percent) | The upper limit of the number of tasks (as a percentage of `desired_count`) that can be running in a service during a deployment | `number` | `200` | no |
 | <a name="input_deployment_minimum_healthy_percent"></a> [deployment\_minimum\_healthy\_percent](#input\_deployment\_minimum\_healthy\_percent) | The lower limit (as a percentage of `desired_count`) of the number of tasks that must remain running and healthy in a service during a deployment | `number` | `100` | no |
@@ -279,7 +318,7 @@ For more info, see [Container Definition](https://docs.aws.amazon.com/AmazonECS/
 | <a name="input_desired_count"></a> [desired\_count](#input\_desired\_count) | The number of instances of the task definition to place and keep running | `number` | `1` | no |
 | <a name="input_docker_volumes"></a> [docker\_volumes](#input\_docker\_volumes) | Task docker volume definitions as list of configuration objects. You can define multiple Docker volumes on the same task definition, but a single volume can only have one `docker_volume_configuration`. | <pre>list(object({<br/>    host_path = string<br/>    name      = string<br/>    docker_volume_configuration = list(object({<br/>      autoprovision = bool<br/>      driver        = string<br/>      driver_opts   = map(string)<br/>      labels        = map(string)<br/>      scope         = string<br/>    }))<br/>  }))</pre> | `[]` | no |
 | <a name="input_ecs_cluster_arn"></a> [ecs\_cluster\_arn](#input\_ecs\_cluster\_arn) | The ARN of the ECS cluster where service will be provisioned | `string` | n/a | yes |
-| <a name="input_ecs_load_balancers"></a> [ecs\_load\_balancers](#input\_ecs\_load\_balancers) | A list of load balancer config objects for the ECS service; see [ecs\_service#load\_balancer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#load_balancer) docs | <pre>list(object({<br/>    container_name   = string<br/>    container_port   = number<br/>    elb_name         = optional(string)<br/>    target_group_arn = string<br/>  }))</pre> | `[]` | no |
+| <a name="input_ecs_load_balancers"></a> [ecs\_load\_balancers](#input\_ecs\_load\_balancers) | A list of load balancer config objects for the ECS service; see [ecs\_service#load\_balancer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#load_balancer) docs | <pre>list(object({<br/>    container_name   = string<br/>    container_port   = number<br/>    elb_name         = optional(string)<br/>    target_group_arn = string<br/>    advanced_configuration = optional(object({<br/>      alternate_target_group_arn = string<br/>      production_listener_rule   = string<br/>      role_arn                   = string<br/>      test_listener_rule         = optional(string)<br/>    }), null)<br/>  }))</pre> | `[]` | no |
 | <a name="input_ecs_service_enabled"></a> [ecs\_service\_enabled](#input\_ecs\_service\_enabled) | Whether or not to create the aws\_ecs\_service resource | `bool` | `true` | no |
 | <a name="input_efs_volumes"></a> [efs\_volumes](#input\_efs\_volumes) | Task EFS volume definitions as list of configuration objects. You can define multiple EFS volumes on the same task definition, but a single volume can only have one `efs_volume_configuration`. | <pre>list(object({<br/>    host_path = string<br/>    name      = string<br/>    efs_volume_configuration = list(object({<br/>      file_system_id          = string<br/>      root_directory          = string<br/>      transit_encryption      = string<br/>      transit_encryption_port = string<br/>      authorization_config = list(object({<br/>        access_point_id = string<br/>        iam             = string<br/>      }))<br/>    }))<br/>  }))</pre> | `[]` | no |
 | <a name="input_enable_all_egress_rule"></a> [enable\_all\_egress\_rule](#input\_enable\_all\_egress\_rule) | A flag to enable/disable adding the all ports egress rule to the service security group | `bool` | `true` | no |
@@ -321,7 +360,7 @@ For more info, see [Container Definition](https://docs.aws.amazon.com/AmazonECS/
 | <a name="input_security_group_description"></a> [security\_group\_description](#input\_security\_group\_description) | The description to assign to the service security group.<br/>Warning: Changing the description causes the security group to be replaced. | `string` | `"Allow ALL egress from ECS service"` | no |
 | <a name="input_security_group_enabled"></a> [security\_group\_enabled](#input\_security\_group\_enabled) | Whether to create a security group for the service. | `bool` | `true` | no |
 | <a name="input_security_group_ids"></a> [security\_group\_ids](#input\_security\_group\_ids) | Security group IDs to allow in Service `network_configuration` if `var.network_mode = "awsvpc"` | `list(string)` | `[]` | no |
-| <a name="input_service_connect_configurations"></a> [service\_connect\_configurations](#input\_service\_connect\_configurations) | The list of Service Connect configurations.<br/>See `service_connect_configuration` docs https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#service_connect_configuration | <pre>list(object({<br/>    enabled   = bool<br/>    namespace = optional(string, null)<br/>    log_configuration = optional(object({<br/>      log_driver = string<br/>      options    = optional(map(string), null)<br/>      secret_option = optional(list(object({<br/>        name       = string<br/>        value_from = string<br/>      })), [])<br/>    }), null)<br/>    service = optional(list(object({<br/>      client_alias = list(object({<br/>        dns_name = string<br/>        port     = number<br/>      }))<br/>      timeout = optional(list(object({<br/>        idle_timeout_seconds        = optional(number, null)<br/>        per_request_timeout_seconds = optional(number, null)<br/>      })), [])<br/>      tls = optional(list(object({<br/>        kms_key  = optional(string, null)<br/>        role_arn = optional(string, null)<br/>        issuer_cert_authority = object({<br/>          aws_pca_authority_arn = string<br/>        })<br/>      })), [])<br/>      discovery_name        = optional(string, null)<br/>      ingress_port_override = optional(number, null)<br/>      port_name             = string<br/>    })), [])<br/>  }))</pre> | `[]` | no |
+| <a name="input_service_connect_configurations"></a> [service\_connect\_configurations](#input\_service\_connect\_configurations) | The list of Service Connect configurations.<br/>See `service_connect_configuration` docs https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#service_connect_configuration | <pre>list(object({<br/>    enabled   = bool<br/>    namespace = optional(string, null)<br/>    log_configuration = optional(object({<br/>      log_driver = string<br/>      options    = optional(map(string), null)<br/>      secret_option = optional(list(object({<br/>        name       = string<br/>        value_from = string<br/>      })), [])<br/>    }), null)<br/>    service = optional(list(object({<br/>      client_alias = list(object({<br/>        dns_name = string<br/>        port     = number<br/>        test_traffic_rules = optional(list(object({<br/>          header = object({<br/>            name = string<br/>            value = object({<br/>              exact = string<br/>            })<br/>          })<br/>        })), [])<br/>      }))<br/>      timeout = optional(list(object({<br/>        idle_timeout_seconds        = optional(number, null)<br/>        per_request_timeout_seconds = optional(number, null)<br/>      })), [])<br/>      tls = optional(list(object({<br/>        kms_key  = optional(string, null)<br/>        role_arn = optional(string, null)<br/>        issuer_cert_authority = object({<br/>          aws_pca_authority_arn = string<br/>        })<br/>      })), [])<br/>      discovery_name        = optional(string, null)<br/>      ingress_port_override = optional(number, null)<br/>      port_name             = string<br/>    })), [])<br/>  }))</pre> | `[]` | no |
 | <a name="input_service_placement_constraints"></a> [service\_placement\_constraints](#input\_service\_placement\_constraints) | The rules that are taken into consideration during task placement. Maximum number of placement\_constraints is 10. See [`placement_constraints`](https://www.terraform.io/docs/providers/aws/r/ecs_service.html#placement_constraints-1) docs | <pre>list(object({<br/>    type       = string<br/>    expression = string<br/>  }))</pre> | `[]` | no |
 | <a name="input_service_registries"></a> [service\_registries](#input\_service\_registries) | Zero or one service discovery registries for the service.<br/>The currently supported service registry is Amazon Route 53 Auto Naming Service - `aws_service_discovery_service`;<br/>see `service_registries` docs https://www.terraform.io/docs/providers/aws/r/ecs_service.html#service_registries-1"<br/>Service registry is object with required key `registry_arn = string` and optional keys<br/>  `port           = number`<br/>  `container_name = string`<br/>  `container_port = number` | `list(any)` | `[]` | no |
 | <a name="input_service_role_arn"></a> [service\_role\_arn](#input\_service\_role\_arn) | ARN of the IAM role that allows Amazon ECS to make calls to your load balancer on your behalf. This parameter is required if you are using a load balancer with your service, but only if your task definition does not use the awsvpc network mode. If using awsvpc network mode, do not specify this role. If your account has already created the Amazon ECS service-linked role, that role is used by default for your service unless you specify a role here. | `string` | `null` | no |
@@ -349,7 +388,7 @@ For more info, see [Container Definition](https://docs.aws.amazon.com/AmazonECS/
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ---- | ----------- |
 | <a name="output_ecs_exec_role_policy_id"></a> [ecs\_exec\_role\_policy\_id](#output\_ecs\_exec\_role\_policy\_id) | The ECS service role policy ID, in the form of `role_name:role_policy_name` |
 | <a name="output_ecs_exec_role_policy_name"></a> [ecs\_exec\_role\_policy\_name](#output\_ecs\_exec\_role\_policy\_name) | ECS service role name |
 | <a name="output_service_arn"></a> [service\_arn](#output\_service\_arn) | ECS Service ARN |

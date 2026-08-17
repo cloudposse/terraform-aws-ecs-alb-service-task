@@ -140,6 +140,44 @@ usage: |2-
   }
   ```
 
+  ### Native ECS blue/green deployments
+
+  This module supports [Amazon ECS built-in blue/green deployments](https://aws.amazon.com/about-aws/whats-new/2025/07/amazon-ecs-built-in-blue-green-deployments/)
+  (requires AWS provider `>= 6.4`). Set `deployment_configuration.strategy = "BLUE_GREEN"` and supply
+  `advanced_configuration` on each entry of `ecs_load_balancers`:
+
+  ```hcl
+  module "ecs_alb_service_task" {
+    source = "cloudposse/ecs-alb-service-task/aws"
+    # ... other configuration ...
+
+    deployment_configuration = {
+      strategy             = "BLUE_GREEN"
+      bake_time_in_minutes = 3
+    }
+
+    ecs_load_balancers = [
+      {
+        container_name   = var.container_name
+        container_port   = 80
+        target_group_arn = module.alb.default_target_group_arn # production ("blue") target group
+        advanced_configuration = {
+          alternate_target_group_arn = aws_lb_target_group.alternate.arn      # "green" target group
+          production_listener_rule   = aws_lb_listener_rule.blue_green.arn
+          role_arn                   = aws_iam_role.ecs_blue_green.arn         # AmazonECSInfrastructureRolePolicyForLoadBalancers
+        }
+      }
+    ]
+  }
+  ```
+
+  **Prerequisites (owned by you, not this module):** the `production_listener_rule` must already have a
+  `forward` action referencing BOTH the primary and alternate target groups (ECS shifts the weights during a
+  deployment — start the alternate at weight `0`), and `role_arn` must be an IAM role that ECS can assume
+  with the AWS-managed `AmazonECSInfrastructureRolePolicyForLoadBalancers` policy. See
+  [examples/blue-green](examples/blue-green) for a full, working setup. Only the `ROLLING` and `BLUE_GREEN`
+  strategies are currently supported.
+
   The `container_image` in the `container_definition` module is the Docker image used to start a container.
 
   The `container_definition` is a string of JSON-encoded container definitions. Normally, you would place only one container definition here as the example
