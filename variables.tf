@@ -14,6 +14,12 @@ variable "ecs_load_balancers" {
     container_port   = number
     elb_name         = optional(string)
     target_group_arn = string
+    advanced_configuration = optional(object({
+      alternate_target_group_arn = string
+      production_listener_rule   = string
+      role_arn                   = string
+      test_listener_rule         = optional(string)
+    }), null)
   }))
   description = "A list of load balancer config objects for the ECS service; see [ecs_service#load_balancer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#load_balancer) docs"
   default     = []
@@ -446,6 +452,14 @@ variable "service_connect_configurations" {
       client_alias = list(object({
         dns_name = string
         port     = number
+        test_traffic_rules = optional(list(object({
+          header = object({
+            name = string
+            value = object({
+              exact = string
+            })
+          })
+        })), [])
       }))
       timeout = optional(list(object({
         idle_timeout_seconds        = optional(number, null)
@@ -468,6 +482,53 @@ variable "service_connect_configurations" {
     See `service_connect_configuration` docs https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#service_connect_configuration
     EOT
   default     = []
+}
+
+variable "deployment_configuration" {
+  type = object({
+    strategy             = optional(string)
+    bake_time_in_minutes = optional(number)
+    lifecycle_hook = optional(list(object({
+      hook_target_arn  = string
+      role_arn         = string
+      lifecycle_stages = list(string)
+      hook_details     = optional(string)
+    })), [])
+  })
+  description = <<-EOT
+    ECS deployment configuration. Supports native ECS blue/green deployments
+    (`strategy = "BLUE_GREEN"`) with optional lifecycle hooks. Leave `null` (the default)
+    for the standard `ROLLING` strategy. When `strategy = "BLUE_GREEN"`, every entry in
+    `ecs_load_balancers` must set `advanced_configuration`, and the referenced production
+    listener rule must already forward to BOTH the primary and alternate target groups.
+    Only `ROLLING` and `BLUE_GREEN` are supported by this module today (the provider's
+    `LINEAR`/`CANARY` strategies need extra configuration blocks not yet exposed here).
+    See [ecs_service#deployment_configuration](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#deployment_configuration).
+    EOT
+  default     = null
+
+  validation {
+    condition     = var.deployment_configuration == null ? true : contains(["ROLLING", "BLUE_GREEN"], coalesce(try(var.deployment_configuration.strategy, null), "ROLLING"))
+    error_message = "The deployment_configuration.strategy value must be `ROLLING` or `BLUE_GREEN` (`LINEAR` and `CANARY` are not yet supported by this module)."
+  }
+
+  validation {
+    condition     = try(var.deployment_configuration.bake_time_in_minutes, null) == null ? true : (var.deployment_configuration.bake_time_in_minutes >= 0 && var.deployment_configuration.bake_time_in_minutes <= 1440)
+    error_message = "The deployment_configuration.bake_time_in_minutes value must be inclusively between 0 and 1440."
+  }
+
+  # `advanced_configuration` is required by the provider for BLUE_GREEN, so require at least one
+  # load balancer and that every entry sets it (an empty list must not vacuously pass).
+  validation {
+    condition     = try(var.deployment_configuration.strategy, null) != "BLUE_GREEN" || (length(var.ecs_load_balancers) > 0 && alltrue([for lb in var.ecs_load_balancers : lb.advanced_configuration != null]))
+    error_message = "When deployment_configuration.strategy is `BLUE_GREEN`, ecs_load_balancers must contain at least one entry and every entry must set advanced_configuration."
+  }
+
+  # Native blue/green only applies to the ECS deployment controller, not CODE_DEPLOY/EXTERNAL.
+  validation {
+    condition     = try(var.deployment_configuration.strategy, null) != "BLUE_GREEN" || var.deployment_controller_type == "ECS"
+    error_message = "deployment_configuration.strategy `BLUE_GREEN` requires deployment_controller_type = `ECS`."
+  }
 }
 
 variable "permissions_boundary" {
