@@ -100,6 +100,8 @@ module "ecs_alb_service_task" {
   redeploy_on_apply                  = var.redeploy_on_apply
   task_policy_arns                   = [module.test_policy.policy_arn]
   task_exec_policy_arns_map          = { test = module.test_policy.policy_arn }
+  autoscaling_enabled                = var.autoscaling_enabled
+  ecs_alarms_enabled                 = var.ecs_alarms_enabled
 
   context = module.this.context
 }

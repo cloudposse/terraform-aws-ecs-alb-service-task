@@ -33,6 +33,7 @@
 Terraform module to create an ECS Service for a web app (task), and an ALB target group to route requests.
 
 
+
 > [!TIP]
 > #### 👽 Use Atmos with Terraform
 > Cloud Posse uses [`atmos`](https://atmos.tools) to easily orchestrate multiple environments using Terraform. <br/>
@@ -43,6 +44,7 @@ Terraform module to create an ECS Service for a web app (task), and an ALB targe
 > <img src="https://github.com/cloudposse/atmos/blob/main/docs/demo.gif?raw=true"/><br/>
 > <i>Example of running <a href="https://atmos.tools"><code>atmos</code></a> to manage infrastructure from our <a href="https://atmos.tools/quick-start/">Quick Start</a> tutorial.</i>
 > </detalis>
+
 
 
 
@@ -185,6 +187,35 @@ with the AWS-managed `AmazonECSInfrastructureRolePolicyForLoadBalancers` policy.
 [examples/blue-green](examples/blue-green) for a full, working setup. Only the `ROLLING` and `BLUE_GREEN`
 strategies are currently supported.
 
+### Autoscaling
+
+Set `autoscaling_enabled = true` to create an Application Auto Scaling scalable target and
+step-scaling policies for the ECS service (via
+[cloudposse/terraform-aws-ecs-cloudwatch-autoscaling](https://github.com/cloudposse/terraform-aws-ecs-cloudwatch-autoscaling)):
+
+```hcl
+module "ecs_alb_service_task" {
+  source = "cloudposse/ecs-alb-service-task/aws"
+  # ... other configuration ...
+
+  autoscaling_enabled       = true
+  autoscaling_dimension     = "cpu" # or "memory" (the default)
+  autoscaling_min_capacity  = 1
+  autoscaling_max_capacity  = 10
+
+  # Let the autoscaler own the service's desired count
+  ignore_changes_desired_count = true
+}
+```
+
+When `ecs_alarms_enabled = true`, the module also creates CPU and memory utilization
+CloudWatch alarms (via
+[cloudposse/terraform-aws-ecs-cloudwatch-sns-alarms](https://github.com/cloudposse/terraform-aws-ecs-cloudwatch-sns-alarms)).
+The alarms for the selected `autoscaling_dimension` automatically trigger the step-scaling
+policies; supply SNS topic ARNs via the `ecs_alarms_*_alarm_actions` variables to also
+receive notifications. The scale up/down policy ARNs are available via the
+`scale_up_policy_arn` and `scale_down_policy_arn` outputs for custom alarm wiring.
+
 The `container_image` in the `container_definition` module is the Docker image used to start a container.
 
 The `container_definition` is a string of JSON-encoded container definitions. Normally, you would place only one container definition here as the example
@@ -245,16 +276,12 @@ For more info, see [Container Definition](https://docs.aws.amazon.com/AmazonECS/
 | <a name="requirement_terraform"></a> [terraform](#requirement\_terraform) | >= 1.9 |
 | <a name="requirement_aws"></a> [aws](#requirement\_aws) | >= 6.4 |
 
-## Providers
-
-| Name | Version |
-| ---- | ------- |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | >= 6.4 |
-
 ## Modules
 
 | Name | Source | Version |
 | ---- | ------ | ------- |
+| <a name="module_ecs_cloudwatch_autoscaling"></a> [ecs\_cloudwatch\_autoscaling](#module\_ecs\_cloudwatch\_autoscaling) | cloudposse/ecs-cloudwatch-autoscaling/aws | 0.7.5 |
+| <a name="module_ecs_cloudwatch_sns_alarms"></a> [ecs\_cloudwatch\_sns\_alarms](#module\_ecs\_cloudwatch\_sns\_alarms) | cloudposse/ecs-cloudwatch-sns-alarms/aws | 0.12.2 |
 | <a name="module_exec_label"></a> [exec\_label](#module\_exec\_label) | cloudposse/label/null | 0.25.0 |
 | <a name="module_service_connect_label"></a> [service\_connect\_label](#module\_service\_connect\_label) | cloudposse/label/null | 0.25.0 |
 | <a name="module_service_label"></a> [service\_label](#module\_service\_label) | cloudposse/label/null | 0.25.0 |
@@ -301,6 +328,14 @@ For more info, see [Container Definition](https://docs.aws.amazon.com/AmazonECS/
 | <a name="input_alb_security_group"></a> [alb\_security\_group](#input\_alb\_security\_group) | Security group of the ALB | `string` | `""` | no |
 | <a name="input_assign_public_ip"></a> [assign\_public\_ip](#input\_assign\_public\_ip) | Assign a public IP address to the ENI (Fargate launch type only). Valid values are `true` or `false`. Default `false` | `bool` | `false` | no |
 | <a name="input_attributes"></a> [attributes](#input\_attributes) | ID element. Additional attributes (e.g. `workers` or `cluster`) to add to `id`,<br/>in the order they appear in the list. New attributes are appended to the<br/>end of the list. The elements of the list are joined by the `delimiter`<br/>and treated as a single ID element. | `list(string)` | `[]` | no |
+| <a name="input_autoscaling_dimension"></a> [autoscaling\_dimension](#input\_autoscaling\_dimension) | Dimension to autoscale on (valid options: cpu, memory) | `string` | `"memory"` | no |
+| <a name="input_autoscaling_enabled"></a> [autoscaling\_enabled](#input\_autoscaling\_enabled) | A boolean to enable/disable Autoscaling policy for ECS Service | `bool` | `false` | no |
+| <a name="input_autoscaling_max_capacity"></a> [autoscaling\_max\_capacity](#input\_autoscaling\_max\_capacity) | Maximum number of running instances of a Service | `number` | `2` | no |
+| <a name="input_autoscaling_min_capacity"></a> [autoscaling\_min\_capacity](#input\_autoscaling\_min\_capacity) | Minimum number of running instances of a Service | `number` | `1` | no |
+| <a name="input_autoscaling_scale_down_adjustment"></a> [autoscaling\_scale\_down\_adjustment](#input\_autoscaling\_scale\_down\_adjustment) | Scaling adjustment to make during scale down event | `number` | `-1` | no |
+| <a name="input_autoscaling_scale_down_cooldown"></a> [autoscaling\_scale\_down\_cooldown](#input\_autoscaling\_scale\_down\_cooldown) | Period (in seconds) to wait between scale down events | `number` | `300` | no |
+| <a name="input_autoscaling_scale_up_adjustment"></a> [autoscaling\_scale\_up\_adjustment](#input\_autoscaling\_scale\_up\_adjustment) | Scaling adjustment to make during scale up event | `number` | `1` | no |
+| <a name="input_autoscaling_scale_up_cooldown"></a> [autoscaling\_scale\_up\_cooldown](#input\_autoscaling\_scale\_up\_cooldown) | Period (in seconds) to wait between scale up events | `number` | `60` | no |
 | <a name="input_availability_zone_rebalancing"></a> [availability\_zone\_rebalancing](#input\_availability\_zone\_rebalancing) | ECS automatically redistributes tasks within a service across Availability Zones (AZs) to mitigate the risk of impaired application availability due to underlying infrastructure failures and task lifecycle activities. The valid values are `ENABLED` and `DISABLED`. | `string` | `"DISABLED"` | no |
 | <a name="input_bind_mount_volumes"></a> [bind\_mount\_volumes](#input\_bind\_mount\_volumes) | Task bind mount volume definitions as list of configuration objects. You can define multiple bind mount volumes on the same task definition. Requires `name` and optionally `host_path` | `list(any)` | `[]` | no |
 | <a name="input_capacity_provider_strategies"></a> [capacity\_provider\_strategies](#input\_capacity\_provider\_strategies) | The capacity provider strategies to use for the service. See `capacity_provider_strategy` configuration block: https://www.terraform.io/docs/providers/aws/r/ecs_service.html#capacity_provider_strategy | <pre>list(object({<br/>    capacity_provider = string<br/>    weight            = number<br/>    base              = number<br/>  }))</pre> | `[]` | no |
@@ -317,6 +352,27 @@ For more info, see [Container Definition](https://docs.aws.amazon.com/AmazonECS/
 | <a name="input_descriptor_formats"></a> [descriptor\_formats](#input\_descriptor\_formats) | Describe additional descriptors to be output in the `descriptors` output map.<br/>Map of maps. Keys are names of descriptors. Values are maps of the form<br/>`{<br/>   format = string<br/>   labels = list(string)<br/>}`<br/>(Type is `any` so the map values can later be enhanced to provide additional options.)<br/>`format` is a Terraform format string to be passed to the `format()` function.<br/>`labels` is a list of labels, in order, to pass to `format()` function.<br/>Label values will be normalized before being passed to `format()` so they will be<br/>identical to how they appear in `id`.<br/>Default is `{}` (`descriptors` output will be empty). | `any` | `{}` | no |
 | <a name="input_desired_count"></a> [desired\_count](#input\_desired\_count) | The number of instances of the task definition to place and keep running | `number` | `1` | no |
 | <a name="input_docker_volumes"></a> [docker\_volumes](#input\_docker\_volumes) | Task docker volume definitions as list of configuration objects. You can define multiple Docker volumes on the same task definition, but a single volume can only have one `docker_volume_configuration`. | <pre>list(object({<br/>    host_path = string<br/>    name      = string<br/>    docker_volume_configuration = list(object({<br/>      autoprovision = bool<br/>      driver        = string<br/>      driver_opts   = map(string)<br/>      labels        = map(string)<br/>      scope         = string<br/>    }))<br/>  }))</pre> | `[]` | no |
+| <a name="input_ecs_alarms_cpu_utilization_high_alarm_actions"></a> [ecs\_alarms\_cpu\_utilization\_high\_alarm\_actions](#input\_ecs\_alarms\_cpu\_utilization\_high\_alarm\_actions) | A list of ARNs (i.e. SNS Topic ARN) to notify on CPU Utilization High Alarm action | `list(string)` | `[]` | no |
+| <a name="input_ecs_alarms_cpu_utilization_high_evaluation_periods"></a> [ecs\_alarms\_cpu\_utilization\_high\_evaluation\_periods](#input\_ecs\_alarms\_cpu\_utilization\_high\_evaluation\_periods) | Number of periods to evaluate for the alarm | `number` | `1` | no |
+| <a name="input_ecs_alarms_cpu_utilization_high_ok_actions"></a> [ecs\_alarms\_cpu\_utilization\_high\_ok\_actions](#input\_ecs\_alarms\_cpu\_utilization\_high\_ok\_actions) | A list of ARNs (i.e. SNS Topic ARN) to notify on CPU Utilization High OK action | `list(string)` | `[]` | no |
+| <a name="input_ecs_alarms_cpu_utilization_high_period"></a> [ecs\_alarms\_cpu\_utilization\_high\_period](#input\_ecs\_alarms\_cpu\_utilization\_high\_period) | Duration in seconds to evaluate for the alarm | `number` | `300` | no |
+| <a name="input_ecs_alarms_cpu_utilization_high_threshold"></a> [ecs\_alarms\_cpu\_utilization\_high\_threshold](#input\_ecs\_alarms\_cpu\_utilization\_high\_threshold) | The maximum percentage of CPU utilization average | `number` | `80` | no |
+| <a name="input_ecs_alarms_cpu_utilization_low_alarm_actions"></a> [ecs\_alarms\_cpu\_utilization\_low\_alarm\_actions](#input\_ecs\_alarms\_cpu\_utilization\_low\_alarm\_actions) | A list of ARNs (i.e. SNS Topic ARN) to notify on CPU Utilization Low Alarm action | `list(string)` | `[]` | no |
+| <a name="input_ecs_alarms_cpu_utilization_low_evaluation_periods"></a> [ecs\_alarms\_cpu\_utilization\_low\_evaluation\_periods](#input\_ecs\_alarms\_cpu\_utilization\_low\_evaluation\_periods) | Number of periods to evaluate for the alarm | `number` | `1` | no |
+| <a name="input_ecs_alarms_cpu_utilization_low_ok_actions"></a> [ecs\_alarms\_cpu\_utilization\_low\_ok\_actions](#input\_ecs\_alarms\_cpu\_utilization\_low\_ok\_actions) | A list of ARNs (i.e. SNS Topic ARN) to notify on CPU Utilization Low OK action | `list(string)` | `[]` | no |
+| <a name="input_ecs_alarms_cpu_utilization_low_period"></a> [ecs\_alarms\_cpu\_utilization\_low\_period](#input\_ecs\_alarms\_cpu\_utilization\_low\_period) | Duration in seconds to evaluate for the alarm | `number` | `300` | no |
+| <a name="input_ecs_alarms_cpu_utilization_low_threshold"></a> [ecs\_alarms\_cpu\_utilization\_low\_threshold](#input\_ecs\_alarms\_cpu\_utilization\_low\_threshold) | The minimum percentage of CPU utilization average | `number` | `20` | no |
+| <a name="input_ecs_alarms_enabled"></a> [ecs\_alarms\_enabled](#input\_ecs\_alarms\_enabled) | A boolean to enable/disable CloudWatch Alarms for ECS Service metrics | `bool` | `false` | no |
+| <a name="input_ecs_alarms_memory_utilization_high_alarm_actions"></a> [ecs\_alarms\_memory\_utilization\_high\_alarm\_actions](#input\_ecs\_alarms\_memory\_utilization\_high\_alarm\_actions) | A list of ARNs (i.e. SNS Topic ARN) to notify on Memory Utilization High Alarm action | `list(string)` | `[]` | no |
+| <a name="input_ecs_alarms_memory_utilization_high_evaluation_periods"></a> [ecs\_alarms\_memory\_utilization\_high\_evaluation\_periods](#input\_ecs\_alarms\_memory\_utilization\_high\_evaluation\_periods) | Number of periods to evaluate for the alarm | `number` | `1` | no |
+| <a name="input_ecs_alarms_memory_utilization_high_ok_actions"></a> [ecs\_alarms\_memory\_utilization\_high\_ok\_actions](#input\_ecs\_alarms\_memory\_utilization\_high\_ok\_actions) | A list of ARNs (i.e. SNS Topic ARN) to notify on Memory Utilization High OK action | `list(string)` | `[]` | no |
+| <a name="input_ecs_alarms_memory_utilization_high_period"></a> [ecs\_alarms\_memory\_utilization\_high\_period](#input\_ecs\_alarms\_memory\_utilization\_high\_period) | Duration in seconds to evaluate for the alarm | `number` | `300` | no |
+| <a name="input_ecs_alarms_memory_utilization_high_threshold"></a> [ecs\_alarms\_memory\_utilization\_high\_threshold](#input\_ecs\_alarms\_memory\_utilization\_high\_threshold) | The maximum percentage of Memory utilization average | `number` | `80` | no |
+| <a name="input_ecs_alarms_memory_utilization_low_alarm_actions"></a> [ecs\_alarms\_memory\_utilization\_low\_alarm\_actions](#input\_ecs\_alarms\_memory\_utilization\_low\_alarm\_actions) | A list of ARNs (i.e. SNS Topic ARN) to notify on Memory Utilization Low Alarm action | `list(string)` | `[]` | no |
+| <a name="input_ecs_alarms_memory_utilization_low_evaluation_periods"></a> [ecs\_alarms\_memory\_utilization\_low\_evaluation\_periods](#input\_ecs\_alarms\_memory\_utilization\_low\_evaluation\_periods) | Number of periods to evaluate for the alarm | `number` | `1` | no |
+| <a name="input_ecs_alarms_memory_utilization_low_ok_actions"></a> [ecs\_alarms\_memory\_utilization\_low\_ok\_actions](#input\_ecs\_alarms\_memory\_utilization\_low\_ok\_actions) | A list of ARNs (i.e. SNS Topic ARN) to notify on Memory Utilization Low OK action | `list(string)` | `[]` | no |
+| <a name="input_ecs_alarms_memory_utilization_low_period"></a> [ecs\_alarms\_memory\_utilization\_low\_period](#input\_ecs\_alarms\_memory\_utilization\_low\_period) | Duration in seconds to evaluate for the alarm | `number` | `300` | no |
+| <a name="input_ecs_alarms_memory_utilization_low_threshold"></a> [ecs\_alarms\_memory\_utilization\_low\_threshold](#input\_ecs\_alarms\_memory\_utilization\_low\_threshold) | The minimum percentage of Memory utilization average | `number` | `20` | no |
 | <a name="input_ecs_cluster_arn"></a> [ecs\_cluster\_arn](#input\_ecs\_cluster\_arn) | The ARN of the ECS cluster where service will be provisioned | `string` | n/a | yes |
 | <a name="input_ecs_load_balancers"></a> [ecs\_load\_balancers](#input\_ecs\_load\_balancers) | A list of load balancer config objects for the ECS service; see [ecs\_service#load\_balancer](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service#load_balancer) docs | <pre>list(object({<br/>    container_name   = string<br/>    container_port   = number<br/>    elb_name         = optional(string)<br/>    target_group_arn = string<br/>    advanced_configuration = optional(object({<br/>      alternate_target_group_arn = string<br/>      production_listener_rule   = string<br/>      role_arn                   = string<br/>      test_listener_rule         = optional(string)<br/>    }), null)<br/>  }))</pre> | `[]` | no |
 | <a name="input_ecs_service_enabled"></a> [ecs\_service\_enabled](#input\_ecs\_service\_enabled) | Whether or not to create the aws\_ecs\_service resource | `bool` | `true` | no |
@@ -389,8 +445,18 @@ For more info, see [Container Definition](https://docs.aws.amazon.com/AmazonECS/
 
 | Name | Description |
 | ---- | ----------- |
+| <a name="output_cpu_utilization_high_cloudwatch_metric_alarm_arn"></a> [cpu\_utilization\_high\_cloudwatch\_metric\_alarm\_arn](#output\_cpu\_utilization\_high\_cloudwatch\_metric\_alarm\_arn) | ECS CPU utilization high CloudWatch metric alarm ARN |
+| <a name="output_cpu_utilization_high_cloudwatch_metric_alarm_id"></a> [cpu\_utilization\_high\_cloudwatch\_metric\_alarm\_id](#output\_cpu\_utilization\_high\_cloudwatch\_metric\_alarm\_id) | ECS CPU utilization high CloudWatch metric alarm ID |
+| <a name="output_cpu_utilization_low_cloudwatch_metric_alarm_arn"></a> [cpu\_utilization\_low\_cloudwatch\_metric\_alarm\_arn](#output\_cpu\_utilization\_low\_cloudwatch\_metric\_alarm\_arn) | ECS CPU utilization low CloudWatch metric alarm ARN |
+| <a name="output_cpu_utilization_low_cloudwatch_metric_alarm_id"></a> [cpu\_utilization\_low\_cloudwatch\_metric\_alarm\_id](#output\_cpu\_utilization\_low\_cloudwatch\_metric\_alarm\_id) | ECS CPU utilization low CloudWatch metric alarm ID |
 | <a name="output_ecs_exec_role_policy_id"></a> [ecs\_exec\_role\_policy\_id](#output\_ecs\_exec\_role\_policy\_id) | The ECS service role policy ID, in the form of `role_name:role_policy_name` |
 | <a name="output_ecs_exec_role_policy_name"></a> [ecs\_exec\_role\_policy\_name](#output\_ecs\_exec\_role\_policy\_name) | ECS service role name |
+| <a name="output_memory_utilization_high_cloudwatch_metric_alarm_arn"></a> [memory\_utilization\_high\_cloudwatch\_metric\_alarm\_arn](#output\_memory\_utilization\_high\_cloudwatch\_metric\_alarm\_arn) | ECS Memory utilization high CloudWatch metric alarm ARN |
+| <a name="output_memory_utilization_high_cloudwatch_metric_alarm_id"></a> [memory\_utilization\_high\_cloudwatch\_metric\_alarm\_id](#output\_memory\_utilization\_high\_cloudwatch\_metric\_alarm\_id) | ECS Memory utilization high CloudWatch metric alarm ID |
+| <a name="output_memory_utilization_low_cloudwatch_metric_alarm_arn"></a> [memory\_utilization\_low\_cloudwatch\_metric\_alarm\_arn](#output\_memory\_utilization\_low\_cloudwatch\_metric\_alarm\_arn) | ECS Memory utilization low CloudWatch metric alarm ARN |
+| <a name="output_memory_utilization_low_cloudwatch_metric_alarm_id"></a> [memory\_utilization\_low\_cloudwatch\_metric\_alarm\_id](#output\_memory\_utilization\_low\_cloudwatch\_metric\_alarm\_id) | ECS Memory utilization low CloudWatch metric alarm ID |
+| <a name="output_scale_down_policy_arn"></a> [scale\_down\_policy\_arn](#output\_scale\_down\_policy\_arn) | ARN of the autoscaling scale down policy |
+| <a name="output_scale_up_policy_arn"></a> [scale\_up\_policy\_arn](#output\_scale\_up\_policy\_arn) | ARN of the autoscaling scale up policy |
 | <a name="output_service_arn"></a> [service\_arn](#output\_service\_arn) | ECS Service ARN |
 | <a name="output_service_name"></a> [service\_name](#output\_service\_name) | ECS Service name |
 | <a name="output_service_role_arn"></a> [service\_role\_arn](#output\_service\_role\_arn) | ECS Service role ARN |

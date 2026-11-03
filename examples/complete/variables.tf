@@ -138,3 +138,15 @@ variable "redeploy_on_apply" {
   description = "Updates the service to the latest task definition on each apply"
   default     = false
 }
+
+variable "autoscaling_enabled" {
+  type        = bool
+  description = "Whether or not to enable autoscaling for the ECS service"
+  default     = false
+}
+
+variable "ecs_alarms_enabled" {
+  type        = bool
+  description = "Whether or not to enable CloudWatch Alarms for ECS Service metrics"
+  default     = false
+}

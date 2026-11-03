@@ -122,6 +122,21 @@ func TestExamplesComplete(t *testing.T) {
 	taskRoleArn := terraform.Output(t, terraformOptions, "task_role_arn")
 	// Verify we're getting back the outputs we expect
 	assert.Equal(t, "arn:aws:iam::799847381734:role/"+basename+"-task", taskRoleArn)
+
+	// Run `terraform output` to get the value of an output variable
+	scaleUpPolicyArn := terraform.Output(t, terraformOptions, "scale_up_policy_arn")
+	// Verify we're getting back the outputs we expect
+	assert.Contains(t, scaleUpPolicyArn, basename+"-up")
+
+	// Run `terraform output` to get the value of an output variable
+	scaleDownPolicyArn := terraform.Output(t, terraformOptions, "scale_down_policy_arn")
+	// Verify we're getting back the outputs we expect
+	assert.Contains(t, scaleDownPolicyArn, basename+"-down")
+
+	// Run `terraform output` to get the value of an output variable
+	memoryUtilizationHighAlarmId := terraform.Output(t, terraformOptions, "memory_utilization_high_cloudwatch_metric_alarm_id")
+	// Verify we're getting back the outputs we expect
+	assert.Equal(t, basename+"-memory-utilization-high", memoryUtilizationHighAlarmId)
 }
 
 func TestExamplesCompleteDisabled(t *testing.T) {

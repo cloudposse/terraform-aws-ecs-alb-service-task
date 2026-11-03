@@ -92,3 +92,13 @@ output "task_definition_revision" {
   description = "ECS task definition revision"
   value       = module.ecs_alb_service_task.task_definition_revision
 }
+
+output "scale_up_policy_arn" {
+  description = "ARN of the autoscaling scale up policy"
+  value       = module.ecs_alb_service_task.scale_up_policy_arn
+}
+
+output "scale_down_policy_arn" {
+  description = "ARN of the autoscaling scale down policy"
+  value       = module.ecs_alb_service_task.scale_down_policy_arn
+}
