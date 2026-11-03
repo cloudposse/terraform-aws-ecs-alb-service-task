@@ -80,3 +80,6 @@ container_port_mappings = [
 
 force_new_deployment = true
 redeploy_on_apply    = true
+
+autoscaling_enabled = true
+ecs_alarms_enabled  = true

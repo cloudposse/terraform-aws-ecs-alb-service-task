@@ -81,3 +81,53 @@ output "task_definition_arn_without_revision" {
   description = "ECS task definition ARN without revision"
   value       = one(aws_ecs_task_definition.default[*]["arn_without_revision"])
 }
+
+output "scale_up_policy_arn" {
+  description = "ARN of the autoscaling scale up policy"
+  value       = module.ecs_cloudwatch_autoscaling.scale_up_policy_arn
+}
+
+output "scale_down_policy_arn" {
+  description = "ARN of the autoscaling scale down policy"
+  value       = module.ecs_cloudwatch_autoscaling.scale_down_policy_arn
+}
+
+output "cpu_utilization_high_cloudwatch_metric_alarm_id" {
+  description = "ECS CPU utilization high CloudWatch metric alarm ID"
+  value       = module.ecs_cloudwatch_sns_alarms.cpu_utilization_high_cloudwatch_metric_alarm_id
+}
+
+output "cpu_utilization_high_cloudwatch_metric_alarm_arn" {
+  description = "ECS CPU utilization high CloudWatch metric alarm ARN"
+  value       = module.ecs_cloudwatch_sns_alarms.cpu_utilization_high_cloudwatch_metric_alarm_arn
+}
+
+output "cpu_utilization_low_cloudwatch_metric_alarm_id" {
+  description = "ECS CPU utilization low CloudWatch metric alarm ID"
+  value       = module.ecs_cloudwatch_sns_alarms.cpu_utilization_low_cloudwatch_metric_alarm_id
+}
+
+output "cpu_utilization_low_cloudwatch_metric_alarm_arn" {
+  description = "ECS CPU utilization low CloudWatch metric alarm ARN"
+  value       = module.ecs_cloudwatch_sns_alarms.cpu_utilization_low_cloudwatch_metric_alarm_arn
+}
+
+output "memory_utilization_high_cloudwatch_metric_alarm_id" {
+  description = "ECS Memory utilization high CloudWatch metric alarm ID"
+  value       = module.ecs_cloudwatch_sns_alarms.memory_utilization_high_cloudwatch_metric_alarm_id
+}
+
+output "memory_utilization_high_cloudwatch_metric_alarm_arn" {
+  description = "ECS Memory utilization high CloudWatch metric alarm ARN"
+  value       = module.ecs_cloudwatch_sns_alarms.memory_utilization_high_cloudwatch_metric_alarm_arn
+}
+
+output "memory_utilization_low_cloudwatch_metric_alarm_id" {
+  description = "ECS Memory utilization low CloudWatch metric alarm ID"
+  value       = module.ecs_cloudwatch_sns_alarms.memory_utilization_low_cloudwatch_metric_alarm_id
+}
+
+output "memory_utilization_low_cloudwatch_metric_alarm_arn" {
+  description = "ECS Memory utilization low CloudWatch metric alarm ARN"
+  value       = module.ecs_cloudwatch_sns_alarms.memory_utilization_low_cloudwatch_metric_alarm_arn
+}

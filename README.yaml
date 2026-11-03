@@ -178,6 +178,35 @@ usage: |2-
   [examples/blue-green](examples/blue-green) for a full, working setup. Only the `ROLLING` and `BLUE_GREEN`
   strategies are currently supported.
 
+  ### Autoscaling
+
+  Set `autoscaling_enabled = true` to create an Application Auto Scaling scalable target and
+  step-scaling policies for the ECS service (via
+  [cloudposse/terraform-aws-ecs-cloudwatch-autoscaling](https://github.com/cloudposse/terraform-aws-ecs-cloudwatch-autoscaling)):
+
+  ```hcl
+  module "ecs_alb_service_task" {
+    source = "cloudposse/ecs-alb-service-task/aws"
+    # ... other configuration ...
+
+    autoscaling_enabled       = true
+    autoscaling_dimension     = "cpu" # or "memory" (the default)
+    autoscaling_min_capacity  = 1
+    autoscaling_max_capacity  = 10
+
+    # Let the autoscaler own the service's desired count
+    ignore_changes_desired_count = true
+  }
+  ```
+
+  When `ecs_alarms_enabled = true`, the module also creates CPU and memory utilization
+  CloudWatch alarms (via
+  [cloudposse/terraform-aws-ecs-cloudwatch-sns-alarms](https://github.com/cloudposse/terraform-aws-ecs-cloudwatch-sns-alarms)).
+  The alarms for the selected `autoscaling_dimension` automatically trigger the step-scaling
+  policies; supply SNS topic ARNs via the `ecs_alarms_*_alarm_actions` variables to also
+  receive notifications. The scale up/down policy ARNs are available via the
+  `scale_up_policy_arn` and `scale_down_policy_arn` outputs for custom alarm wiring.
+
   The `container_image` in the `container_definition` module is the Docker image used to start a container.
 
   The `container_definition` is a string of JSON-encoded container definitions. Normally, you would place only one container definition here as the example

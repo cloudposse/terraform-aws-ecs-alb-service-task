@@ -19,6 +19,10 @@ locals {
   task_policy_arns_map = merge({ for i, a in var.task_policy_arns : format("_#%v_", i) => a }, var.task_policy_arns_map)
 
   task_exec_policy_arns_map = merge({ for i, a in var.task_exec_policy_arns : format("_#%v_", i) => a }, var.task_exec_policy_arns_map)
+
+  # Parse the cluster name from the cluster ARN (`arn:aws:ecs:<region>:<account>:cluster/<name>`);
+  # fall back to the raw value when it is not an ARN.
+  ecs_cluster_name = element(concat(split("/", var.ecs_cluster_arn), [var.ecs_cluster_arn]), 1)
 }
 
 module "task_label" {
@@ -1171,4 +1175,106 @@ resource "aws_ecs_service" "default" {
   # See https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecs_service
   depends_on = [aws_iam_role.ecs_service, aws_iam_role_policy.ecs_service]
 
+}
+
+# Autoscaling
+locals {
+  # Select the scaling policy ARNs matching the configured dimension, so that the
+  # corresponding CloudWatch alarms trigger them. Empty strings are discarded by
+  # `compact()` in the alarm actions, and when autoscaling is disabled nothing is wired.
+  cpu_utilization_high_alarm_actions    = var.autoscaling_enabled && var.autoscaling_dimension == "cpu" ? module.ecs_cloudwatch_autoscaling.scale_up_policy_arn : ""
+  cpu_utilization_low_alarm_actions     = var.autoscaling_enabled && var.autoscaling_dimension == "cpu" ? module.ecs_cloudwatch_autoscaling.scale_down_policy_arn : ""
+  memory_utilization_high_alarm_actions = var.autoscaling_enabled && var.autoscaling_dimension == "memory" ? module.ecs_cloudwatch_autoscaling.scale_up_policy_arn : ""
+  memory_utilization_low_alarm_actions  = var.autoscaling_enabled && var.autoscaling_dimension == "memory" ? module.ecs_cloudwatch_autoscaling.scale_down_policy_arn : ""
+}
+
+module "ecs_cloudwatch_autoscaling" {
+  source  = "cloudposse/ecs-cloudwatch-autoscaling/aws"
+  version = "0.7.5"
+
+  enabled = var.autoscaling_enabled
+
+  cluster_name          = local.ecs_cluster_name
+  service_name          = module.this.id
+  min_capacity          = var.autoscaling_min_capacity
+  max_capacity          = var.autoscaling_max_capacity
+  scale_up_adjustment   = var.autoscaling_scale_up_adjustment
+  scale_up_cooldown     = var.autoscaling_scale_up_cooldown
+  scale_down_adjustment = var.autoscaling_scale_down_adjustment
+  scale_down_cooldown   = var.autoscaling_scale_down_cooldown
+
+  context = module.this.context
+
+  # The scalable target and policies reference the ECS service by name (not ARN),
+  # so ensure they are created after and destroyed before the service.
+  depends_on = [
+    aws_ecs_service.default,
+    aws_ecs_service.ignore_changes_task_definition,
+    aws_ecs_service.ignore_changes_task_definition_and_desired_count,
+    aws_ecs_service.ignore_changes_desired_count,
+  ]
+}
+
+module "ecs_cloudwatch_sns_alarms" {
+  source  = "cloudposse/ecs-cloudwatch-sns-alarms/aws"
+  version = "0.12.2"
+
+  enabled = var.ecs_alarms_enabled
+
+  cluster_name = local.ecs_cluster_name
+  service_name = module.this.id
+
+  cpu_utilization_high_threshold          = var.ecs_alarms_cpu_utilization_high_threshold
+  cpu_utilization_high_evaluation_periods = var.ecs_alarms_cpu_utilization_high_evaluation_periods
+  cpu_utilization_high_period             = var.ecs_alarms_cpu_utilization_high_period
+
+  cpu_utilization_high_alarm_actions = compact(
+    concat(
+      var.ecs_alarms_cpu_utilization_high_alarm_actions,
+      [local.cpu_utilization_high_alarm_actions],
+    )
+  )
+
+  cpu_utilization_high_ok_actions = var.ecs_alarms_cpu_utilization_high_ok_actions
+
+  cpu_utilization_low_threshold          = var.ecs_alarms_cpu_utilization_low_threshold
+  cpu_utilization_low_evaluation_periods = var.ecs_alarms_cpu_utilization_low_evaluation_periods
+  cpu_utilization_low_period             = var.ecs_alarms_cpu_utilization_low_period
+
+  cpu_utilization_low_alarm_actions = compact(
+    concat(
+      var.ecs_alarms_cpu_utilization_low_alarm_actions,
+      [local.cpu_utilization_low_alarm_actions],
+    )
+  )
+
+  cpu_utilization_low_ok_actions = var.ecs_alarms_cpu_utilization_low_ok_actions
+
+  memory_utilization_high_threshold          = var.ecs_alarms_memory_utilization_high_threshold
+  memory_utilization_high_evaluation_periods = var.ecs_alarms_memory_utilization_high_evaluation_periods
+  memory_utilization_high_period             = var.ecs_alarms_memory_utilization_high_period
+
+  memory_utilization_high_alarm_actions = compact(
+    concat(
+      var.ecs_alarms_memory_utilization_high_alarm_actions,
+      [local.memory_utilization_high_alarm_actions],
+    )
+  )
+
+  memory_utilization_high_ok_actions = var.ecs_alarms_memory_utilization_high_ok_actions
+
+  memory_utilization_low_threshold          = var.ecs_alarms_memory_utilization_low_threshold
+  memory_utilization_low_evaluation_periods = var.ecs_alarms_memory_utilization_low_evaluation_periods
+  memory_utilization_low_period             = var.ecs_alarms_memory_utilization_low_period
+
+  memory_utilization_low_alarm_actions = compact(
+    concat(
+      var.ecs_alarms_memory_utilization_low_alarm_actions,
+      [local.memory_utilization_low_alarm_actions],
+    )
+  )
+
+  memory_utilization_low_ok_actions = var.ecs_alarms_memory_utilization_low_ok_actions
+
+  context = module.this.context
 }
