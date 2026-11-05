@@ -14,6 +14,8 @@ resource "aws_iam_role" "default" {
       }
     ]
   })
+
+  tags = module.this.tags
 }
 
 resource "aws_iam_role_policy" "default" {
@@ -110,10 +112,12 @@ resource "aws_codepipeline" "default" {
       version         = "1"
       input_artifacts = ["SourceOutput"]
       configuration = {
-        ApplicationName                = local.container_name
-        DeploymentGroupName            = local.container_name
+        ApplicationName     = local.container_name
+        DeploymentGroupName = local.container_name
       }
     }
   }
   depends_on = [aws_s3_object.appspec_artifacts]
+
+  tags = module.this.tags
 }

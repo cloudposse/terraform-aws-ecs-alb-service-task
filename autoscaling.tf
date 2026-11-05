@@ -18,6 +18,8 @@ resource "aws_iam_role" "autoscale" {
   ]
 }
 EOF
+
+  tags = module.this.tags
 }
 
 resource "aws_iam_role_policy_attachment" "autoscale" {
@@ -33,6 +35,8 @@ resource "aws_appautoscaling_target" "ecs_target" {
   resource_id        = "service/${local.cluster_name}/${try(aws_ecs_service.default[0].name, aws_ecs_service.ignore_changes_task_definition[0].name, aws_ecs_service.ignore_changes_desired_count[0].name, aws_ecs_service.ignore_changes_task_definition_and_desired_count[0].name, "")}"
   scalable_dimension = "ecs:service:DesiredCount"
   service_namespace  = "ecs"
+
+  tags = module.this.tags
 }
 
 resource "aws_appautoscaling_policy" "ecs_target_cpu" {
